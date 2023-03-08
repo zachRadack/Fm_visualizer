@@ -1,40 +1,43 @@
-
-
 <!DOCTYPE html>
 <html>
- 
+  
 <head>
-  <title>Finite State Machine Visualizer</title>
-</head>
-<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <title>Finite State Machine Visualizer</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head> 
+
 <body>
     <canvas id="canvas" height="800" width="1200"></canvas>
     <label for="start">Start node:</label>
     <select id="start">
-        <option value="node1">Node 1</option>
-        <option value="node2">Node 2</option>
-        <option value="node3">Node 3</option>
-        <option value="node4">Node 4</option>
-      <!-- add more nodes as needed -->
+        <option value="0">Node 1</option>
+        <option value="1">Node 2</option>
+        <option value="2">Node 3</option>
+        <option value="3">Node 4</option>
+        <option value="4">Node 5</option>
     </select>
-    <label for="goal">Goal node:</label>
-    <select id="goal">
-      <option value="node1">Node 1</option>
-      <option value="node2">Node 2</option>
-      <option value="node3">Node 3</option>
-      <option value="node4">Node 4</option>
-      <option value="node5">Node 5</option>
-      <option value="node6">Node 6</option>
-      <!-- add more nodes as needed -->
+    <br>
+    <label for="end" >End node:</label>
+    <select id="end">
+        <option value="0">Node 1</option>
+        <option value="1" selected="selected">Node 2</option>
+        <option value="2">Node 3</option>
+        <option value="3">Node 4</option>
+        <option value="4">Node 5</option>
     </select>
+    <br>
+    <label for="algorithm">Algorithm:</label>
     <select id="algorithm">
-        <option value="bfs">Breadth-first search</option>
-        <option value="dfs">Depth-first search</option>
-      </select>
+        <option value="dfs">Depth First Search</option>
+        <option value="bfs">Breadth First Search</option>
       
-    
-      <button id="step-button">Next step</button>
-
-      <script src="{{ url_for('static', filename='script.js') }}"></script>
+    </select>
+    <br>
+    <button id="start-btn">Start/reset</button>
+    <button id="next-step-btn">Next Step</button>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
+
 </html>

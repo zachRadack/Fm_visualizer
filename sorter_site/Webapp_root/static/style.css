@@ -1,18 +1,40 @@
 #canvas {
-    border: 1px solid rgb(206, 206, 206);
+    background-color: #f2f2f2;
+    border: 1px solid #d9d9d9;
   }
-  
+    
+.node {
+position: absolute;
+width: 30px;
+height: 30px;
+border-radius: 50%;
+background-color: #fff;
+border: 2px solid #000;
+text-align: center;
+vertical-align: middle;
+line-height: 20px;
+font-size: 12px;
+font-weight: bold;
+cursor: pointer;
+}
 
-  html, body {
-    height: 100%;
-    margin: 0;
-    padding: 0;
-    background-color: #121212;
-    color: #2e2626;
+.line {
+position: absolute;
+border: 1px solid #000;
+text-align: center;
+font-size: 12px;
+font-weight: bold;
+pointer-events: none;
+}
+
+.was-computer{
+    background-color: #6567fd;
+}
+.observed-node{
+background-color: #13d613;
 } 
 
-
-body {
-    color: white;
-  }
-  
+/*keep this below observed node so its background color takes priority*/
+.visited-node{
+    background-color: #d61313;
+}

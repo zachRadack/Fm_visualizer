@@ -1,326 +1,295 @@
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-let path = [];
-const nodes = [
-    { id: 'node1', x: 50, y: 50, neighbors: [['node2', 5], ['node3', 2]] },
-    { id: 'node2', x: 200, y: 50, neighbors: [['node1', 1], ['node3', 3], ['node4', 3], ['node5', 1]] },
-    { id: 'node3', x: 50, y: 150, neighbors: [['node1', 2], ['node2', 3], ['node5', 1]] },
-    { id: 'node4', x: 120, y: 200, neighbors: [['node1', 2], ['node2', 3], ['node5', 1]] },
-    { id: 'node5', x: 250, y: 150, neighbors: [['node2', 1], ['node3', 1], ['node4', 1]] },
-    { id: 'node6', x: 300, y: 150, neighbors: [['node5', 1]] }
-    // add more nodes as needed
-  ];
-   
-
-let startNode = 'node1';
-let goalNode = 'node4';
-
-
-// draws the nodes
-function drawNodes() {
-  nodes.forEach(node => {
-    ctx.beginPath();
-    ctx.arc(node.x, node.y, 20, 0, 2 * Math.PI);
-    ctx.strokeStyle = 'white';
-    ctx.stroke();
-    ctx.fillStyle = 'white';
-    ctx.fillText(node.id, node.x - 10, node.y - 30);
-
-  });
-}
-
-
-// draw the lines between the nodes
-function drawTransitions() {
-  nodes.forEach(node => {
-        node.neighbors.forEach(([neighborId, weight]) => {
-        const neighbor = nodes.find(n => n.id === neighborId);
-        ctx.beginPath();
-        ctx.moveTo(node.x, node.y);
-        ctx.lineTo(neighbor.x, neighbor.y);
-
-        const x = (node.x + neighbor.x) / 2;
-        const y = (node.y + neighbor.y) / 2 - 10;
-        ctx.strokeStyle = 'white';
-        ctx.stroke();
-        ctx.fillStyle = 'white';
-        ctx.fillText(weight, x, y);
-
+// Initialize canvas
+var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
+// Generate nodes and connections
+var nodes = generateNodes(5);
+console.log(nodes);
+var connections = connectNodes(nodes, 8);
+// Add nodes to the canvas
+for (var i = 0; i < nodes.length; i++) {
+    var node = nodes[i];
+    var nodeEl = $("<div>", {
+        class: "node",
+        id: i,
+        text: i + 1
+    })
+    $("#canvas").after(nodeEl);
+    nodeEl.css({
+        left: node.x - 10,
+        top: node.y - 10
+    }).draggable({
+        containment: "parent",
+        drag: function(event, ui) {
+            var index = $(this).text() - 1;
+            nodes[index].x = ui.position.left + 10;
+            nodes[index].y = ui.position.top + 10;
+            drawConnections();
+        }
+        
+ 
     });
-  });
+}
+// Draw initial connections on canvas
+drawConnections();
+
+
+var algorithm;
+var startNode;
+var endNode;
+var visited =new Set();
+var frontier;
+
+var observedNode;
+var neighbors = [];
+
+// Handle button click
+$("#start-btn").click(function() {
+    startNode = parseInt($("#start").val());
+    //colorNode(startNode,"red");
+    endNode = parseInt($("#end").val());
+    algorithm = $("#algorithm").val();
+    console.log("Start node: " + startNode);
+    console.log("End node: " + endNode);
+    console.log("Algorithm: " + algorithm);
+
+    // algorithm logic below here
+
+    // handles the start
+    initializer();
+
+    if(algorithm = "dfs"){
+        Depthfirstsearch();
+    }
+});
+
+$("#next-step-btn").click(function() {
+    if(algorithm = "dfs"){
+        Depthfirstsearch();
+    }
+
+});
+
+
+
+
+function initializer(){
+    visited = new Set();
+    new_ObservedNode(startNode);
+    if (isGoalState(observedNode)){
+        console.log("placeholder");
+    }
+
+    frontier = [{ node: observedNode, path: [], costs: [] }];
+    
+}
+function Depthfirstsearch(){
+    var successor;
+    var newCost;
+    console.log("dfs");
+    if(frontier.length){
+        console.log("dead end?")
+    }
+    const { node, path, costs } = frontier.pop();
+    
+    // see if we hit the goal yet
+    if (isGoalState(node)){
+        console.log("placeholder");
+    }
+    if(!(visited.has(node))){
+        visited.add(node);
+        for (let [successor, newCost] of getNeighbors(node)){
+            wasComputer(successor);
+            frontier.push({node:successor,path:path.concat([node]),costs: costs.concat([newCost])})
+        }
+    }
+
+}
+function breadthfirstsearch(){
+    console.log("bfs");
 }
 
-  
-  
-function drawPath(path) {
-    ctx.strokeStyle = 'red';
-    ctx.lineWidth = 6* devicePixelRatio;
-    for (let i = 0; i < path.length - 1; i++) {
-      const fromNode = nodes.find(node => node.id === path[i]);
-      const toNode = nodes.find(node => node.id === path[i + 1]);
-      ctx.beginPath();
-      ctx.moveTo(fromNode.x, fromNode.y);
-      ctx.lineTo(toNode.x, toNode.y);
-      ctx.stroke();
+
+function isGoalState(node){
+    if(node==endNode){
+        return true;
     }
-  }
-  
-  function resetCanvas() {
+    return false;
+
+}
+
+function getNeighbors(theNode){
+    var neighbors=[];
+
+    for (var i = 0; i < connections.length; i++) {
+        // Check only the first connection object in each pair
+        var connection = connections[i][0];
+        if (((connection.start === theNode)) || (connection.end === theNode)) {
+            if(connection.start === theNode){
+                neighbors.push([connection.end,connection.cost]);
+            }else{
+                neighbors.push([connection.start,connection.cost]);
+            }
+        }
+    }
+    return neighbors;
+
+}
+
+function new_ObservedNode(newNode){
+    // Sets classes of nodes, by changing background colors of them, to visualize where the search is
+    var dune;
+    // if observed node is not initilaized, it gets skipped
+    if (observedNode !=dune){
+        document.getElementById((observedNode).toString()).classList.remove("observed-node");
+        document.getElementById((newNode).toString()).classList.add("visited-node");
+    }
+        observedNode = newNode;
+        document.getElementById((newNode).toString()).classList.add("observed-node");
+}
+
+// this is like new_ObservedNode, but instead shows what the thing added in to neighbors
+function wasComputer(theNode){
+    document.getElementById((theNode).toString()).classList.add("was-computer");
+}
+
+
+// Generate random nodes
+function generateNodes(count) {
+    var nodes = [];
+    var canvas = $("#canvas");
+    var canvasWidth = canvas.width();
+    var canvasHeight = canvas.height();
+    for (var i = 0; i < count; i++) {
+        var x = Math.floor(Math.random() * canvasWidth);
+        var y = Math.floor(Math.random() * canvasHeight);
+        nodes.push({
+            x: x,
+            y: y
+        });
+    }
+    return nodes;
+}
+
+
+// This function connects nodes in a graph by creating connections between them.
+// It takes in a list of nodes and the desired number of connections.
+// It returns an array of connections in the form of [startNode, endNode, cost].
+function connectNodes(nodes, count) {
+    const connections = [];
+    // a set to hold nodes that are already connected
+    const connectedNodes = new Set();
+    // Ensure that all nodes have at least one connection
+    // For each node, connect it to another random node if it isn't already connected
+    for (let i = 0; i < nodes.length; i++) {
+        const start = i;
+        let end = i;
+        // check if end is already connected or equal to start
+        while (end === i || isConnected(connections,start, end)) {
+            end = Math.floor(Math.random() * nodes.length);
+        }
+        const cost = Math.floor(Math.random() * 10) + 1;
+        connections.push([{
+            start,
+            end,
+            cost
+        }, {
+            start: end,
+            end: start,
+            cost
+        }]);
+        connectedNodes.add(start);
+        connectedNodes.add(end);
+    }
+
+    // Connect nodes to a maximum of three neighbors
+    // For each unconnected node, connect it to up to three random neighbors
+    for (let i = 0; i < count - nodes.length; i++) {
+        // check if all nodes are already connected
+        if (connectedNodes.size === nodes.length) {
+            break;
+        }
+        // pick an unconnected node to start from
+        let start;
+        do {
+            start = Math.floor(Math.random() * nodes.length);
+        } while (connectedNodes.has(start));
+        let attempts = 0;
+        // repeat until we have enough connections or 100 attempts have been made
+        while (connections.length < count && attempts < 100) {
+            attempts++;
+            const neighbors = nodes.map((node, index) => ({
+                    node,
+                    index
+                })).filter(({
+                    index
+                }) => index !== start && !isConnected(connections,start, index) && !isConnected(connections,index, end)) // get all unconnected neighbors
+                .map(({
+                    index
+                }) => index);
+            // if there are less than three neighbors, connect the current node to a random unconnected node
+            if (neighbors.length < 3) {
+                let end = Math.floor(Math.random() * nodes.length);
+                // keep picking new nodes until an unconnected one is found
+                while (isConnected(connections,start, end)) {
+                    end = Math.floor(Math.random() * nodes.length);
+                }
+                // randomly assign a cost to the connection, adds it to both connect and connectednodes
+                const cost = Math.floor(Math.random() * 10) + 1;
+                connections.push([{
+                    start,
+                    end,
+                    cost
+                }, {
+                    start: end,
+                    end: start,
+                    cost
+                }]);
+                connectedNodes.add(end);
+            } else {
+                // if there are already three neighbors, we're done
+                break;
+            }
+        }
+    }
+    // print a message indicating that the implementation has been changed
+    console.log("Reconnected the nodes");
+    // return the array of connections
+    return connections;
+}
+
+
+// Helper function to check if two nodes are already connected
+function isConnected(connections,start, end) {
+    for (var i = 0; i < connections.length; i++) {
+        // Check only the first connection object in each pair
+        var connection = connections[i][0];
+        if ((connection.start === start && connection.end === end) || (connection.start === end && connection.end === start)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+// Draw connections on canvas
+function drawConnections() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawNodes();
-    drawTransitions();
-  }
-  
-
-
-  let currentPathIndex=0;
-
-  document.getElementById('step-button').addEventListener('click', () => {
-    const algorithm = document.getElementById('algorithm').value;
-    //console.log(path.length);
-    if (currentPathIndex === 0) {
-      // Algorithm has not been run yet
-      if (algorithm === 'dfs') {
-        path = dfs(startNode, goalNode);
-      } else if (algorithm === 'bfs') {
-        path = bfs(startNode, goalNode);
-      } else {
-        // Unknown algorithm
-        alert('Unknown algorithm!');
-      }
-      
-      if (path) {
-        resetCanvas();
-        drawPath(path);
-        const firstNode = nodes.find(n => n.id === path[0]);
-        const firstTransition = nodes.find(n => n.neighbors.some(([neighborId]) => neighborId === path[1]));
-        highlightNode(firstNode, firstTransition);
-      }
-    } else if (currentPathIndex < path.length - 1) {
-      // Algorithm has been run and there are more nodes to highlight
-      console.log(path);
-      const nextNode = nodes.find(n => n.id === path[currentPathIndex + 1]);
-      const currentTransition = nodes.find(n => n.neighbors.some(([neighborId]) => neighborId === path[currentPathIndex]));
-      const nextTransition = nodes.find(n => n.neighbors.some(([neighborId]) => neighborId === path[currentPathIndex + 2]));
-      highlightNode(nextNode, nextTransition, currentTransition);
-      currentPathIndex++;
-    }else{
-      currentPathIndex=0;
-    }
-  });
-  
-  
-  function dfs(start, goal) {
-    const visited = new Set();
-    const stack = [{ node: start, path: [] }];
-    
-    while (stack.length > 0) {
-      const { node, path } = stack.pop();
-      
-      if (visited.has(node)) {
-        continue;
-      }
-      
-      path.push(node);
-      visited.add(node);
-      
-      if (node === goal) {
-        return path;
-      }
-      
-      const neighbors = nodes.find(n => n.id === node).neighbors;
-      neighbors.forEach(([neighborId]) => {
-        if (!visited.has(neighborId)) {
-          stack.push({ node: neighborId, path: [...path] });
-        }
-      });
-    }
-    
-    return null;
-  }
-  
-  function bfs(start, goal) {
-    const visited = new Set();
-    const queue = [{ node: start, path: [] }];
-    
-    while (queue.length > 0) {
-      const { node, path } = queue.shift();
-      
-      if (visited.has(node)) {
-        continue;
-      }
-      
-      path.push(node);
-      visited.add(node);
-      
-      if (node === goal) {
-        return path;
-      }
-      
-      const neighbors = nodes.find(n => n.id === node).neighbors;
-      neighbors.forEach(([neighborId]) => {
-        if (!visited.has(neighborId)) {
-          queue.push({ node: neighborId, path: [...path] });
-        }
-      });
-    }
-    
-    return null;
-  }
-  
-  
-  function highlightNode(node, transition, prevTransition) {
-    ctx.beginPath();
-    ctx.arc(node.x, node.y, 20, 0, 2 * Math.PI);
-    ctx.fillStyle = 'green';
-    ctx.fill();
-    
-    if (transition) {
+    ctx.font = "20px Arial";
+    for (var i = 0; i < connections.length; i++) {
+        var connection = connections[i][0];
+        var startNode = nodes[connection.start];
+        var endNode = nodes[connection.end];
+        var cost = connection.cost;
+        // Calculate midpoint of line for label placement
+        var midX = (startNode.x + endNode.x) / 2;
+        var midY = (startNode.y + endNode.y) / 2;
+        // Draw line between nodes
         ctx.beginPath();
-        ctx.moveTo(transition.x, transition.y);
-        ctx.lineTo(node.x, node.y);
-        ctx.strokeStyle = 'red';
-        ctx.lineWidth = 6 * window.devicePixelRatio;
+        ctx.moveTo(startNode.x, startNode.y);
+        ctx.lineTo(endNode.x, endNode.y);
         ctx.stroke();
-    }
-    if (prevTransition) {
-        ctx.beginPath();
-        ctx.moveTo(prevTransition.x, prevTransition.y);
-        ctx.lineTo(node.x, node.y);
-        ctx.strokeStyle = 'white';
-        ctx.lineWidth = 6 * window.devicePixelRatio;
-        ctx.stroke();
+        // Add cost label to the middle of the line
+        ctx.fillStyle = "#000";
+        ctx.fillText(cost, midX, midY);
     }
 }
-
-  
-  canvas.addEventListener('mousedown', e => {
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    nodes.forEach(node => {
-      const dist = Math.sqrt((node.x - mouseX) ** 2 + (node.y - mouseY) ** 2);
-      if (dist < 20) {
-        canvas.addEventListener('mousemove', moveNode);
-        canvas.addEventListener('mouseup', stopMovingNode);
-        node.isDragging = true;
-      }
-    });
-  });
-  
-  function moveNode(e) {
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
-    nodes.filter(node => node.isDragging).forEach(node => {
-      node.x = mouseX;
-      node.y = mouseY;
-    });
-    resetCanvas();
-  }
-  
-  function stopMovingNode(e) {
-    canvas.removeEventListener('mousemove', moveNode);
-    canvas.removeEventListener('mouseup', stopMovingNode);
-    nodes.forEach(node => node.isDragging = false);
-  }
-  
-  document.getElementById('start').addEventListener('change', e => {
-    startNode = e.target.value;
-  });
-  
-  document.getElementById('goal').addEventListener('change', e => {
-    goalNode = e.target.value;
-  });
-  
-  
-  drawNodes();
-  drawTransitions();
-  
-
-
-  
-
-
-  class PriorityQueue {
-    constructor(comparator = (a, b) => a < b) {
-      this._heap = [];
-      this._comparator = comparator;
-    }
-  
-    enqueue(value) {
-      this._heap.push(value);
-      this._siftUp();
-    }
-  
-    dequeue() {
-      const value = this._heap[0];
-      const lastValue = this._heap.pop();
-      if (this._heap.length > 0) {
-        this._heap[0] = lastValue;
-        this._siftDown();
-      }
-      return value;
-    }
-  
-    decreaseKey(value) {
-      const index = this._heap.indexOf(value);
-      this._siftUp(index);
-    }
-  
-    isEmpty() {
-      return this._heap.length === 0;
-    }
-  
-    _getParentIndex(childIndex) {
-      return Math.floor((childIndex - 1) / 2);
-    }
-  
-    _getLeftChildIndex(parentIndex) {
-      return parentIndex * 2 + 1;
-    }
-  
-    _getRightChildIndex(parentIndex) {
-      return parentIndex * 2 + 2;
-    }
-  
-    _siftUp(index = this._heap.length - 1) {
-      const value = this._heap[index];
-      while (index > 0) {
-        const parentIndex = this._getParentIndex(index);
-        const parentValue = this._heap[parentIndex];
-        if (this._comparator(value, parentValue)) {
-          this._heap[parentIndex] = value;
-          this._heap[index] = parentValue;
-          index = parentIndex;
-        } else {
-          break;
-        }
-      }
-    }
-  
-    _siftDown(index = 0) {
-      const value = this._heap[index];
-      while (true) {
-        const leftChildIndex = this._getLeftChildIndex(index);
-        const rightChildIndex = this._getRightChildIndex(index);
-        let smallestChildIndex = index;
-        if (leftChildIndex < this._heap.length && this._comparator(this._heap[leftChildIndex], this._heap[smallestChildIndex])) {
-          smallestChildIndex = leftChildIndex;
-        }
-        if (rightChildIndex < this._heap.length && this._comparator(this._heap[rightChildIndex], this._heap[smallestChildIndex])) {
-          smallestChildIndex = rightChildIndex;
-        }
-        if (smallestChildIndex !== index) {
-          this._heap[index] = this._heap[smallestChildIndex];
-          this._heap[smallestChildIndex] = value;
-          index = smallestChildIndex;
-        } else {
-          break;
-        }
-      }
-    }
-  }
-
-  
