@@ -33,10 +33,13 @@
       
     </select>
     <br>
+    <label for="seedTextBox">Seeding area:</label>
+    <input type="text" id="seedTextBox" name="seedTextBox">
     <button id="start-btn">Start/reset</button>
     <button id="next-step-btn">Next Step</button>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.min.js"></script>
+    <script src="{{ url_for('static', filename='seedrandom.js') }}"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 

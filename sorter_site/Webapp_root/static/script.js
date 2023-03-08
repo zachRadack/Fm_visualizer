@@ -1,10 +1,17 @@
+//import seedrandom from 'seedrandom';
 // Initialize canvas
+
+
+Math.seed = 1234;
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
+var nodes;
+var connections;
 // Generate nodes and connections
-var nodes = generateNodes(5);
+function startup(){
+nodes = generateNodes(10);
 console.log(nodes);
-var connections = connectNodes(nodes, 8);
+connections = connectNodes(nodes, 14);
 
 // Add nodes to the canvas
 for (var i = 0; i < nodes.length; i++) {
@@ -32,7 +39,7 @@ for (var i = 0; i < nodes.length; i++) {
 }
 // Draw initial connections on canvas
 drawConnections();
-
+}
 
 var algorithm;
 var startNode;
@@ -49,6 +56,12 @@ var neighbors = [];
 
 // Handle button click
 $("#start-btn").click(function() {
+    var randomSeed = document.getElementById("seedTextBox").value;
+    if (randomSeed.length == 0) {
+        randomSeed = (Math.random()).toString();
+    }
+    Math.seedrandom(randomSeed);
+    startup();
     startNode = parseInt($("#start").val());
     //colorNode(startNode,"red");
     endNode = parseInt($("#end").val());
@@ -64,6 +77,8 @@ $("#start-btn").click(function() {
 
     if(algorithm = "dfs"){
         Depthfirstsearch();
+    }else if(algorithm = "bfs"){
+        breadthfirstsearch();
     }
 });
 
@@ -72,6 +87,8 @@ $("#next-step-btn").click(function() {
         end_game();
     }else if(algorithm = "dfs"){
         Depthfirstsearch();
+    }else if(algorithm = "bfs"){
+        breadthfirstsearch();
     }
     
 });
@@ -92,6 +109,7 @@ function end_game(path){
 
 
 function initializer(){
+    
     visited = new Set();
     new_ObservedNode(startNode);
     if (isGoalState(observedNode)){
@@ -133,6 +151,33 @@ function Depthfirstsearch(){
 }
 function breadthfirstsearch(){
     console.log("bfs");
+    var successor;
+    var newCost;
+    console.log("dfs");
+    if(frontier.length){
+        console.log("dead end?")
+    }
+    const { node, path, costs } = frontier.pop();
+
+     // see if we hit the goal yet
+     if (isGoalState(node)){
+        found_path=true;
+        // sends the path to end game
+        end_game(path);
+    }else if(!(visited.has(node))){
+        if(first_run){
+            first_run=false;
+        }else{
+            new_ObservedNode(node);
+        }
+        visited.add(node);
+        for (let [successor, newCost] of getNeighbors(node)){
+            if(!(visited.has(successor))){
+                wasComputer(successor);
+                frontier.unshift({node:successor,path:path.concat([node]),costs: costs.concat([newCost])})
+            }
+        }
+    }
 }
 
 
