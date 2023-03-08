@@ -8,6 +8,7 @@
 
 <body>
     <canvas id="canvas" height="800" width="1200"></canvas>
+    <br>
     <label for="start">Start node:</label>
     <select id="start">
         <option value="0">Node 1</option>
@@ -40,12 +41,17 @@
     <br>
     <label for="seedTextBox">Seeding area:</label>
     <input type="text" id="seedTextBox" name="seedTextBox">
+    <button id="Create-canvas-btn">Load Canvas</button>
     <button id="start-btn">Start/reset</button>
     <button id="next-step-btn">Next Step</button>
+
+    <p>Your current seed is: <p id="currentSeed">No seed has been loaded</p></p>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.min.js"></script>
     <script src="{{ url_for('static', filename='seedrandom.js') }}"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+    
 </body>
 
 </html>

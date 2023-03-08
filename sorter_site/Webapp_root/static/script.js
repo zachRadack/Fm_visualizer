@@ -58,14 +58,7 @@ var neighbors = [];
 
 // Handle button click
 $("#start-btn").click(function() {
-    var randomSeed = document.getElementById("seedTextBox").value;
-    if (randomSeed.length == 0) {
-        randomSeed = (Math.random()).toString();
-    }
-    Math.seedrandom(randomSeed);
-    var totalNodes = parseInt(document.getElementById("totalNodes").value);
-    var totalConnections = parseInt(document.getElementById("totalConnections").value);
-    startup(totalNodes,totalConnections);
+    
     startNode = parseInt($("#start").val());
     //colorNode(startNode,"red");
     endNode = parseInt($("#end").val());
@@ -84,6 +77,20 @@ $("#start-btn").click(function() {
     }else if(algorithm = "bfs"){
         breadthfirstsearch();
     }
+});
+
+$("#Create-canvas-btn").click(function() {
+    var randomSeed = document.getElementById("seedTextBox").value;
+    if (randomSeed.length == 0) {
+        randomSeed = (Math.random()).toString();
+        console.log("The current random seed is: "+randomSeed);
+    }
+
+    document.getElementById("currentSeed").textContent = (randomSeed).toString(); 
+    Math.seedrandom(randomSeed);
+    var totalNodes = parseInt(document.getElementById("totalNodes").value);
+    var totalConnections = parseInt(document.getElementById("totalConnections").value);
+    startup(totalNodes,totalConnections);
 });
 
 $("#next-step-btn").click(function() {
