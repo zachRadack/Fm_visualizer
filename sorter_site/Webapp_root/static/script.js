@@ -2,43 +2,45 @@
 // Initialize canvas
 
 
-Math.seed = 1234;
-var canvas = document.getElementById("canvas");
-var ctx = canvas.getContext("2d");
+
+var canvas;
+var ctx;
 var nodes;
 var connections;
 // Generate nodes and connections
-function startup(){
-nodes = generateNodes(10);
-console.log(nodes);
-connections = connectNodes(nodes, 14);
+function startup(totalNodes,totalConnections){
+    canvas = document.getElementById("canvas");
+    ctx  = canvas.getContext("2d");
+    nodes = generateNodes(totalNodes);
+    console.log(nodes);
+    connections = connectNodes(nodes, totalConnections);
 
-// Add nodes to the canvas
-for (var i = 0; i < nodes.length; i++) {
-    var node = nodes[i];
-    var nodeEl = $("<div>", {
-        class: "node",
-        id: i,
-        text: i + 1
-    })
-    $("#canvas").after(nodeEl);
-    nodeEl.css({
-        left: node.x - 10,
-        top: node.y - 10
-    }).draggable({
-        containment: "parent",
-        drag: function(event, ui) {
-            var index = $(this).text() - 1;
-            nodes[index].x = ui.position.left + 10;
-            nodes[index].y = ui.position.top + 10;
-            drawConnections();
-        }
-        
- 
-    });
-}
-// Draw initial connections on canvas
-drawConnections();
+    // Add nodes to the canvas
+    for (var i = 0; i < nodes.length; i++) {
+        var node = nodes[i];
+        var nodeEl = $("<div>", {
+            class: "node",
+            id: i,
+            text: i + 1
+        })
+        $("#canvas").after(nodeEl);
+        nodeEl.css({
+            left: node.x - 10,
+            top: node.y - 10
+        }).draggable({
+            containment: "parent",
+            drag: function(event, ui) {
+                var index = $(this).text() - 1;
+                nodes[index].x = ui.position.left + 10;
+                nodes[index].y = ui.position.top + 10;
+                drawConnections();
+            }
+            
+    
+        });
+    }
+    // Draw initial connections on canvas
+    drawConnections();
 }
 
 var algorithm;
@@ -61,7 +63,9 @@ $("#start-btn").click(function() {
         randomSeed = (Math.random()).toString();
     }
     Math.seedrandom(randomSeed);
-    startup();
+    var totalNodes = parseInt(document.getElementById("totalNodes").value);
+    var totalConnections = parseInt(document.getElementById("totalConnections").value);
+    startup(totalNodes,totalConnections);
     startNode = parseInt($("#start").val());
     //colorNode(startNode,"red");
     endNode = parseInt($("#end").val());
