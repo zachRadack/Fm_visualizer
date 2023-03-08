@@ -5,6 +5,7 @@ var ctx = canvas.getContext("2d");
 var nodes = generateNodes(5);
 console.log(nodes);
 var connections = connectNodes(nodes, 8);
+
 // Add nodes to the canvas
 for (var i = 0; i < nodes.length; i++) {
     var node = nodes[i];
@@ -39,6 +40,10 @@ var endNode;
 var visited =new Set();
 var frontier;
 
+var first_run =true;
+var found_path =false;
+
+
 var observedNode;
 var neighbors = [];
 
@@ -63,12 +68,26 @@ $("#start-btn").click(function() {
 });
 
 $("#next-step-btn").click(function() {
-    if(algorithm = "dfs"){
+    if(found_path==true){
+        end_game();
+    }else if(algorithm = "dfs"){
         Depthfirstsearch();
     }
-
+    
 });
 
+function end_game(path){
+    
+    //document.getElementById((observedNode).toString()).classList.remove("observed-node");
+
+    path.forEach(function (aNode, i) {
+
+        document.getElementById((aNode).toString()).classList.add("end-game-path");
+        
+      });
+      document.getElementById((startNode).toString()).classList.add("start-node");
+      document.getElementById((endNode).toString()).classList.add("the-goal");
+}
 
 
 
@@ -76,7 +95,7 @@ function initializer(){
     visited = new Set();
     new_ObservedNode(startNode);
     if (isGoalState(observedNode)){
-        console.log("placeholder");
+        found_path=true;
     }
 
     frontier = [{ node: observedNode, path: [], costs: [] }];
@@ -93,13 +112,21 @@ function Depthfirstsearch(){
     
     // see if we hit the goal yet
     if (isGoalState(node)){
-        console.log("placeholder");
-    }
-    if(!(visited.has(node))){
+        found_path=true;
+        // sends the path to end game
+        end_game(path);
+    }else if(!(visited.has(node))){
+        if(first_run){
+            first_run=false;
+        }else{
+            new_ObservedNode(node);
+        }
         visited.add(node);
         for (let [successor, newCost] of getNeighbors(node)){
-            wasComputer(successor);
-            frontier.push({node:successor,path:path.concat([node]),costs: costs.concat([newCost])})
+            if(!(visited.has(successor))){
+                wasComputer(successor);
+                frontier.push({node:successor,path:path.concat([node]),costs: costs.concat([newCost])})
+            }
         }
     }
 
@@ -139,9 +166,9 @@ function new_ObservedNode(newNode){
     // Sets classes of nodes, by changing background colors of them, to visualize where the search is
     var dune;
     // if observed node is not initilaized, it gets skipped
-    if (observedNode !=dune){
-        document.getElementById((observedNode).toString()).classList.remove("observed-node");
-        document.getElementById((newNode).toString()).classList.add("visited-node");
+    if (observedNode !=dune){newNode
+        document.getElementById((newNode).toString()).classList.remove("observed-node");
+        document.getElementById((observedNode).toString()).classList.add("visited-node");
     }
         observedNode = newNode;
         document.getElementById((newNode).toString()).classList.add("observed-node");
