@@ -3,13 +3,28 @@
 
 
 
-var canvas;
+var canvas=document.getElementById("canvas");
 var ctx;
 var nodes;
 var connections;
 // Generate nodes and connections
+
+
+var algorithm;
+var startNode;
+var endNode;
+var visited =new Set();
+var frontier;
+
+var first_run =true;
+var found_path =false;
+
+
+var observedNode;
+var neighbors = [];
+
+
 function startup(totalNodes,totalConnections){
-    canvas = document.getElementById("canvas");
     ctx  = canvas.getContext("2d");
     nodes = generateNodes(totalNodes);
     console.log(nodes);
@@ -43,19 +58,24 @@ function startup(totalNodes,totalConnections){
     drawConnections();
 }
 
-var algorithm;
-var startNode;
-var endNode;
-var visited =new Set();
-var frontier;
+function wipeCanvas(){
+    // Get the 2D context of the canvas
+    var context = canvas.getContext("2d");
 
-var first_run =true;
-var found_path =false;
+    // Set the fill color to white
+    context.fillStyle = "#808080";
 
+    // Clear the entire canvas
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    nodes=[]
+    // Get a collection of all elements with the "my-class" class
+    var elements = document.querySelectorAll('.node');
 
-var observedNode;
-var neighbors = [];
-
+    // Loop through the collection and remove each element
+    for (var i = 0; i < elements.length; i++) {
+    elements[i].parentNode.removeChild(elements[i]);
+    }
+}
 // Handle button click
 $("#start-btn").click(function() {
     
@@ -80,12 +100,13 @@ $("#start-btn").click(function() {
 });
 
 $("#Create-canvas-btn").click(function() {
+    wipeCanvas();
     var randomSeed = document.getElementById("seedTextBox").value;
     if (randomSeed.length == 0) {
         randomSeed = (Math.random()).toString();
         console.log("The current random seed is: "+randomSeed);
     }
-
+    
     document.getElementById("currentSeed").textContent = (randomSeed).toString(); 
     Math.seedrandom(randomSeed);
     var totalNodes = parseInt(document.getElementById("totalNodes").value);
@@ -162,9 +183,8 @@ function Depthfirstsearch(){
 }
 function breadthfirstsearch(){
     console.log("bfs");
-    var successor;
-    var newCost;
-    console.log("dfs");
+
+
     if(frontier.length){
         console.log("dead end?")
     }
