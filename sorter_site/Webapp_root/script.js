@@ -1,5 +1,4 @@
-//import seedrandom from 'seedrandom';
-// Initialize canvas
+//good dfs seed: 0.8906472348391477
 
 
 
