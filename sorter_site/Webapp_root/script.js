@@ -303,7 +303,7 @@ function connectNodes(nodes, count) {
         const start = i;
         let end = i;
         // check if end is already connected or equal to start
-        while (end === i || isConnected(connections,start, end)) {
+        while ((end === i || isConnected(connections,start, end))&&checkIntersection(converterPoint(start,end,nodes),connections,nodes)) {
             end = Math.floor(Math.random() * nodes.length);
         }
         const cost = Math.floor(Math.random() * 10) + 1;
@@ -349,7 +349,7 @@ function connectNodes(nodes, count) {
             if (neighbors.length < 3) {
                 let end = Math.floor(Math.random() * nodes.length);
                 // keep picking new nodes until an unconnected one is found
-                while (isConnected(connections,start, end)) {
+                while (isConnected(connections,start, end)&& checkIntersection(converterPoint(start,end,nodes),connections,nodes)) {
                     end = Math.floor(Math.random() * nodes.length);
                 }
                 // randomly assign a cost to the connection, adds it to both connect and connectednodes
@@ -375,6 +375,63 @@ function connectNodes(nodes, count) {
     // return the array of connections
     return connections;
 }
+
+function converterPoint(start,end,nodes){
+    //console.log("start",start);
+    //console.log("end",end);
+    //console.log("nodes",nodes);
+    startNode = {x:nodes[start].x, y:nodes[start].y};
+    endNode = {x:nodes[end].x, y:nodes[end].y};
+    //console.log("nodes[start]",nodes[start]);
+
+    return [startNode,endNode];
+}
+
+
+function checkIntersection(newConn, existingConns,nodes) {
+    console.log("newConn",newConn);
+    console.log("existingConns",existingConns);
+
+    for (let i = 0; i < existingConns.length - 1; i++) {
+        const conn1 = nodes[existingConns[i][0].start];
+        const conn2 = nodes[existingConns[i][0].end];
+
+        
+        const line1 = [newConn[0].x, newConn[0].y, newConn[1].x, newConn[1].y];
+        const line2 = [conn1.x, conn1.y, conn2.x, conn2.y];
+        console.log("lines 1",line1);
+        console.log("lines 2",line2);
+        const slope1 = (line1[1] - line1[3]) / (line1[0] - line1[2]);
+        const yIntercept1 = line1[1] - slope1 * line1[0];
+
+        const slope2 = (line2[1] - line2[3]) / (line2[0] - line2[2]);
+        const yIntercept2 = line2[1] - slope2 * line2[0];
+        
+        if (slope1 === slope2) {
+        // lines are parallel, no intersection
+        continue;
+        }
+
+        const x = (yIntercept2 - yIntercept1) / (slope1 - slope2);
+        const y = slope1 * x + yIntercept1;
+
+        const y1 = slope1 * line1[0] + yIntercept1;
+        const y2 = slope1 * line1[2] + yIntercept1;
+        const minY = Math.min(y1, y2);
+        const maxY = Math.max(y1, y2);
+
+        if (y >= minY && y <= maxY) {
+        // lines intersect, don't draw the new connection
+        console.log("lines intersect, don't draw the new connection");
+        return false;
+        }
+
+    }
+    console.log("no intersections found, draw the new connection");
+    // no intersections found, draw the new connection
+    return true;
+}
+
 
 
 // Helper function to check if two nodes are already connected
