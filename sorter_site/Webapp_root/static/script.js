@@ -4,103 +4,35 @@
 
 
 var canvas=document.getElementById("canvas");
-var ctx;
-var nodes;
-var connections;
-// Generate nodes and connections
 
+var current_screen=new current_Finite_Machine();
 
-var algorithm;
-var startNode;
-var endNode;
-var visited =new Set();
-var frontier;
-
-var first_run =true;
-var found_path =false;
-
-
-var observedNode;
-var neighbors = [];
-
-
-function startup(totalNodes,totalConnections){
-    ctx  = canvas.getContext("2d");
-    nodes = generateNodes(totalNodes);
-    console.log(nodes);
-    connections = connectNodes(nodes, totalConnections);
-
-    // Add nodes to the canvas
-    for (var i = 0; i < nodes.length; i++) {
-        var node = nodes[i];
-        var nodeEl = $("<div>", {
-            class: "node",
-            id: i,
-            text: i + 1
-        })
-        $("#canvas").after(nodeEl);
-        nodeEl.css({
-            left: node.x - 10,
-            top: node.y - 10
-        }).draggable({
-            containment: "parent",
-            drag: function(event, ui) {
-                var index = $(this).text() - 1;
-                nodes[index].x = ui.position.left + 10;
-                nodes[index].y = ui.position.top + 10;
-                drawConnections();
-            }
-            
-    
-        });
-    }
-    // Draw initial connections on canvas
-    drawConnections();
-}
-
-function wipeCanvas(){
-    // Get the 2D context of the canvas
-    var context = canvas.getContext("2d");
-
-    // Set the fill color to white
-    context.fillStyle = "#808080";
-
-    // Clear the entire canvas
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    nodes=[]
-    // Get a collection of all elements with the "my-class" class
-    var elements = document.querySelectorAll('.node');
-
-    // Loop through the collection and remove each element
-    for (var i = 0; i < elements.length; i++) {
-    elements[i].parentNode.removeChild(elements[i]);
-    }
-}
 // Handle button click
 $("#start-btn").click(function() {
-    
-    startNode = parseInt($("#start").val());
+        
+    var startNode = parseInt($("#start").val());
     //colorNode(startNode,"red");
-    endNode = parseInt($("#end").val());
-    algorithm = $("#algorithm").val();
+    var endNode = parseInt($("#end").val());
+    var algorithm = $("#algorithm").val();
     console.log("Start node: " + startNode);
     console.log("End node: " + endNode);
     console.log("Algorithm: " + algorithm);
 
     // algorithm logic below here
 
-    // handles the start
-    initializer();
+
+    current_screen.initializer(startNode,endNode,algorithm);
 
     if(algorithm = "dfs"){
-        Depthfirstsearch();
+        current_screen.Depthfirstsearch();
     }else if(algorithm = "bfs"){
-        breadthfirstsearch();
+        current_screen.breadthfirstsearch();
     }
 });
 
 $("#Create-canvas-btn").click(function() {
-    wipeCanvas();
+    current_screen=new current_Finite_Machine();
+    current_screen.wipeCanvas();
     var randomSeed = document.getElementById("seedTextBox").value;
     if (randomSeed.length == 0) {
         randomSeed = (Math.random()).toString();
@@ -111,150 +43,235 @@ $("#Create-canvas-btn").click(function() {
     Math.seedrandom(randomSeed);
     var totalNodes = parseInt(document.getElementById("totalNodes").value);
     var totalConnections = parseInt(document.getElementById("totalConnections").value);
-    startup(totalNodes,totalConnections);
+    current_screen.startup(totalNodes,totalConnections);
 });
 
 $("#next-step-btn").click(function() {
-    if(found_path==true){
-        end_game();
-    }else if(algorithm = "dfs"){
-        Depthfirstsearch();
-    }else if(algorithm = "bfs"){
-        breadthfirstsearch();
+    if(current_screen.foundPathGetter==true){
+        console.log("1")
+        current_screen.end_game();
+    }else if(current_screen.algoGetter = "dfs"){
+        current_screen.Depthfirstsearch();
+    }else if(current_screen.algoGetter = "bfs"){
+        current_screen.breadthfirstsearch();
     }
     
 });
 
-function end_game(path){
+function current_Finite_Machine() {
+
+    this.canvas = document.getElementById("canvas");
+    this.ctx = this.canvas.getContext("2d");
+    this.nodes = [];
+    this.connections = [];
+    this.startNode = null;
+    this.endNode = null;
+    this.algorithm = null;
+    this.visited = new Set();
+    this.found_path = false;
+    this.frontier = [];
+    this.observedNode = null;
+    this.first_run = true;
+
+    this.startup =function(totalNodes,totalConnections){
+        this.ctx  = this.canvas.getContext("2d");
+        this.nodes = generateNodes(totalNodes);
+        console.log(this.nodes);
+        this.connections = connectNodes(this.nodes, totalConnections);
+
+        // Add nodes to the canvas
+        for (var i = 0; i < this.nodes.length; i++) {
+            var node = this.nodes[i];
+            var nodeEl = $("<div>", {
+                class: "node",
+                id: i,
+                text: i + 1
+            })
+            $("#canvas").after(nodeEl);
+            nodeEl.css({
+                left: node.x - 10,
+                top: node.y - 10
+            }).draggable({
+                containment: "parent",
+                drag: function(event, ui) {
+                    var index = $(this).text() - 1;
+                    current_screen.nodes[index].x = ui.position.left + 10;
+                    current_screen.nodes[index].y = ui.position.top + 10;
+                    drawConnections();
+                }
+                
+
+            });
+        }
+        // Draw initial connections on canvas
+        drawConnections();
+    }
+
+    this.wipeCanvas =function(){
+        // Get the 2D context of the canvas
+        var context = canvas.getContext("2d");
+
+        // Set the fill color to white
+        context.fillStyle = "#808080";
+
+        // Clear the entire canvas
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        nodes=[]
+        // Get a collection of all elements with the "my-class" class
+        var elements = document.querySelectorAll('.node');
+
+        // Loop through the collection and remove each element
+        for (var i = 0; i < elements.length; i++) {
+        elements[i].parentNode.removeChild(elements[i]);
+        }
+    }
     
-    //document.getElementById((observedNode).toString()).classList.remove("observed-node");
 
-    path.forEach(function (aNode, i) {
-
-        document.getElementById((aNode).toString()).classList.add("end-game-path");
+    this.end_game =function(path){
         
-      });
-      document.getElementById((startNode).toString()).classList.add("start-node");
-      document.getElementById((endNode).toString()).classList.add("the-goal");
-}
+        document.getElementById((this.observedNode).toString()).classList.remove("observed-node");
 
+        path.forEach(function (aNode, i) {
 
-
-function initializer(){
-    
-    visited = new Set();
-    new_ObservedNode(startNode);
-    if (isGoalState(observedNode)){
-        found_path=true;
+            document.getElementById((aNode).toString()).classList.add("end-game-path");
+            
+        });
+        document.getElementById((this.startNode).toString()).classList.add("start-node");
+        document.getElementById((this.endNode).toString()).classList.add("the-goal");
     }
 
-    frontier = [{ node: observedNode, path: [], costs: [] }];
-    
-}
-function Depthfirstsearch(){
-    var successor;
-    var newCost;
-    console.log("dfs");
-    if(frontier.length){
-        console.log("dead end?")
-    }
-    const { node, path, costs } = frontier.pop();
-    
-    // see if we hit the goal yet
-    if (isGoalState(node)){
-        found_path=true;
-        // sends the path to end game
-        end_game(path);
-    }else if(!(visited.has(node))){
-        if(first_run){
-            first_run=false;
-        }else{
-            new_ObservedNode(node);
+
+
+    this.initializer =function(sstartNode,eendNode,aalgorithm){
+        
+        this.visited = new Set();
+        this.startNode=sstartNode
+        this.endNode=eendNode
+        this.algorithm=aalgorithm
+        this.new_ObservedNode(this.startNode);
+        if (this.isGoalState(this.observedNode)){
+            this.found_path=true;
         }
-        visited.add(node);
-        for (let [successor, newCost] of getNeighbors(node)){
-            if(!(visited.has(successor))){
-                wasComputer(successor);
-                frontier.push({node:successor,path:path.concat([node]),costs: costs.concat([newCost])})
-            }
+
+        this.frontier = [{ node: this.observedNode, path: [], costs: [] }];
+        
+    }
+    this.Depthfirstsearch =function(){
+        var successor;
+        var newCost;
+        console.log("dfs");
+        if(this.frontier.length){
+            console.log("dead end?")
         }
-    }
-
-}
-function breadthfirstsearch(){
-    console.log("bfs");
-
-
-    if(frontier.length){
-        console.log("dead end?")
-    }
-    const { node, path, costs } = frontier.pop();
-
-     // see if we hit the goal yet
-     if (isGoalState(node)){
-        found_path=true;
-        // sends the path to end game
-        end_game(path);
-    }else if(!(visited.has(node))){
-        if(first_run){
-            first_run=false;
-        }else{
-            new_ObservedNode(node);
-        }
-        visited.add(node);
-        for (let [successor, newCost] of getNeighbors(node)){
-            if(!(visited.has(successor))){
-                wasComputer(successor);
-                frontier.unshift({node:successor,path:path.concat([node]),costs: costs.concat([newCost])})
-            }
-        }
-    }
-}
-
-
-function isGoalState(node){
-    if(node==endNode){
-        return true;
-    }
-    return false;
-
-}
-
-function getNeighbors(theNode){
-    var neighbors=[];
-
-    for (var i = 0; i < connections.length; i++) {
-        // Check only the first connection object in each pair
-        var connection = connections[i][0];
-        if (((connection.start === theNode)) || (connection.end === theNode)) {
-            if(connection.start === theNode){
-                neighbors.push([connection.end,connection.cost]);
+        console.log(this.frontier)
+        const { node, path, costs } = this.frontier.pop();
+        
+        // see if we hit the goal yet
+        if (this.isGoalState(node)){
+            this.found_path=true;
+            // sends the path to end game
+            
+            this.end_game(path);
+        }else if(!(this.visited.has(node))){
+            if(this.first_run){
+                this.first_run=false;
             }else{
-                neighbors.push([connection.start,connection.cost]);
+                this.new_ObservedNode(node);
+            }
+            this.visited.add(node);
+            for (let [successor, newCost] of this.getNeighbors(node)){
+                if(!(this.visited.has(successor))){
+                    this.wasComputer(successor);
+                    this.frontier.push({node:successor,path:path.concat([node]),costs: costs.concat([newCost])})
+                }
+            }
+        }
+
+    }
+    this.breadthfirstsearch =function(){
+        console.log("bfs");
+
+
+        if(this.frontier.length){
+            console.log("dead end?")
+        }
+        const { node, path, costs } = this.frontier.pop();
+
+        // see if we hit the goal yet
+        if (this.isGoalState(node)){
+            this.found_path=true;
+            // sends the path to end game
+            console.log("3")
+            this.end_game(path);
+        }else if(!(this.visited.has(node))){
+            if(this.first_run){
+                this.first_run=false;
+            }else{
+                this.new_ObservedNode(node);
+            }
+            this.visited.add(node);
+            for (let [successor, newCost] of this.getNeighbors(node)){
+                if(!(visited.has(successor))){
+                    this.wasComputer(successor);
+                    this.frontier.unshift({node:successor,path:path.concat([node]),costs: costs.concat([newCost])})
+                }
             }
         }
     }
-    return neighbors;
 
-}
 
-function new_ObservedNode(newNode){
-    // Sets classes of nodes, by changing background colors of them, to visualize where the search is
-    var dune;
-    // if observed node is not initilaized, it gets skipped
-    if (observedNode !=dune){newNode
-        document.getElementById((newNode).toString()).classList.remove("observed-node");
-        document.getElementById((observedNode).toString()).classList.add("visited-node");
+    this.isGoalState =function(node){
+        console.log(node)
+        console.log(this.endNode)
+        if(node==this.endNode){
+            return true;
+        }
+        return false;
+
     }
-        observedNode = newNode;
-        document.getElementById((newNode).toString()).classList.add("observed-node");
-}
 
-// this is like new_ObservedNode, but instead shows what the thing added in to neighbors
-function wasComputer(theNode){
-    document.getElementById((theNode).toString()).classList.add("was-computer");
-}
+    this.getNeighbors =function(theNode){
+        var neighbors=[];
 
+        for (var i = 0; i < this.connections.length; i++) {
+            // Check only the first connection object in each pair
+            var connection = this.connections[i][0];
+            if (((connection.start === theNode)) || (connection.end === theNode)) {
+                if(connection.start === theNode){
+                    neighbors.push([connection.end,connection.cost]);
+                }else{
+                    neighbors.push([connection.start,connection.cost]);
+                }
+            }
+        }
+        return neighbors;
+
+    }
+
+    this.new_ObservedNode =function(newNode){
+        // Sets classes of nodes, by changing background colors of them, to visualize where the search is
+        var dune;
+        // if observed node is not initilaized, it gets skipped
+        if (this.observedNode !=dune){
+            document.getElementById((newNode).toString()).classList.remove("observed-node");
+            document.getElementById((this.observedNode).toString()).classList.add("visited-node");
+        }
+            this.observedNode = newNode;
+            document.getElementById((newNode).toString()).classList.add("observed-node");
+    }
+
+    // this is like this.new_ObservedNode, but instead shows what the thing added in to neighbors
+    this.wasComputer =function(theNode){
+        document.getElementById((theNode).toString()).classList.add("was-computer");
+    }
+
+    this.foundPathGetter = function(){
+        return this.found_path;
+    }
+    this.algoGetter = function(){
+        return this.algorithm;
+    }
+}
 
 // Generate random nodes
 function generateNodes(count) {
@@ -376,23 +393,24 @@ function isConnected(connections,start, end) {
 
 // Draw connections on canvas
 function drawConnections() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.font = "20px Arial";
-    for (var i = 0; i < connections.length; i++) {
-        var connection = connections[i][0];
-        var startNode = nodes[connection.start];
-        var endNode = nodes[connection.end];
+    
+    current_screen.ctx.clearRect(0, 0, canvas.width, canvas.height);
+    current_screen.ctx.font = "20px Arial";
+    for (var i = 0; i < current_screen.connections.length; i++) {
+        var connection = current_screen.connections[i][0];
+        var startNode = current_screen.nodes[connection.start];
+        var endNode = current_screen.nodes[connection.end];
         var cost = connection.cost;
         // Calculate midpoint of line for label placement
         var midX = (startNode.x + endNode.x) / 2;
         var midY = (startNode.y + endNode.y) / 2;
         // Draw line between nodes
-        ctx.beginPath();
-        ctx.moveTo(startNode.x, startNode.y);
-        ctx.lineTo(endNode.x, endNode.y);
-        ctx.stroke();
+        current_screen.ctx.beginPath();
+        current_screen.ctx.moveTo(startNode.x, startNode.y);
+        current_screen.ctx.lineTo(endNode.x, endNode.y);
+        current_screen.ctx.stroke();
         // Add cost label to the middle of the line
-        ctx.fillStyle = "#000";
-        ctx.fillText(cost, midX, midY);
+        current_screen.ctx.fillStyle = "#000";
+        current_screen.ctx.fillText(cost, midX, midY);
     }
 }
