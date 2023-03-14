@@ -55,8 +55,63 @@ $("#next-step-btn").click(function() {
     }
 });
 
+// THIS IS NOT USED YET, I need to figure out how to make it work. 
+// also I basically need to overhaul every action with nodes to use this instead
+function nodeClass(x,y){
+    this.nodeNumber;
+    this.x=x;
+    this.y=y;
+    this.NodeConnection=[];
 
 
+    // send in the node object that you want to get the cost, if they are connected
+    this.getCost = function(theNodeOfDesire){ 
+        if(this.NodeConnection.length>0){
+            var areConnected = areTheyConnected(theNodeOfDesire,true); 
+            if(areConnected[0]){
+                return this.NodeConnection[areConnected[1]].cost;
+            }
+        }
+    }
+    this.setCords = function(cords){
+        this.cords=cords;
+    }
+    this.getCords = function(){ 
+        return this.cords;
+    }
+    this.setnodeNumber = function(nodeNumber){
+        this.nodeNumber=nodeNumber;
+    }
+    this.getNodeNumber = function(){
+        return this.nodeNumber;
+    }
+
+    
+    
+    
+    this.addConnection= function(neighbors_Node){
+        this.NodeConnection.push(neighbors_Node);
+    }
+
+    this.areTheyConnected = function(theNodeOfDesire,returnTheIndex=false){
+        for(var i=0;i<this.NodeConnection.length;i++){
+            if(this.NodeConnection[i].nodeObject==theNodeOfDesire){
+                if(returnTheIndex){
+                    return [true,i];
+                }else{
+                    return true;
+                }
+            }
+        }
+        if(returnTheIndex){
+            return [false,-1];
+        }else{
+            return true;
+        }
+    }
+
+
+}
 // This is the current instance of the finite machine.
 // this is where all the machine happens, and the way to reset this is by
 // setting current_screen to a new instance of this class.
@@ -74,6 +129,9 @@ function current_Finite_Machine() {
     this.frontier = [];
     this.observedNode = null;
     this.first_run = true;
+
+
+    this.nodeClassObjects= [];
 
     // setups the canvas and stuff. Handles the creation of the nodes and connections.
     this.startup =function(totalNodes,totalConnections){
@@ -306,9 +364,11 @@ function generateNodes(count) {
     var canvas = $("#canvas");
     var canvasWidth = canvas.width();
     var canvasHeight = canvas.height();
+    //var nodeObjectList=[];
     for (var i = 0; i < count; i++) {
         var x = Math.floor(Math.random() * canvasWidth);
         var y = Math.floor(Math.random() * canvasHeight);
+        //nodeObjectList.push(new Node({x: x,y: y}));
         nodes.push({
             x: x,
             y: y
@@ -330,60 +390,20 @@ function connectNodes(nodes, count) {
     // For each node, connect it to another random node if it isn't already connected
     for (let i = 0; i < nodes.length; i++) {
         const start = i;
-        findClosestedNeighbor(start, nodes,3);
+        
         let end = i;
         // check if end is already connected or equal to start
-        while ((end === i || isConnected(connections,start, end))) {
-            end = Math.floor(Math.random() * nodes.length);
+        end = findClosestedNeighbor(start, nodes,2);
+        
+        for (a = 0; a < end.length; a++) {
+            const cost = Math.floor(Math.random() * 10) + 1;
+            connections.push(createConnectionObject(start,end[a],cost));
+            connectedNodes.add(start);
+            connectedNodes.add(end[a]);
         }
-        const cost = Math.floor(Math.random() * 10) + 1;
-        connections.push(createConnectionObject(start,end,cost));
-        connectedNodes.add(start);
-        connectedNodes.add(end);
     }
 
-    // Connect nodes to a maximum of three neighbors
-    // For each unconnected node, connect it to up to three random neighbors
-    for (let i = 0; i < count - nodes.length; i++) {
-        // check if all nodes are already connected
-        if (connectedNodes.size === nodes.length) {
-            break;
-        }
-        // pick an unconnected node to start from
-        let start;
-        do {
-            start = Math.floor(Math.random() * nodes.length);
-        } while (connectedNodes.has(start));
-        let attempts = 0;
-        // repeat until we have enough connections or 100 attempts have been made
-        while (connections.length < count && attempts < 100) {
-            attempts++;
-            const neighbors = nodes.map((node, index) => ({
-                    node,
-                    index
-                })).filter(({
-                    index
-                }) => index !== start && !isConnected(connections,start, index) && !isConnected(connections,index, end)) // get all unconnected neighbors
-                .map(({
-                    index
-                }) => index);
-            // if there are less than three neighbors, connect the current node to a random unconnected node
-            if (neighbors.length < 3) {
-                let end = Math.floor(Math.random() * nodes.length);
-                // keep picking new nodes until an unconnected one is found
-                while (isConnected(connections,start, end)) {
-                    end = Math.floor(Math.random() * nodes.length);
-                }
-                // randomly assign a cost to the connection, adds it to both connect and connectednodes
-                const cost = Math.floor(Math.random() * 10) + 1;
-                connections.push(createConnectionObject(start,end,cost));
-                connectedNodes.add(end);
-            } else {
-                // if there are already three neighbors, we're done
-                break;
-            }
-        }
-    }
+
     // print a message indicating that the implementation has been changed
     console.log("Reconnected the nodes");
     // return the array of connections
@@ -410,21 +430,33 @@ function createConnectionObject(start,end,cost){
 function findClosestedNeighbor(node, nodes,numberOfNeighbors) {
     console.log(node);
     console.log(nodes);
+    curNumb=0;
     const neighbors = new PriorityQueue((a, b) => a[1] > b[1])
     for (var i = 0; i < nodes.length; i++) {
         if (node !== i) {
             neighbors.push([i, manhattanDistance(nodes[node],nodes[i])]);
         }
     }
+    var returnList = [];
+    for (var i = 0; i < numberOfNeighbors; i++) {
+        var curneighbor = neighbors.pop()[0];
+
+        console.log(curneighbor);
+        console.log(nodes[curneighbor]);
+        console.log(nodes[node]);
+        returnList.push(curneighbor);
     
-    console.log(neighbors);
+    }
+    
+    console.log(returnList);
+    return returnList;
 }
 
 // get the x y distance between two nodes, this will update where ever the node is currently
 // however, remeber, NODES CAN MOVE! Use this to get a snapshot of the current canvas
 // but do not assume that the nodes will stay in the same place
 function manhattanDistance(node1,node2){
-    return Math.abs(node1.x - node2.x) + Math.abs(node1.y - node2.y);
+    return -(Math.abs(node1.x - node2.x) + Math.abs(node1.y - node2.y));
 }
 
 // Helper function to check if two nodes are already connected
