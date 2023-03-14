@@ -364,17 +364,17 @@ function generateNodes(count) {
     var canvas = $("#canvas");
     var canvasWidth = canvas.width();
     var canvasHeight = canvas.height();
-    //var nodeObjectList=[];
+    var nodeObjectList=[];
     for (var i = 0; i < count; i++) {
         var x = Math.floor(Math.random() * canvasWidth);
         var y = Math.floor(Math.random() * canvasHeight);
-        //nodeObjectList.push(new Node({x: x,y: y}));
-        nodes.push({
-            x: x,
-            y: y
-        });
+        nodeObjectList.push(new nodeClass(x,y));
+        //nodes.push({
+        //    x: x,
+        //    y: y
+        //});
     }
-    return nodes;
+    return nodeObjectList;
 }
 
 
