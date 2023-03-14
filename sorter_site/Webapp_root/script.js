@@ -1,5 +1,4 @@
-//good dfs seed: 0.8906472348391477
-
+//import { PriorityQueue } from "./Priority_Queue_nodes.js";
  
 
 var canvas=document.getElementById("canvas");
@@ -326,10 +325,12 @@ function connectNodes(nodes, count) {
     const connections = [];
     // a set to hold nodes that are already connected
     const connectedNodes = new Set();
+    
     // Ensure that all nodes have at least one connection
     // For each node, connect it to another random node if it isn't already connected
     for (let i = 0; i < nodes.length; i++) {
         const start = i;
+        findClosestedNeighbor(start, nodes,3);
         let end = i;
         // check if end is already connected or equal to start
         while ((end === i || isConnected(connections,start, end))) {
@@ -389,7 +390,8 @@ function connectNodes(nodes, count) {
     return connections;
 }
 
-
+// this creates a connection object, which is used to figure out 
+// what nodes are connected to what, along with the cost of the connection
 function createConnectionObject(start,end,cost){
     return [{
         start,
@@ -401,6 +403,23 @@ function createConnectionObject(start,end,cost){
         cost
     }]
 }
+
+// finds numberOfNeighbors of closest neighbors to the node
+// it will be used to connect nodes to each other as of now
+// not yet properly connected up the system
+function findClosestedNeighbor(node, nodes,numberOfNeighbors) {
+    console.log(node);
+    console.log(nodes);
+    const neighbors = new PriorityQueue((a, b) => a[1] > b[1])
+    for (var i = 0; i < nodes.length; i++) {
+        if (node !== i) {
+            neighbors.push([i, manhattanDistance(nodes[node],nodes[i])]);
+        }
+    }
+    
+    console.log(neighbors);
+}
+
 // get the x y distance between two nodes, this will update where ever the node is currently
 // however, remeber, NODES CAN MOVE! Use this to get a snapshot of the current canvas
 // but do not assume that the nodes will stay in the same place

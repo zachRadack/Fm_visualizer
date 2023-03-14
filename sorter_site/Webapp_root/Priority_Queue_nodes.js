@@ -1,4 +1,4 @@
-{const top = 0;
+const topp = 0;
 const parent = i => ((i + 1) >>> 1) - 1;
 const left = i => (i << 1) + 1;
 const right = i => (i + 1) << 1;
@@ -15,7 +15,7 @@ class PriorityQueue {
     return this.size() == 0;
   }
   peek() {
-    return this._heap[top];
+    return this._heap[topp];
   }
   push(...values) {
     values.forEach(value => {
@@ -27,8 +27,8 @@ class PriorityQueue {
   pop() {
     const poppedValue = this.peek();
     const bottom = this.size() - 1;
-    if (bottom > top) {
-      this._swap(top, bottom);
+    if (bottom > topp) {
+      this._swap(topp, bottom);
     }
     this._heap.pop();
     this._siftDown();
@@ -36,7 +36,7 @@ class PriorityQueue {
   }
   replace(value) {
     const replacedValue = this.peek();
-    this._heap[top] = value;
+    this._heap[topp] = value;
     this._siftDown();
     return replacedValue;
   }
@@ -48,13 +48,13 @@ class PriorityQueue {
   }
   _siftUp() {
     let node = this.size() - 1;
-    while (node > top && this._greater(node, parent(node))) {
+    while (node > topp && this._greater(node, parent(node))) {
       this._swap(node, parent(node));
       node = parent(node);
     }
   }
   _siftDown() {
-    let node = top;
+    let node = topp;
     while (
       (left(node) < this.size() && this._greater(left(node), node)) ||
       (right(node) < this.size() && this._greater(right(node), node))
@@ -64,5 +64,4 @@ class PriorityQueue {
       node = maxChild;
     }
   }
-}
 }
