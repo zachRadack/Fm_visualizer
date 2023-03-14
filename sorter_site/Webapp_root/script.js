@@ -9,7 +9,7 @@ var current_screen=new current_Finite_Machine();
 // this creates canvas
 $("#Create-canvas-btn").click(function() {
     current_screen=new current_Finite_Machine();
-    current_screen.wipeCanvas();
+    wipeCanvas();
     var randomSeed = document.getElementById("seedTextBox").value;
     if (randomSeed.length == 0) {
         randomSeed = (Math.random()).toString();
@@ -59,6 +59,7 @@ $("#next-step-btn").click(function() {
     }
     
 });
+
 
 
 // This is the current instance of the finite machine.
@@ -132,28 +133,15 @@ function current_Finite_Machine() {
         this.frontier = [{ node: this.observedNode, path: [], costs: [] }];
         
     }
-    this.wipeCanvas =function(){
-        // Get the 2D context of the canvas
-        var context = canvas.getContext("2d");
 
-        // Set the fill color to white
-        context.fillStyle = "#808080";
 
-        // Clear the entire canvas
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        nodes=[]
-        // Get a collection of all elements with the "my-class" class
-        var elements = document.querySelectorAll('.node');
-
-        // Loop through the collection and remove each element
-        for (var i = 0; i < elements.length; i++) {
-        elements[i].parentNode.removeChild(elements[i]);
-        }
-    }
     
-
+    // handles when the search algos find the goal node
     this.end_game =function(path){
-        
+        // this will set the goal to be "end-game-path" meaning it will become the goal 
+        // node color (as of time of writing this, it is pink.)
+        // then it goes through with the current path and makes it set to the observed node color
+        // which is green.
         document.getElementById((this.observedNode).toString()).classList.remove("observed-node");
 
         path.forEach(function (aNode, i) {
@@ -297,6 +285,8 @@ function current_Finite_Machine() {
     }
 }
 
+// handles creating more node options under the start end drop down menus
+// if the user wants 20 nodes this shows 20 options in both start and end drop downs.
 function startEnd_Node_Selector(nodes){
     //<option value="0">Node 1</option>
     console.log(nodes);
@@ -459,5 +449,17 @@ function drawConnections() {
         // Add cost label to the middle of the line
         current_screen.ctx.fillStyle = "#000";
         current_screen.ctx.fillText(cost, midX, midY);
+    }
+}
+
+
+// this deletes all current nodes from the last layuout
+function wipeCanvas(){
+    // Get a collection of all elements with the "my-class" class
+    var elements = document.querySelectorAll('.node');
+
+    // Loop through the collection and remove each element
+    for (var i = 0; i < elements.length; i++) {
+    elements[i].parentNode.removeChild(elements[i]);
     }
 }
