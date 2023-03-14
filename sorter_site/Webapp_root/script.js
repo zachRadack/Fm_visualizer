@@ -35,9 +35,6 @@ $("#start-btn").click(function() {
     console.log("End node: " + endNode);
     console.log("Algorithm: " + algorithm);
 
-    // algorithm logic below here
-
-
     current_screen.initializer(startNode,endNode,algorithm);
 
     if(algorithm = "dfs"){
@@ -57,7 +54,6 @@ $("#next-step-btn").click(function() {
     }else if(current_screen.algoGetter = "bfs"){
         current_screen.breadthfirstsearch();
     }
-    
 });
 
 
@@ -304,7 +300,8 @@ function startEnd_Node_Selector(nodes){
     }
 }
 
-// Generate random nodes
+// creates the actual nodes by putting them into the html and puts them
+// where ever the coordinates are setup to.
 function generateNodes(count) {
     var nodes = [];
     var canvas = $("#canvas");
@@ -339,15 +336,7 @@ function connectNodes(nodes, count) {
             end = Math.floor(Math.random() * nodes.length);
         }
         const cost = Math.floor(Math.random() * 10) + 1;
-        connections.push([{
-            start,
-            end,
-            cost
-        }, {
-            start: end,
-            end: start,
-            cost
-        }]);
+        connections.push(createConnectionObject(start,end,cost));
         connectedNodes.add(start);
         connectedNodes.add(end);
     }
@@ -386,15 +375,7 @@ function connectNodes(nodes, count) {
                 }
                 // randomly assign a cost to the connection, adds it to both connect and connectednodes
                 const cost = Math.floor(Math.random() * 10) + 1;
-                connections.push([{
-                    start,
-                    end,
-                    cost
-                }, {
-                    start: end,
-                    end: start,
-                    cost
-                }]);
+                connections.push(createConnectionObject(start,end,cost));
                 connectedNodes.add(end);
             } else {
                 // if there are already three neighbors, we're done
@@ -408,6 +389,18 @@ function connectNodes(nodes, count) {
     return connections;
 }
 
+
+function createConnectionObject(start,end,cost){
+    return [{
+        start,
+        end,
+        cost
+    }, {
+        start: end,
+        end: start,
+        cost
+    }]
+}
 // get the x y distance between two nodes, this will update where ever the node is currently
 // however, remeber, NODES CAN MOVE! Use this to get a snapshot of the current canvas
 // but do not assume that the nodes will stay in the same place
@@ -428,9 +421,8 @@ function isConnected(connections,start, end) {
 }
 
 
-// Draw connections on canvas
+// Draw connections on canvas and puts the path cost on the line
 function drawConnections() {
-    
     current_screen.ctx.clearRect(0, 0, canvas.width, canvas.height);
     current_screen.ctx.font = "20px Arial";
     for (var i = 0; i < current_screen.connections.length; i++) {
