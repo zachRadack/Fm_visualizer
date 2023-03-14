@@ -1,12 +1,30 @@
 //good dfs seed: 0.8906472348391477
 
-
+ 
 
 var canvas=document.getElementById("canvas");
 
 var current_screen=new current_Finite_Machine();
 
-// Handle button click
+// this creates canvas
+$("#Create-canvas-btn").click(function() {
+    current_screen=new current_Finite_Machine();
+    current_screen.wipeCanvas();
+    var randomSeed = document.getElementById("seedTextBox").value;
+    if (randomSeed.length == 0) {
+        randomSeed = (Math.random()).toString();
+        console.log("The current random seed is: "+randomSeed);
+    }
+    
+    document.getElementById("currentSeed").textContent = (randomSeed).toString(); 
+    Math.seedrandom(randomSeed);
+    var totalNodes = parseInt(document.getElementById("totalNodes").value);
+    var totalConnections = parseInt(document.getElementById("totalConnections").value);
+    current_screen.startup(totalNodes,totalConnections);
+    
+});
+
+// handles the starting of the algorithm, and sets everything in
 $("#start-btn").click(function() {
         
     var startNode = parseInt($("#start").val());
@@ -29,22 +47,7 @@ $("#start-btn").click(function() {
     }
 });
 
-$("#Create-canvas-btn").click(function() {
-    current_screen=new current_Finite_Machine();
-    current_screen.wipeCanvas();
-    var randomSeed = document.getElementById("seedTextBox").value;
-    if (randomSeed.length == 0) {
-        randomSeed = (Math.random()).toString();
-        console.log("The current random seed is: "+randomSeed);
-    }
-    
-    document.getElementById("currentSeed").textContent = (randomSeed).toString(); 
-    Math.seedrandom(randomSeed);
-    var totalNodes = parseInt(document.getElementById("totalNodes").value);
-    var totalConnections = parseInt(document.getElementById("totalConnections").value);
-    current_screen.startup(totalNodes,totalConnections);
-});
-
+// this pushes the algorithm through a single step.
 $("#next-step-btn").click(function() {
     if(current_screen.foundPathGetter==true){
         console.log("1")
@@ -57,6 +60,10 @@ $("#next-step-btn").click(function() {
     
 });
 
+
+// This is the current instance of the finite machine.
+// this is where all the machine happens, and the way to reset this is by
+// setting current_screen to a new instance of this class.
 function current_Finite_Machine() {
 
     this.canvas = document.getElementById("canvas");
@@ -72,6 +79,7 @@ function current_Finite_Machine() {
     this.observedNode = null;
     this.first_run = true;
 
+    // setups the canvas and stuff. Handles the creation of the nodes and connections.
     this.startup =function(totalNodes,totalConnections){
         this.ctx  = this.canvas.getContext("2d");
         this.nodes = generateNodes(totalNodes);
@@ -104,8 +112,26 @@ function current_Finite_Machine() {
         }
         // Draw initial connections on canvas
         drawConnections();
+        startEnd_Node_Selector(totalNodes);
     }
 
+    // this is when the user clicks "start/reset" button
+    // the startup handles the canvas creation, this handles the start of the
+    // search algorithm.
+    this.initializer =function(sstartNode,eendNode,aalgorithm){
+        
+        this.visited = new Set();
+        this.startNode=sstartNode
+        this.endNode=eendNode
+        this.algorithm=aalgorithm
+        this.new_ObservedNode(this.startNode);
+        if (this.isGoalState(this.observedNode)){
+            this.found_path=true;
+        }
+
+        this.frontier = [{ node: this.observedNode, path: [], costs: [] }];
+        
+    }
     this.wipeCanvas =function(){
         // Get the 2D context of the canvas
         var context = canvas.getContext("2d");
@@ -141,20 +167,9 @@ function current_Finite_Machine() {
 
 
 
-    this.initializer =function(sstartNode,eendNode,aalgorithm){
-        
-        this.visited = new Set();
-        this.startNode=sstartNode
-        this.endNode=eendNode
-        this.algorithm=aalgorithm
-        this.new_ObservedNode(this.startNode);
-        if (this.isGoalState(this.observedNode)){
-            this.found_path=true;
-        }
 
-        this.frontier = [{ node: this.observedNode, path: [], costs: [] }];
-        
-    }
+    
+    // this is the depth first search algorithm
     this.Depthfirstsearch =function(){
         var successor;
         var newCost;
@@ -187,6 +202,8 @@ function current_Finite_Machine() {
         }
 
     }
+
+    // this is the breadth first search algorithm
     this.breadthfirstsearch =function(){
         console.log("bfs");
 
@@ -219,6 +236,9 @@ function current_Finite_Machine() {
     }
 
 
+    // this function checks to see if the current node is 
+    // the goal node. If it is, then it returns true, else
+    // it returns false.
     this.isGoalState =function(node){
         console.log(node)
         console.log(this.endNode)
@@ -229,6 +249,8 @@ function current_Finite_Machine() {
 
     }
 
+    // get all the neighbors of a node, but only connection neighbors
+    // not physical neighbors on the canvas.
     this.getNeighbors =function(theNode){
         var neighbors=[];
 
@@ -247,6 +269,8 @@ function current_Finite_Machine() {
 
     }
 
+    // this function handles making current node green and if there already is one
+    // it will first remove that ones  observed-node class and add visited-node class, which makes it red
     this.new_ObservedNode =function(newNode){
         // Sets classes of nodes, by changing background colors of them, to visualize where the search is
         var dune;
@@ -260,6 +284,7 @@ function current_Finite_Machine() {
     }
 
     // this is like this.new_ObservedNode, but instead shows what the thing added in to neighbors
+    // This function is what makes the nodes become light blue.
     this.wasComputer =function(theNode){
         document.getElementById((theNode).toString()).classList.add("was-computer");
     }
@@ -269,6 +294,23 @@ function current_Finite_Machine() {
     }
     this.algoGetter = function(){
         return this.algorithm;
+    }
+}
+
+function startEnd_Node_Selector(nodes){
+    //<option value="0">Node 1</option>
+    console.log(nodes);
+    if(nodes>2){
+        for (var i = 3; i < nodes+1; i++) {
+            var node_counterstart = document.createElement('option');
+            node_counterstart.value= i-1;
+            node_counterstart.text= ("Node "+parseInt(i));
+            var node_counterend = document.createElement('option');
+            node_counterend.value= i-1;
+            node_counterend.text= ("Node "+parseInt(i));
+            document.querySelector('#start').appendChild(node_counterstart);
+            document.querySelector('#end').appendChild(node_counterend);
+        }
     }
 }
 
@@ -303,7 +345,7 @@ function connectNodes(nodes, count) {
         const start = i;
         let end = i;
         // check if end is already connected or equal to start
-        while ((end === i || isConnected(connections,start, end))&&checkIntersection(converterPoint(start,end,nodes),connections,nodes)) {
+        while ((end === i || isConnected(connections,start, end))) {
             end = Math.floor(Math.random() * nodes.length);
         }
         const cost = Math.floor(Math.random() * 10) + 1;
@@ -349,7 +391,7 @@ function connectNodes(nodes, count) {
             if (neighbors.length < 3) {
                 let end = Math.floor(Math.random() * nodes.length);
                 // keep picking new nodes until an unconnected one is found
-                while (isConnected(connections,start, end)&& checkIntersection(converterPoint(start,end,nodes),connections,nodes)) {
+                while (isConnected(connections,start, end)) {
                     end = Math.floor(Math.random() * nodes.length);
                 }
                 // randomly assign a cost to the connection, adds it to both connect and connectednodes
@@ -376,63 +418,12 @@ function connectNodes(nodes, count) {
     return connections;
 }
 
-function converterPoint(start,end,nodes){
-    //console.log("start",start);
-    //console.log("end",end);
-    //console.log("nodes",nodes);
-    startNode = {x:nodes[start].x, y:nodes[start].y};
-    endNode = {x:nodes[end].x, y:nodes[end].y};
-    //console.log("nodes[start]",nodes[start]);
-
-    return [startNode,endNode];
+// get the x y distance between two nodes, this will update where ever the node is currently
+// however, remeber, NODES CAN MOVE! Use this to get a snapshot of the current canvas
+// but do not assume that the nodes will stay in the same place
+function manhattanDistance(node1,node2){
+    return Math.abs(node1.x - node2.x) + Math.abs(node1.y - node2.y);
 }
-
-
-function checkIntersection(newConn, existingConns,nodes) {
-    console.log("newConn",newConn);
-    console.log("existingConns",existingConns);
-
-    for (let i = 0; i < existingConns.length - 1; i++) {
-        const conn1 = nodes[existingConns[i][0].start];
-        const conn2 = nodes[existingConns[i][0].end];
-
-        
-        const line1 = [newConn[0].x, newConn[0].y, newConn[1].x, newConn[1].y];
-        const line2 = [conn1.x, conn1.y, conn2.x, conn2.y];
-        console.log("lines 1",line1);
-        console.log("lines 2",line2);
-        const slope1 = (line1[1] - line1[3]) / (line1[0] - line1[2]);
-        const yIntercept1 = line1[1] - slope1 * line1[0];
-
-        const slope2 = (line2[1] - line2[3]) / (line2[0] - line2[2]);
-        const yIntercept2 = line2[1] - slope2 * line2[0];
-        
-        if (slope1 === slope2) {
-        // lines are parallel, no intersection
-        continue;
-        }
-
-        const x = (yIntercept2 - yIntercept1) / (slope1 - slope2);
-        const y = slope1 * x + yIntercept1;
-
-        const y1 = slope1 * line1[0] + yIntercept1;
-        const y2 = slope1 * line1[2] + yIntercept1;
-        const minY = Math.min(y1, y2);
-        const maxY = Math.max(y1, y2);
-
-        if (y >= minY && y <= maxY) {
-        // lines intersect, don't draw the new connection
-        console.log("lines intersect, don't draw the new connection");
-        return false;
-        }
-
-    }
-    console.log("no intersections found, draw the new connection");
-    // no intersections found, draw the new connection
-    return true;
-}
-
-
 
 // Helper function to check if two nodes are already connected
 function isConnected(connections,start, end) {
