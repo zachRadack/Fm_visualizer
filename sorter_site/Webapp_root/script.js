@@ -82,7 +82,7 @@ function nodeClass(x,y){
         this.y=cords.y;
     }
     this.getCords = function(){ 
-        return {x:this.x,y:this.y}};
+        return {x:this.x,y:this.y};
     }
     this.setnodeNumber = function(nodeNumber){
         this.nodeNumber=nodeNumber;
@@ -103,6 +103,9 @@ function nodeClass(x,y){
         }
     }
 
+    // checks to see if the given node is connected to this node, returnTheIndex
+    // will return an array with both the boolean with true being a connection, and if there is connection it
+    // will return the index of the connection in the array, and if there is no connection, it returns -1
     this.areTheyConnected = function(theNodeOfDesire,returnTheIndex=false){
         for(var i=0;i<this.NodeConnection.length;i++){
             if(this.NodeConnection[i].node.nodeObject==theNodeOfDesire){
@@ -355,6 +358,7 @@ function current_Finite_Machine() {
             document.getElementById((this.observedNode.nodeNumber+1).toString()).classList.add("visited-node");
         }
             this.observedNode = newNode;
+            console.log(newNode.nodeNumber);
             document.getElementById((newNode.nodeNumber+1).toString()).classList.add("observed-node");
     }
 
@@ -512,15 +516,17 @@ function drawConnections(nodes) {
     current_screen.ctx.clearRect(0, 0, canvas.width, canvas.height);
     current_screen.ctx.font = "20px Arial";
     for (var i = 0; i < nodes.length; i++) {
-        var connection = current_screen.nodes.getNeighbors()[i];
+        var connection = nodes[i].getNeighbors();
 
-        var startNode = current_screen.nodes[connection.start];
-        var endNode = current_screen.nodes[connection.end];
+        var startNode = nodes[i].getCords();
 
-        getCords
-
-        var cost = connection.cost;
-        drawConnectionLine(nodes,startNode,endNode,cost);
+        // This itterates through all the connections of the current node
+        for (var a = 0; a < connection.length; a++) {
+            console.log("t");
+            var endNode = nodes[a].getCords();
+            var cost = connection.cost;
+            drawConnectionLine(nodes,startNode,endNode,cost);
+        }
     }
 }
 
