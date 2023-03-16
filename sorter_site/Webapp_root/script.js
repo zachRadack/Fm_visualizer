@@ -62,6 +62,7 @@ function nodeClass(x,y){
     this.x=x;
     this.y=y;
     this.NodeConnection=[];
+    this.visited = false;
 
 
     // send in the node object that you want to get the cost, if they are connected
@@ -73,8 +74,12 @@ function nodeClass(x,y){
             }
         }
     }
+    
+    //sets cords, cords has to be formatted as an object
+    // {x:x,y:y}
     this.setCords = function(cords){
-        this.cords=cords;
+        this.x=cords.x;
+        this.y=cords.y;
     }
     this.getCords = function(){ 
         return this.cords;
@@ -88,14 +93,16 @@ function nodeClass(x,y){
 
     
     
-    
-    this.addConnection= function(neighbors_Node){
-        this.NodeConnection.push(neighbors_Node);
+    // Connections are objects that have a refrence to the connected node
+    // and the cost to said node. Also adding a connection is 2 way
+    this.addConnection= function(neighbors_Node,cost){
+        this.NodeConnection.push({node:neighbors_Node,cost:cost});
+        neighbors_Node.addConnection(this,cost);
     }
 
     this.areTheyConnected = function(theNodeOfDesire,returnTheIndex=false){
         for(var i=0;i<this.NodeConnection.length;i++){
-            if(this.NodeConnection[i].nodeObject==theNodeOfDesire){
+            if(this.NodeConnection[i].node.nodeObject==theNodeOfDesire){
                 if(returnTheIndex){
                     return [true,i];
                 }else{
@@ -108,6 +115,13 @@ function nodeClass(x,y){
         }else{
             return true;
         }
+    }
+
+    // returns array of neighbors
+    // the array that is returned has objects that are
+    // formatted as {node:refrence to node, cost:cost to node}
+    this.getNeighbors = function(){
+        return this.NodeConnection;
     }
 
 
@@ -219,30 +233,30 @@ function current_Finite_Machine() {
             console.log("dead end?")
         }
         console.log(this.frontier)
-        const { node, path, costs } = this.frontier.pop();
-        
+        //const { node, path, costs } = this.frontier.pop();
+        const seenNode =   this.frontier.pop();
         // see if we hit the goal yet
-        if (this.isGoalState(node)){
+        if (this.isGoalState(seenNode)){
             this.found_path=true;
             // sends the path to end game
-            
+            console.log("3")
             this.end_game(path);
-        }else if(!(this.visited.has(node))){
+        }else if(!(this.visited.has(seenNode))){
             if(this.first_run){
                 this.first_run=false;
             }else{
-                this.new_ObservedNode(node);
+                this.new_ObservedNode(seenNode);
             }
             this.visited.add(node);
-            for (let [successor, newCost] of this.getNeighbors(node)){
+            for (let [successor, newCost] of this.getNeighbors(seenNode)){
                 if(!(this.visited.has(successor))){
                     this.wasComputer(successor);
-                    this.frontier.push({node:successor,path:path.concat([node]),costs: costs.concat([newCost])})
+                    this.frontier.push(successor)
                 }
             }
         }
-
     }
+
 
     // this is the breadth first search algorithm
     this.breadthfirstsearch =function(){
@@ -431,10 +445,12 @@ function findClosestedNeighbor(node, nodes,numberOfNeighbors) {
     console.log(node);
     console.log(nodes);
     curNumb=0;
+
+    // used a priority queue in hopes of finding closest neighbors
     const neighbors = new PriorityQueue((a, b) => a[1] > b[1])
     for (var i = 0; i < nodes.length; i++) {
         if (node !== i) {
-            neighbors.push([i, manhattanDistance(nodes[node],nodes[i])]);
+            neighbors.push([i, manhattanDistance({x:nodes[node].x,y:nodes[node].y},{x:nodes[i].x,y:nodes[i].y})]);
         }
     }
     var returnList = [];
