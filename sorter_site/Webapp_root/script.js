@@ -82,7 +82,7 @@ function nodeClass(x,y){
         this.y=cords.y;
     }
     this.getCords = function(){ 
-        return this.cords;
+        return {x:this.x,y:this.y}};
     }
     this.setnodeNumber = function(nodeNumber){
         this.nodeNumber=nodeNumber;
@@ -95,9 +95,12 @@ function nodeClass(x,y){
     
     // Connections are objects that have a refrence to the connected node
     // and the cost to said node. Also adding a connection is 2 way
-    this.addConnection= function(neighbors_Node,cost){
+    // secondarycall is used to prevent infinite recursion.
+    this.addConnection= function(neighbors_Node,cost,secondarycall=false){
         this.NodeConnection.push({node:neighbors_Node,cost:cost});
-        neighbors_Node.addConnection(this,cost);
+        if(secondarycall==false){
+            neighbors_Node.addConnection(this,cost);
+        }
     }
 
     this.areTheyConnected = function(theNodeOfDesire,returnTheIndex=false){
@@ -151,17 +154,22 @@ function current_Finite_Machine() {
     this.startup =function(totalNodes,totalConnections){
         this.ctx  = this.canvas.getContext("2d");
         this.nodes = generateNodes(totalNodes);
+        console.log("this nodes startup")
         console.log(this.nodes);
-        this.connections = connectNodes(this.nodes, totalConnections);
+        //this.connections = connectNodes(this.nodes, totalConnections);
+        connectNodes(this.nodes, totalConnections);
 
         // Add nodes to the canvas
         for (var i = 0; i < this.nodes.length; i++) {
             var node = this.nodes[i];
+            node.nodeNumber = i;
             var nodeEl = $("<div>", {
                 class: "node",
                 id: i,
                 text: i + 1
             })
+
+            
             $("#canvas").after(nodeEl);
             nodeEl.css({
                 left: node.x - 10,
@@ -172,17 +180,19 @@ function current_Finite_Machine() {
                     var index = $(this).text() - 1;
                     current_screen.nodes[index].x = ui.position.left + 10;
                     current_screen.nodes[index].y = ui.position.top + 10;
-                    drawConnections();
+                    drawConnections(this.nodes);
                 }
                 
 
             });
         }
         // Draw initial connections on canvas
-        drawConnections();
+        drawConnections(this.nodes);
         startEnd_Node_Selector(totalNodes);
     }
 
+
+    
     // this is when the user clicks "start/reset" button
     // the startup handles the canvas creation, this handles the start of the
     // search algorithm.
@@ -192,12 +202,16 @@ function current_Finite_Machine() {
         this.startNode=sstartNode
         this.endNode=eendNode
         this.algorithm=aalgorithm
-        this.new_ObservedNode(this.startNode);
+
+
+
+        this.new_ObservedNode(this.nodes[this.startNode]);
+        console.log(this.observedNode);
         if (this.isGoalState(this.observedNode)){
             this.found_path=true;
         }
-
-        this.frontier = [{ node: this.observedNode, path: [], costs: [] }];
+        console.log(this.nodes);
+        this.frontier = [this.observedNode];
         
     }
 
@@ -234,20 +248,24 @@ function current_Finite_Machine() {
         }
         console.log(this.frontier)
         //const { node, path, costs } = this.frontier.pop();
-        const seenNode =   this.frontier.pop();
+        const seenNode = this.frontier.pop();
+        console.log("frontier")
+        console.log(this.frontier)
+        //console.log(seenNode)
         // see if we hit the goal yet
         if (this.isGoalState(seenNode)){
             this.found_path=true;
             // sends the path to end game
-            console.log("3")
+            //console.log("3")
             this.end_game(path);
         }else if(!(this.visited.has(seenNode))){
             if(this.first_run){
                 this.first_run=false;
             }else{
+                //console.log(seenNode);
                 this.new_ObservedNode(seenNode);
             }
-            this.visited.add(node);
+            this.visited.add(seenNode);
             for (let [successor, newCost] of this.getNeighbors(seenNode)){
                 if(!(this.visited.has(successor))){
                     this.wasComputer(successor);
@@ -329,13 +347,15 @@ function current_Finite_Machine() {
     this.new_ObservedNode =function(newNode){
         // Sets classes of nodes, by changing background colors of them, to visualize where the search is
         var dune;
+        console.log("new observed node");
+        console.log(newNode);
         // if observed node is not initilaized, it gets skipped
         if (this.observedNode !=dune){
-            document.getElementById((newNode).toString()).classList.remove("observed-node");
-            document.getElementById((this.observedNode).toString()).classList.add("visited-node");
+            document.getElementById((this.nodes[newNode]).toString()).classList.remove("observed-node");
+            document.getElementById((this.observedNode.nodeNumber+1).toString()).classList.add("visited-node");
         }
             this.observedNode = newNode;
-            document.getElementById((newNode).toString()).classList.add("observed-node");
+            document.getElementById((newNode.nodeNumber+1).toString()).classList.add("observed-node");
     }
 
     // this is like this.new_ObservedNode, but instead shows what the thing added in to neighbors
@@ -356,7 +376,7 @@ function current_Finite_Machine() {
 // if the user wants 20 nodes this shows 20 options in both start and end drop downs.
 function startEnd_Node_Selector(nodes){
     //<option value="0">Node 1</option>
-    console.log(nodes);
+    //console.log(nodes);
     if(nodes>2){
         for (var i = 3; i < nodes+1; i++) {
             var node_counterstart = document.createElement('option');
@@ -396,6 +416,8 @@ function generateNodes(count) {
 // It takes in a list of nodes and the desired number of connections.
 // It returns an array of connections in the form of [startNode, endNode, cost].
 function connectNodes(nodes, count) {
+    console.log("connectNodes ", nodes);
+    
     const connections = [];
     // a set to hold nodes that are already connected
     const connectedNodes = new Set();
@@ -405,15 +427,17 @@ function connectNodes(nodes, count) {
     for (let i = 0; i < nodes.length; i++) {
         const start = i;
         
-        let end = i;
         // check if end is already connected or equal to start
-        end = findClosestedNeighbor(start, nodes,2);
+        let end = findClosestedNeighbor(start, nodes,2);
         
         for (a = 0; a < end.length; a++) {
             const cost = Math.floor(Math.random() * 10) + 1;
-            connections.push(createConnectionObject(start,end[a],cost));
-            connectedNodes.add(start);
-            connectedNodes.add(end[a]);
+            console.log(end[a]);
+            //connections.push(createConnectionObject(start,end[a],cost));
+            nodes[i].addConnection(end[a],cost,true);
+
+            //connectedNodes.add(start);
+            //connectedNodes.add(end[a]);
         }
     }
 
@@ -421,7 +445,7 @@ function connectNodes(nodes, count) {
     // print a message indicating that the implementation has been changed
     console.log("Reconnected the nodes");
     // return the array of connections
-    return connections;
+    //return connections;
 }
 
 // this creates a connection object, which is used to figure out 
@@ -442,24 +466,19 @@ function createConnectionObject(start,end,cost){
 // it will be used to connect nodes to each other as of now
 // not yet properly connected up the system
 function findClosestedNeighbor(node, nodes,numberOfNeighbors) {
-    console.log(node);
-    console.log(nodes);
+
     curNumb=0;
 
     // used a priority queue in hopes of finding closest neighbors
     const neighbors = new PriorityQueue((a, b) => a[1] > b[1])
     for (var i = 0; i < nodes.length; i++) {
         if (node !== i) {
-            neighbors.push([i, manhattanDistance({x:nodes[node].x,y:nodes[node].y},{x:nodes[i].x,y:nodes[i].y})]);
+            neighbors.push([nodes[i], manhattanDistance({x:nodes[node].x,y:nodes[node].y},{x:nodes[i].x,y:nodes[i].y})]);
         }
     }
     var returnList = [];
     for (var i = 0; i < numberOfNeighbors; i++) {
         var curneighbor = neighbors.pop()[0];
-
-        console.log(curneighbor);
-        console.log(nodes[curneighbor]);
-        console.log(nodes[node]);
         returnList.push(curneighbor);
     
     }
@@ -489,28 +508,37 @@ function isConnected(connections,start, end) {
 
 
 // Draw connections on canvas and puts the path cost on the line
-function drawConnections() {
+function drawConnections(nodes) {
     current_screen.ctx.clearRect(0, 0, canvas.width, canvas.height);
     current_screen.ctx.font = "20px Arial";
-    for (var i = 0; i < current_screen.connections.length; i++) {
-        var connection = current_screen.connections[i][0];
+    for (var i = 0; i < nodes.length; i++) {
+        var connection = current_screen.nodes.getNeighbors()[i];
+
         var startNode = current_screen.nodes[connection.start];
         var endNode = current_screen.nodes[connection.end];
+
+        getCords
+
         var cost = connection.cost;
-        // Calculate midpoint of line for label placement
-        var midX = (startNode.x + endNode.x) / 2;
-        var midY = (startNode.y + endNode.y) / 2;
-        // Draw line between nodes
-        current_screen.ctx.beginPath();
-        current_screen.ctx.moveTo(startNode.x, startNode.y);
-        current_screen.ctx.lineTo(endNode.x, endNode.y);
-        current_screen.ctx.stroke();
-        // Add cost label to the middle of the line
-        current_screen.ctx.fillStyle = "#000";
-        current_screen.ctx.fillText(cost, midX, midY);
+        drawConnectionLine(nodes,startNode,endNode,cost);
     }
 }
 
+
+function drawConnectionLine(nodes,startNode,endNode,cost){
+    // Calculate midpoint of line for label placement
+    var midX = (startNode.x + endNode.x) / 2;
+    var midY = (startNode.y + endNode.y) / 2;
+    // Draw line between nodes
+    current_screen.ctx.beginPath();
+    current_screen.ctx.moveTo(startNode.x, startNode.y);
+    current_screen.ctx.lineTo(endNode.x, endNode.y);
+    current_screen.ctx.stroke();
+    // Add cost label to the middle of the line
+    current_screen.ctx.fillStyle = "#000";
+    current_screen.ctx.fillText(cost, midX, midY);
+
+}
 
 // this deletes all current nodes from the last layuout
 function wipeCanvas(){
