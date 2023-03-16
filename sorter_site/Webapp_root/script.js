@@ -57,14 +57,32 @@ $("#next-step-btn").click(function() {
 
 // THIS IS NOT USED YET, I need to figure out how to make it work. 
 // also I basically need to overhaul every action with nodes to use this instead
-function nodeClass(x,y,nodeNum){
+function nodeClass(x,y,nodeNum,isItGoal=false){
     this.nodeNumber=nodeNum;
     this.x=x;
     this.y=y;
     this.NodeConnection=[];
+    
+    this.isGoal = isItGoal;
+    // has it been visited
     this.visited = false;
+    // this is when the algorithem is currently looking at it
+    this.isObserved=false;
+    // this is for when a loop went over this node
+    // if this is true it means that it was added to a list of choices somewhere
+    this.wasComputed =false;
 
+    // makes the goal a node
+    this.makeNodeGoal = function(){
+        this.isGoal = true;
+    }
 
+    this.setWasComputed = function(){
+        document.getElementById((this.nodeNumber).toString()).classList.add("was-computer");
+    }
+    this.isThisGoal = function(){
+        return this.isGoal;
+    }
     // send in the node object that you want to get the cost, if they are connected
     this.getCost = function(theNodeOfDesire){ 
         if(this.NodeConnection.length>0){
@@ -105,22 +123,27 @@ function nodeClass(x,y,nodeNum){
         }
         if(!(this.areTheyConnected(neighbors_Node))){
             this.NodeConnection.push({node:neighbors_Node,cost:cost});
-            // Get the current content of curConenctionId element
-            let curConenctionId = document.getElementById("curConenctionId").textContent;
-            if(curConenctionId=="None"){
-                curConenctionId = "";
-            }
-            // Append the new connection details to the existing content
-            
-            const newConnection = `[${this.nodeNumber}] => [${neighbors_Node.nodeNumber}] XX `;
-            const updatedConenctionId = `${curConenctionId}${newConnection}`;
-
-            // Set the updated content to curConenctionId element
-            document.getElementById("curConenctionId").textContent = updatedConenctionId;
+            this.connectionPrinter(neighbors_Node,cost);
             return true;
         }else{
             return false;
         }
+    }
+
+    // this adds to curConenctionId the current connection
+    this.connectionPrinter=function(neighbors_Node,cost){
+        // Get the current content of curConenctionId element
+        let curConenctionId = document.getElementById("curConenctionId").textContent;
+        if(curConenctionId=="None"){
+            curConenctionId = "";
+        }
+        // Append the new connection details to the existing content
+        
+        const newConnection = `[${this.nodeNumber}] => [${neighbors_Node.nodeNumber}] XX `;
+        const updatedConenctionId = `${curConenctionId}${newConnection}`;
+
+        // Set the updated content to curConenctionId element
+        document.getElementById("curConenctionId").textContent = updatedConenctionId;
     }
 
     // checks to see if the given node is connected to this node, returnTheIndex
@@ -128,26 +151,19 @@ function nodeClass(x,y,nodeNum){
     // will return the index of the connection in the array, and if there is no connection, it returns -1
     this.areTheyConnected = function(theNodeOfDesire,returnTheIndex=false){
         for(var i=0;i<this.NodeConnection.length;i++){
-            console.log("node connection.node: ",this.NodeConnection[i].node);
-            console.log("node connection.node: ",this.NodeConnection[i].node==theNodeOfDesire);
-            console.log("current node: ", this.nodeNumber, "=>node of desire: ",theNodeOfDesire.nodeNumber)
-            console.log()
             if(this.NodeConnection[i].node.nodeNumber==theNodeOfDesire.nodeNumber){
                 if(returnTheIndex){
-                    console.log("t");
                     return [true,i];
                     
                 }else{
-                    console.log("t");
                     return true;
                 }
             }
         }
+        // there was no connection
         if(returnTheIndex){
-            console.log("f");
             return [false,-1];
         }else{
-            console.log("f");
             return false;
         }
     }
@@ -155,12 +171,37 @@ function nodeClass(x,y,nodeNum){
     // returns array of neighbors
     // the array that is returned has objects that are
     // formatted as {node:refrence to node, cost:cost to node}
-    this.getNeighbors = function(){
+    this.getNeighbors = function(returnCost = false){
+        if(!(returnCost)){
+            return this.NodeConnection.map(function(item) { return item["node"]; })
+        }
         return this.NodeConnection;
     }
 
+    // if it is already observed, then it will be removed, and set to become a visitor
+    this.setObserver = function(setToVisitor=true){
+        if(this.isObserved){
+            if(setToVisitor){
+                this.setVisited();
+            }
+            document.getElementById((this.nodeNumber).toString()).classList.remove("observed-node");
+            this.isObserved = false;
+        }else{
+            document.getElementById((this.nodeNumber).toString()).classList.add("observed-node");
+            this.isObserved = true;
+        }
+    }
+    //sets current node as visitor
+    this.setVisited = function(){
+        document.getElementById((this.nodeNumber).toString()).classList.add("visited-node");
+    }
 
+    
 }
+
+
+
+/////////////////////////////////////////////////////////////////
 // This is the current instance of the finite machine.
 // this is where all the machine happens, and the way to reset this is by
 // setting current_screen to a new instance of this class.
@@ -231,12 +272,15 @@ function current_Finite_Machine() {
         this.endNode=endNode
         this.algorithm=aalgorithm
 
+        // this sets up the start node to be the current observer node
+        // while also setting up the endnode to be the goal
         this.new_ObservedNode(this.nodes[this.startNode]);
-        if (this.isGoalState(this.observedNode)){
+        this.nodes[this.endNode].makeNodeGoal();
+        if (this.observedNode.isThisGoal()){
             this.found_path=true;
         }
-        this.frontier = [{node:this.observedNode,cost: 0}];
-        
+        this.frontier = [{newNode:this.observedNode,path: []}];
+        console.log("");
     }
 
     // handles when the search algos find the goal node
@@ -258,32 +302,30 @@ function current_Finite_Machine() {
     
     // this is the depth first search algorithm
     this.Depthfirstsearch =function(){
-        var successor;
-        var newCost;
         console.log("dfs");
         if(this.frontier.length){
             console.log("dead end?")
         }
 
         //const { node, path, costs } = this.frontier.pop();
-        const seenNode = this.frontier.pop();
+        const {newNode, path} = this.frontier.pop();
 
         // see if we hit the goal yet
-        if (this.isGoalState(seenNode)){
+        if (newNode.isThisGoal()){
             this.found_path=true;
             // sends the path to end game
             this.end_game(path);
-        }else if(!(this.visited.has(seenNode))){
+        }else if(!(newNode.visited)){
             if(this.first_run){
                 this.first_run=false;
             }else{
-                this.new_ObservedNode(seenNode);
+                this.new_ObservedNode(newNode);
             }
-            this.visited.add(seenNode);
-            for (let [successor, newCost] of this.getNeighbors(seenNode)){
-                if(!(this.visited.has(successor))){
-                    this.wasComputer(successor);
-                    this.frontier.push(successor)
+            this.visited.add(newNode);
+            for (let successor of newNode.getNeighbors()){
+                if(!(successor.visited)){
+                    successor.setWasComputed();
+                    this.frontier.push({newNode:successor,path:path.concat([successor])})
                 }
             }
         }
@@ -333,45 +375,19 @@ function current_Finite_Machine() {
 
     }
 
-    // get all the neighbors of a node, but only connection neighbors
-    // not physical neighbors on the canvas.
-    this.getNeighbors =function(theNode){
-        var neighbors=[];
-
-        for (var i = 0; i < this.connections.length; i++) {
-            // Check only the first connection object in each pair
-            var connection = this.connections[i][0];
-            if (((connection.start === theNode)) || (connection.end === theNode)) {
-                if(connection.start === theNode){
-                    neighbors.push([connection.end,connection.cost]);
-                }else{
-                    neighbors.push([connection.start,connection.cost]);
-                }
-            }
-        }
-        return neighbors;
-
-    }
-
     // this function handles making current node green and if there already is one
     // it will first remove that ones  observed-node class and add visited-node class, which makes it red
     this.new_ObservedNode =function(newNode){
         // Sets classes of nodes, by changing background colors of them, to visualize where the search is
         var dune;
         // if observed node is not initilaized, it gets skipped
-        if (this.observedNode !=dune){
-            document.getElementById((this.nodes[newNode]).toString()).classList.remove("observed-node");
-            document.getElementById((this.observedNode.nodeNumber+1).toString()).classList.add("visited-node");
+        if (this.first_run == false){
+            this.observedNode.setObserver();
         }
-            this.observedNode = newNode;
-            document.getElementById((newNode.nodeNumber+1).toString()).classList.add("observed-node");
+        this.observedNode = newNode;
+        this.observedNode.setObserver();
     }
 
-    // this is like this.new_ObservedNode, but instead shows what the thing added in to neighbors
-    // This function is what makes the nodes become light blue.
-    this.wasComputer =function(theNode){
-        document.getElementById((theNode).toString()).classList.add("was-computer");
-    }
 
     this.foundPathGetter = function(){
         return this.found_path;
@@ -425,17 +441,13 @@ function generateNodes(count) {
 function connectNodes(nodes, count) {
     console.log("connectNodes ", nodes);
     
-    const connections = [];
-    // a set to hold nodes that are already connected
-    const connectedNodes = new Set();
-    
     // Ensure that all nodes have at least one connection
     // For each node, connect it to another random node if it isn't already connected
     for (let i = 0; i < nodes.length; i++) {
         const start = i;
         
         // check if end is already connected or equal to start
-        let end = findClosestedNeighbor(start, nodes,2);
+        let end = findClosestedNeighbor(start, nodes,count);
         
         for (a = 0; a < end.length; a++) {
             const cost = Math.floor(Math.random() * 10) + 1;
@@ -501,9 +513,9 @@ function drawConnections(nodes) {
     current_screen.ctx.clearRect(0, 0, canvas.width, canvas.height);
     current_screen.ctx.font = "20px Arial";
     for (var i = 0; i < nodes.length; i++) {
-        var connection = nodes[i].getNeighbors();
+        var connection = nodes[i].getNeighbors(true);
         var startNode = nodes[i].getCords();
-        console.log("drawConnections: ",connection);
+        //console.log("drawConnections: ",connection);
         // This itterates through all the connections of the current node
         for (var a = 0; a < connection.length; a++) {
             var endNode = connection[a].node.getCords();
