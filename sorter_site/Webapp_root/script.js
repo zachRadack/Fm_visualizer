@@ -78,6 +78,7 @@ function nodeClass(x,y,nodeNum,isItGoal=false){
     }
 
     this.setWasComputed = function(){
+        this.wasComputed =true;
         document.getElementById((this.nodeNumber).toString()).classList.add("was-computer");
     }
     this.isThisGoal = function(){
@@ -193,6 +194,10 @@ function nodeClass(x,y,nodeNum,isItGoal=false){
     }
     //sets current node as visitor
     this.setVisited = function(){
+        if(this.nodeNumber== 2){
+            console.log("hii");
+        }
+        this.visited = true;
         document.getElementById((this.nodeNumber).toString()).classList.add("visited-node");
     }
 
@@ -267,7 +272,6 @@ function current_Finite_Machine() {
     // search algorithm.
     this.initializer =function(startNode,endNode,aalgorithm){
         
-        this.visited = new Set();
         this.startNode=startNode
         this.endNode=endNode
         this.algorithm=aalgorithm
@@ -307,13 +311,15 @@ function current_Finite_Machine() {
             console.log("dead end?")
         }
 
-        //const { node, path, costs } = this.frontier.pop();
+        
+        
         const {newNode, path} = this.frontier.pop();
-
+        console.log("hayy: " , this.nodes[2].visited, " here is number ", this.nodes[2].nodeNumber);
         // see if we hit the goal yet
         if (newNode.isThisGoal()){
             this.found_path=true;
             // sends the path to end game
+            console.log("bump");
             this.end_game(path);
         }else if(!(newNode.visited)){
             if(this.first_run){
@@ -321,13 +327,17 @@ function current_Finite_Machine() {
             }else{
                 this.new_ObservedNode(newNode);
             }
-            this.visited.add(newNode);
             for (let successor of newNode.getNeighbors()){
+                //console.log(successor);
+                console.log("hayy: " , this.nodes[2].visited, " here is number ", this.nodes[2].nodeNumber, " heres the nodes: ", this.nodes);
                 if(!(successor.visited)){
                     successor.setWasComputed();
                     this.frontier.push({newNode:successor,path:path.concat([successor])})
                 }
             }
+        }else if(newNode.visited){
+            console.log("ALREADY VISITED");
+            this.Depthfirstsearch();
         }
     }
 
@@ -379,7 +389,7 @@ function current_Finite_Machine() {
     // it will first remove that ones  observed-node class and add visited-node class, which makes it red
     this.new_ObservedNode =function(newNode){
         // Sets classes of nodes, by changing background colors of them, to visualize where the search is
-        var dune;
+        let dune;
         // if observed node is not initilaized, it gets skipped
         if (this.first_run == false){
             this.observedNode.setObserver();
@@ -402,11 +412,11 @@ function current_Finite_Machine() {
 function startEnd_Node_Selector(nodes){
     //<option value="0">Node 1</option>
     if(nodes>2){
-        for (var i = 3; i < nodes+1; i++) {
-            var node_counterstart = document.createElement('option');
+        for (let i = 3; i < nodes+1; i++) {
+            let node_counterstart = document.createElement('option');
             node_counterstart.value= i-1;
             node_counterstart.text= ("Node "+parseInt(i));
-            var node_counterend = document.createElement('option');
+            let node_counterend = document.createElement('option');
             node_counterend.value= i-1;
             node_counterend.text= ("Node "+parseInt(i));
             document.querySelector('#start').appendChild(node_counterstart);
@@ -465,19 +475,6 @@ function connectNodes(nodes, count) {
     //return connections;
 }
 
-// this creates a connection object, which is used to figure out 
-// what nodes are connected to what, along with the cost of the connection
-function createConnectionObject(start,end,cost){
-    return [{
-        start,
-        end,
-        cost
-    }, {
-        start: end,
-        end: start,
-        cost
-    }]
-}
 
 // finds numberOfNeighbors of closest neighbors to the node
 // it will be used to connect nodes to each other as of now
