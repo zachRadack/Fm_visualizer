@@ -293,13 +293,15 @@ function current_Finite_Machine() {
         // node color (as of time of writing this, it is pink.)
         // then it goes through with the current path and makes it set to the observed node color
         // which is green.
-        document.getElementById((this.observedNode).toString()).classList.remove("observed-node");
+        this.observedNode.setObserver();
 
         path.forEach(function (aNode, i) {
-
-            document.getElementById((aNode).toString()).classList.add("end-game-path");
+            console.log("aNode: ",aNode);
+            document.getElementById((aNode.nodeNumber).toString()).classList.add("end-game-path");
             
         });
+        // makes it so the goal is a diffrent color and start is too, making it easier to understand where
+        // it is going
         document.getElementById((this.startNode).toString()).classList.add("start-node");
         document.getElementById((this.endNode).toString()).classList.add("the-goal");
     }
@@ -310,16 +312,13 @@ function current_Finite_Machine() {
         if(this.frontier.length){
             console.log("dead end?")
         }
-
-        
-        
         const {newNode, path} = this.frontier.pop();
-        console.log("hayy: " , this.nodes[2].visited, " here is number ", this.nodes[2].nodeNumber);
+        //console.log("hayy: " , this.nodes[2].visited, " here is number ", this.nodes[2].nodeNumber);
         // see if we hit the goal yet
         if (newNode.isThisGoal()){
             this.found_path=true;
             // sends the path to end game
-            console.log("bump");
+            console.log("Goal Found");
             this.end_game(path);
         }else if(!(newNode.visited)){
             if(this.first_run){
