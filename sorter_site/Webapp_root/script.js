@@ -62,7 +62,11 @@ function nodeClass(x,y,nodeNum,isItGoal=false){
     this.x=x;
     this.y=y;
     this.NodeConnection=[];
+    this.connections = 0;
     
+    // refrence to html
+    this.HTMLnodes;
+
     this.isGoal = isItGoal;
     // has it been visited
     this.visited = false;
@@ -71,6 +75,19 @@ function nodeClass(x,y,nodeNum,isItGoal=false){
     // this is for when a loop went over this node
     // if this is true it means that it was added to a list of choices somewhere
     this.wasComputed =false;
+
+
+    // Force Layout vars
+    
+    // inital velocity
+    this.vx = 0;
+    this.vy = 0;
+    this.mass = 10;
+    if(this.nodeNumber==0){
+        this.mass= 40;
+    }
+    this.radius =40;
+    this.beingDragged= false;
 
     // makes the goal a node
     this.makeNodeGoal = function(){
@@ -94,26 +111,11 @@ function nodeClass(x,y,nodeNum,isItGoal=false){
         }
     }
     
-    //sets cords, cords has to be formatted as an object
-    // {x:x,y:y}
-    this.setCords = function(cords){
-        this.x=cords.x;
-        this.y=cords.y;
-    }
+
     this.getCords = function(){ 
         return {x:this.x,y:this.y};
     }
-    this.setnodeNumber = function(nodeNumber){
-        console.log(this.nodeNumber)
-        this.nodeNumber=nodeNumber;
-        console.log(this.nodeNumber)
-    }
-    this.getNodeNumber = function(){
-        return this.nodeNumber;
-    }
 
-    
-    
     // Connections are objects that have a refrence to the connected node
     // and the cost to said node. Also adding a connection is 2 way
     // secondarycall is used to prevent infinite recursion.
@@ -125,6 +127,7 @@ function nodeClass(x,y,nodeNum,isItGoal=false){
         if(!(this.areTheyConnected(neighbors_Node))){
             this.NodeConnection.push({node:neighbors_Node,cost:cost});
             this.connectionPrinter(neighbors_Node,cost);
+            this.connections+=1;
             return true;
         }else{
             return false;
@@ -215,7 +218,7 @@ function current_Finite_Machine() {
     this.canvas = document.getElementById("canvas");
     this.ctx = this.canvas.getContext("2d");
     this.nodes = [];
-    this.connections = [];
+    
     this.startNode = null;
     this.endNode = null;
     this.algorithm = null;
@@ -224,9 +227,10 @@ function current_Finite_Machine() {
     this.frontier = [];
     this.observedNode = null;
     this.first_run = true;
+    this.thesim;
 
 
-    this.nodeClassObjects= [];
+    this.connections= [];
 
     // setups the canvas and stuff. Handles the creation of the nodes and connections.
     this.startup =function(totalNodes,totalConnections){
@@ -235,7 +239,7 @@ function current_Finite_Machine() {
         console.log("this nodes startup: ", this.nodes)
         
         connectNodes(this.nodes, totalConnections);
-
+        
         // Add nodes to the canvas
         for (var i = 0; i < this.nodes.length; i++) {
             var node = this.nodes[i];
@@ -255,14 +259,24 @@ function current_Finite_Machine() {
                 containment: "parent",
                 drag: function(event, ui) {
                     var index = $(this).text() - 1;
+
+                    current_screen.nodes[index].beingDragged=true;
                     current_screen.nodes[index].x = ui.position.left + 10;
                     current_screen.nodes[index].y = ui.position.top + 10;
                     drawConnections(current_screen.nodes);
+                },
+                stop: function(event, ui) {
+                    var index = $(this).text() - 1;
+                    current_screen.nodes[index].beingDragged=false;
                 }
             });
+            
         }
         // Draw initial connections on canvas
         startEnd_Node_Selector(totalNodes);
+        
+        // starts the force layout Simulation
+        this.thesim = new simulation(this.canvas.offsetWidth,this.canvas.offsetHeight,this.nodes);
     }
 
 
@@ -284,7 +298,7 @@ function current_Finite_Machine() {
             this.found_path=true;
         }
         this.frontier = [{newNode:this.observedNode,path: []}];
-        console.log("");
+
     }
 
     // handles when the search algos find the goal node
@@ -341,48 +355,6 @@ function current_Finite_Machine() {
     }
 
 
-    // this is the breadth first search algorithm
-    this.breadthfirstsearch =function(){
-        console.log("bfs");
-
-
-        if(this.frontier.length){
-            console.log("dead end?")
-        }
-        const { node, path, costs } = this.frontier.pop();
-
-        // see if we hit the goal yet
-        if (this.isGoalState(node)){
-            this.found_path=true;
-            // sends the path to end game
-            this.end_game(path);
-        }else if(!(this.visited.has(node))){
-            if(this.first_run){
-                this.first_run=false;
-            }else{
-                this.new_ObservedNode(node);
-            }
-            this.visited.add(node);
-            for (let [successor, newCost] of this.getNeighbors(node)){
-                if(!(visited.has(successor))){
-                    this.wasComputer(successor);
-                    this.frontier.unshift({node:successor,path:path.concat([node]),costs: costs.concat([newCost])})
-                }
-            }
-        }
-    }
-
-
-    // this function checks to see if the current node is 
-    // the goal node. If it is, then it returns true, else
-    // it returns false.
-    this.isGoalState =function(node){
-        if(node==this.endNode){
-            return true;
-        }
-        return false;
-
-    }
 
     // this function handles making current node green and if there already is one
     // it will first remove that ones  observed-node class and add visited-node class, which makes it red
@@ -448,31 +420,42 @@ function generateNodes(count) {
 // It takes in a list of nodes and the desired number of connections.
 // It returns an array of connections in the form of [startNode, endNode, cost].
 function connectNodes(nodes, count) {
-    console.log("connectNodes ", nodes);
     
-    // Ensure that all nodes have at least one connection
-    // For each node, connect it to another random node if it isn't already connected
-    for (let i = 0; i < nodes.length; i++) {
-        const start = i;
+    // Create a set of all nodes that are not yet connected
+    let unconnectedNodes = new Set(nodes);
+    
+    // Connect each node to its closest unconnected neighbor until there are no unconnected nodes left
+    while (unconnectedNodes.size > 1) {
+        // Select a random unconnected node to start with
+        const start = Array.from(unconnectedNodes)[Math.floor(Math.random() * unconnectedNodes.size)];
         
-        // check if end is already connected or equal to start
-        let end = findClosestedNeighbor(start, nodes,count);
+        // Find the closest unconnected neighbor and connect to it
+        let end = findClosestedNeighbor(start, Array.from(unconnectedNodes), 1)[0];
+        const cost = Math.floor(Math.random() * 10) + 1;
+        nodes[nodes.indexOf(start)].addConnection(end, cost);
+        drawConnectionLine_middleman(start, end, cost);
+        current_screen.connections.push({start: start, end: end});
         
-        for (a = 0; a < end.length; a++) {
-            const cost = Math.floor(Math.random() * 10) + 1;
-            //connections.push(createConnectionObject(start,end[a],cost));
-            let didItConnect= nodes[i].addConnection(end[a],cost);
-            if(didItConnect){
-                drawConnectionLine_middleman(nodes[i],end[a],cost);
-            }
-        }
+        // Remove the connected nodes from the set of unconnected nodes
+        unconnectedNodes.delete(start);
+        unconnectedNodes.delete(end);
+    }
+
+    // Add additional connections to reach desired count
+    for (let i = 0; i < count; i++) {
+        const start = nodes[Math.floor(Math.random() * nodes.length)];
+        let end = findClosestedNeighbor(start, nodes, 1)[0];
+        const cost = Math.floor(Math.random() * 10) + 1;
+        start.addConnection(end, cost);
+        drawConnectionLine_middleman(start, end, cost);
+        current_screen.connections.push({start: start, end: end});
     }
 
     // print a message indicating that the implementation has been changed
     console.log("Reconnected the nodes");
-    // return the array of connections
-    //return connections;
+    
 }
+
 
 
 // finds numberOfNeighbors of closest neighbors to the node
@@ -485,7 +468,7 @@ function findClosestedNeighbor(node, nodes,numberOfNeighbors) {
     const neighbors = new PriorityQueue((a, b) => a[1] > b[1])
     for (var i = 0; i < nodes.length; i++) {
         if (node !== i) {
-            neighbors.push([nodes[i], manhattanDistance({x:nodes[node].x,y:nodes[node].y},{x:nodes[i].x,y:nodes[i].y})]);
+            neighbors.push([nodes[i], manhattanDistance({x:node.x,y:node.y},{x:nodes[i].x,y:nodes[i].y})]);
         }
     }
     var returnList = [];
