@@ -1,11 +1,11 @@
 //This is an attempt at creating my own custom force layout
 class simulation {
-    constructor(width, height, nodes) {
+    constructor(width, height, nodes,isSimulated=false) {
         this.width = width;
         this.height = height;
         this.nodes = nodes;
         
-
+        this.isSimulated = isSimulated;
         this.vx_list=new Array();
         this.vy_list=new Array();
         this.simulationLoop();
@@ -13,10 +13,13 @@ class simulation {
 
     // Define the simulation loop
     simulationLoop() {
-        this.simulateForces(this.nodes);
+        if(this.isSimulated){
+            this.simulateForces(this.nodes);
+        }
         this.checkCollisions(this.nodes);
 
         this.updatePositions(this.nodes);
+        
         this.vx_list=new Array();
         this.vy_list=new Array();
 
@@ -187,8 +190,9 @@ class simulation {
 
     // Update the positions of the nodes based on the forces
     updatePositions(nodes) {
-        this.speedNormalizer(nodes);
-
+        if(this.isSimulated){
+            this.speedNormalizer(nodes);
+        }
         for (const node of nodes) {
             //dampen the velocity to avoid infinite oscillation
             // do not put after or they nodes will party

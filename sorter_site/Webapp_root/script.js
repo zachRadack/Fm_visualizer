@@ -8,6 +8,7 @@ var current_screen=new current_Finite_Machine();
 // this creates canvas
 $("#Create-canvas-btn").click(function() {
     document.getElementById("curConenctionId").textContent = "None";
+    document.getElementById("curPathId").textContent = "None";
     current_screen=new current_Finite_Machine();
     wipeCanvas();
     var randomSeed = document.getElementById("seedTextBox").value;
@@ -48,9 +49,9 @@ $("#start-btn").click(function() {
 $("#next-step-btn").click(function() {
     if(current_screen.foundPathGetter==true){
         current_screen.end_game();
-    }else if(current_screen.algoGetter = "dfs"){
+    }else if(current_screen.algoGetter() == "dfs"){
         current_screen.Depthfirstsearch();
-    }else if(current_screen.algoGetter = "bfs"){
+    }else if(current_screen.algoGetter() == "bfs"){
         current_screen.breadthfirstsearch();
     }
 });
@@ -327,6 +328,7 @@ function current_Finite_Machine() {
             console.log("dead end?")
         }
         const {newNode, path} = this.frontier.pop();
+        this.PrintCurrentPath(path);
         //console.log("hayy: " , this.nodes[2].visited, " here is number ", this.nodes[2].nodeNumber);
         // see if we hit the goal yet
         if (newNode.isThisGoal()){
@@ -354,8 +356,44 @@ function current_Finite_Machine() {
         }
     }
 
+    this.breadthfirstsearch =function(){
+        console.log("Bfs");
+        if(this.frontier.length){
+            console.log("dead end?")
+        }
+        const {newNode, path} = this.frontier.pop();
+        this.PrintCurrentPath(path);
+        //console.log("hayy: " , this.nodes[2].visited, " here is number ", this.nodes[2].nodeNumber);
+        // see if we hit the goal yet
+        if (newNode.isThisGoal()){
+            this.found_path=true;
+            // sends the path to end game
+            console.log("Goal Found");
+            this.end_game(path);
+        }else if(!(newNode.visited)){
+            if(this.first_run){
+                this.first_run=false;
+            }else{
+                this.new_ObservedNode(newNode);
+            }
+            for (let successor of newNode.getNeighbors()){
+                //console.log(successor);
+                console.log("hayy: " , this.nodes[2].visited, " here is number ", this.nodes[2].nodeNumber, " heres the nodes: ", this.nodes);
+                if(!(successor.visited)){
+                    successor.setWasComputed();
+                    this.frontier.unshift({newNode:successor,path:path.concat([successor])})
+                }
+            }
+        }else if(newNode.visited){
+            console.log("ALREADY VISITED");
+            this.Depthfirstsearch();
+        }
+    }
 
 
+    this.PrintCurrentPath=function(Path){
+        document.getElementById("curPathId").textContent =Path.map(function(item) { return item["nodeNumber"]+1; });
+    }
     // this function handles making current node green and if there already is one
     // it will first remove that ones  observed-node class and add visited-node class, which makes it red
     this.new_ObservedNode =function(newNode){
