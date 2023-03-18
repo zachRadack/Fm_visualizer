@@ -416,45 +416,35 @@ function generateNodes(count) {
 }
 
 
-// This function connects nodes in a graph by creating connections between them.
 // It takes in a list of nodes and the desired number of connections.
 // It returns an array of connections in the form of [startNode, endNode, cost].
 function connectNodes(nodes, count) {
+    console.log("connectNodes ", nodes);
     
-    // Create a set of all nodes that are not yet connected
-    let unconnectedNodes = new Set(nodes);
+    // Ensure that all nodes have at least one connection
+    // For each node, connect it to another random node if it isn't already connected
+    for (let i = 0; i < nodes.length; i++) {
+        const start = i;
     
-    // Connect each node to its closest unconnected neighbor until there are no unconnected nodes left
-    while (unconnectedNodes.size > 1) {
-        // Select a random unconnected node to start with
-        const start = Array.from(unconnectedNodes)[Math.floor(Math.random() * unconnectedNodes.size)];
+        // check if end is already connected or equal to start
+        let end = findClosestedNeighbor(start, nodes,count);
         
-        // Find the closest unconnected neighbor and connect to it
-        let end = findClosestedNeighbor(start, Array.from(unconnectedNodes), 1)[0];
+        for (a = 0; a < end.length; a++) {
         const cost = Math.floor(Math.random() * 10) + 1;
-        nodes[nodes.indexOf(start)].addConnection(end, cost);
-        drawConnectionLine_middleman(start, end, cost);
-        current_screen.connections.push({start: start, end: end});
-        
-        // Remove the connected nodes from the set of unconnected nodes
-        unconnectedNodes.delete(start);
-        unconnectedNodes.delete(end);
+            //connections.push(createConnectionObject(start,end[a],cost));
+            let didItConnect= nodes[i].addConnection(end[a],cost);
+            if(didItConnect){
+                drawConnectionLine_middleman(nodes[i],end[a],cost);
+            }
     }
-
-    // Add additional connections to reach desired count
-    for (let i = 0; i < count; i++) {
-        const start = nodes[Math.floor(Math.random() * nodes.length)];
-        let end = findClosestedNeighbor(start, nodes, 1)[0];
-        const cost = Math.floor(Math.random() * 10) + 1;
-        start.addConnection(end, cost);
-        drawConnectionLine_middleman(start, end, cost);
-        current_screen.connections.push({start: start, end: end});
     }
 
     // print a message indicating that the implementation has been changed
     console.log("Reconnected the nodes");
-    
+    // return the array of connections
+    //return connections;
 }
+
 
 
 
@@ -468,7 +458,7 @@ function findClosestedNeighbor(node, nodes,numberOfNeighbors) {
     const neighbors = new PriorityQueue((a, b) => a[1] > b[1])
     for (var i = 0; i < nodes.length; i++) {
         if (node !== i) {
-            neighbors.push([nodes[i], manhattanDistance({x:node.x,y:node.y},{x:nodes[i].x,y:nodes[i].y})]);
+            neighbors.push([nodes[i], manhattanDistance({x:nodes[node].x,y:nodes[node].y},{x:nodes[i].x,y:nodes[i].y})]);
         }
     }
     var returnList = [];
