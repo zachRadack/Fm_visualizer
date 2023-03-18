@@ -86,7 +86,7 @@ function nodeClass(x,y,nodeNum,isItGoal=false){
     if(this.nodeNumber==0){
         this.mass= 40;
     }
-    this.radius =40;
+    this.radius =80;
     this.beingDragged= false;
 
     // makes the goal a node

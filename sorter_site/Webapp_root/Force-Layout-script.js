@@ -41,21 +41,20 @@ class simulation {
         let fy = 0;
 
         if (x - radius < padding) {
-            fx += (padding - (x - radius));
+            fx += (padding - (x - radius))** 2;
         } else if (x + radius > this.width - padding) {
-            fx -= (x + radius - this.width + padding);
+            fx -= (x + radius - this.width + padding)** 2;
         }
 
         if (y - radius < padding) {
-            fy += (padding - (y - radius));
+            fy += (padding - (y - radius))** 2;
         } else if (y + radius > this.height - padding) {
-            fy -= (y + radius - this.height + padding);
+            fy -= (y + radius - this.height + padding)** 2;
         }
         
         node.vx += fx;
         node.vy += fy;
-        this.vx_list.push(node.vx);
-        this.vy_list.push(node.vy);
+        
     }
 
     // This pulls them together
@@ -112,17 +111,25 @@ class simulation {
                 let neighbors = node.getNeighbors();
                 
                 for (const link of neighbors) {
+                    
                     this.attractionForce(node, link);
                 }
                 for (const otherNode of nodes.filter((n) => n.nodeNumber !== node.nodeNumber)) {
-                    this.repulsionForce(node, otherNode);
+                    if ((otherNode.beingDragged == false)) {
+                        this.repulsionForce(node, otherNode);
+                    }
                 }
-
-                this.boundaryForce(node); // Add the boundary force
+                
+                
             }
         }
         for (const node of nodes) {
-            this.centeringForce(node);
+            if ((node.beingDragged == false)) {
+                this.boundaryForce(node); // Add the boundary force
+                this.centeringForce(node);
+                this.vx_list.push(node.vx);
+                this.vy_list.push(node.vy);
+            }
         }
     }
 
