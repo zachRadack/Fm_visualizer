@@ -83,9 +83,9 @@ function nodeClass(x,y,nodeNum,isItGoal=false){
     // inital velocity
     this.vx = 0;
     this.vy = 0;
-    this.mass = 10;
+    this.mass = 200;
     if(this.nodeNumber==0){
-        this.mass= 40;
+        this.mass= 300;
     }
     this.radius =80;
     this.beingDragged= false;
@@ -126,7 +126,7 @@ function nodeClass(x,y,nodeNum,isItGoal=false){
             neighbors_Node.addConnection(this,cost,false);
         }
         if(!(this.areTheyConnected(neighbors_Node))){
-            this.NodeConnection.push({node:neighbors_Node,cost:cost});
+            this.NodeConnection.push({node:neighbors_Node,cost:cost, current_angle:getAngle(this,neighbors_Node), angle_tolerance:10});
             this.connectionPrinter(neighbors_Node,cost);
             this.connections+=1;
             return true;
@@ -562,4 +562,14 @@ function wipeCanvas(){
     for (var i = 0; i < elements.length; i++) {
     elements[i].parentNode.removeChild(elements[i]);
     }
+}
+
+
+function getAngle(node1, node2) {
+    var dy = node1.y - node2.y;
+    var dx = node1.x - node2.y;
+    var theta = Math.atan2(dy, dx); // range (-PI, PI]
+    theta *= 180 / Math.PI; // rads to degs, range (-180, 180]
+    //if (theta < 0) theta = 360 + theta; // range [0, 360)
+    return Math.round(theta);
 }

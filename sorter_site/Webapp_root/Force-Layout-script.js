@@ -8,6 +8,8 @@ class simulation {
         this.isSimulated = isSimulated;
         this.vx_list=new Array();
         this.vy_list=new Array();
+        this.vx_list_neg=new Array();
+        this.vy_list_neg=new Array();
         this.simulationLoop();
     }
 
@@ -16,13 +18,15 @@ class simulation {
         if(this.isSimulated){
             this.simulateForces(this.nodes);
         }
+        
         this.checkCollisions(this.nodes);
 
         this.updatePositions(this.nodes);
         
         this.vx_list=new Array();
         this.vy_list=new Array();
-
+        this.vx_list_neg=new Array();
+        this.vy_list_neg=new Array();
 
         // Schedule the next loop iteration
         requestAnimationFrame(() => {
@@ -130,11 +134,26 @@ class simulation {
             if ((node.beingDragged == false)) {
                 this.boundaryForce(node); // Add the boundary force
                 this.centeringForce(node);
-                this.vx_list.push(node.vx);
-                this.vy_list.push(node.vy);
+                // Normalize the velocity if it exceeds a certain threshold
+                const speedThreshold = 10;
+                const speed = Math.sqrt(node.vx ** 2 + node.vy ** 2);
+                if (speed > speedThreshold) {
+                    node.vx = (node.vx / speed) * speedThreshold;
+                    node.vy = (node.vy / speed) * speedThreshold;
+                }
+
+                if (node.vx > 0) {
+                    this.vx_list.push(node.vx);
+                    this.vy_list.push(node.vy);
+                } else {
+                    this.vx_list_neg.push(node.vx);
+                    this.vy_list_neg.push(node.vy);
+                }
+
             }
         }
     }
+    
 
 
     // Check if two nodes are overlapping
@@ -186,27 +205,35 @@ class simulation {
             node.vx = (node.vx - min_vx) / (max_vx - min_vx) * normalizeVal - (normalizeVal/2);
             node.vy = (node.vy - min_vy) / (max_vy - min_vy) * normalizeVal - (normalizeVal/2);
         }
+        //return NormalizedSpeds
     }
+
+    
 
     // Update the positions of the nodes based on the forces
     updatePositions(nodes) {
         if(this.isSimulated){
-            this.speedNormalizer(nodes);
+            //this.speedNormalizer(nodes);
         }
         for (const node of nodes) {
+            if ((node.beingDragged == false)) {
             //dampen the velocity to avoid infinite oscillation
             // do not put after or they nodes will party
             // also kills off lots of speed.
-            node.vx *= 0.5;   
-            node.vy *= 0.5; 
+            node.vx *= 0.1;   
+            node.vy *= 0.1; 
 
             // transfer velocities into speeds
             node.x += node.vx;
             node.y += node.vy;
 
             this.updateCSSmovement(node);
+            }
         }
     };
+
+    
+      
 
 
 
@@ -214,7 +241,7 @@ class simulation {
     updateCSSmovement(node) {
         // Get the element with ID "myElement"
         let myElement = document.getElementById(node.nodeNumber);
-
+        console.log()
         // Set the "left" and "top" CSS properties
         myElement.style.left = node.x - 10 + "px";
         myElement.style.top = node.y - 10 + "px";
