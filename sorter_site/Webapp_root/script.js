@@ -9,6 +9,7 @@ var current_screen=new current_Finite_Machine();
 $("#Create-canvas-btn").click(function() {
     document.getElementById("curConenctionId").textContent = "None";
     document.getElementById("curPathId").textContent = "None";
+    
     current_screen=new current_Finite_Machine();
     wipeCanvas();
     var randomSeed = document.getElementById("seedTextBox").value;
@@ -21,7 +22,9 @@ $("#Create-canvas-btn").click(function() {
     Math.seedrandom(randomSeed);
     var totalNodes = parseInt(document.getElementById("totalNodes").value);
     var totalConnections = parseInt(document.getElementById("totalConnections").value);
-    current_screen.startup(totalNodes,totalConnections);
+    var isItSimulated = document.querySelector('#isItSimulated').checked;
+    console.log(isItSimulated);
+    current_screen.startup(totalNodes,totalConnections,isItSimulated);
     
 });
 
@@ -32,6 +35,7 @@ $("#start-btn").click(function() {
     //colorNode(startNode,"red");
     var endNode = parseInt($("#end").val());
     var algorithm = $("#algorithm").val();
+    
     console.log("Start node: " + startNode);
     console.log("End node: " + endNode);
     console.log("Algorithm: " + algorithm);
@@ -42,6 +46,8 @@ $("#start-btn").click(function() {
         current_screen.Depthfirstsearch();
     }else if(algorithm = "bfs"){
         current_screen.breadthfirstsearch();
+    }else if(current_screen.algorithmGetter() == "Astar"){
+        current_screen.AstarAlgo();
     }
 });
 
@@ -49,10 +55,12 @@ $("#start-btn").click(function() {
 $("#next-step-btn").click(function() {
     if(current_screen.foundPathGetter==true){
         current_screen.end_game();
-    }else if(current_screen.algoGetter() == "dfs"){
+    }else if(current_screen.algorithmGetter() == "dfs"){
         current_screen.Depthfirstsearch();
-    }else if(current_screen.algoGetter() == "bfs"){
+    }else if(current_screen.algorithmGetter() == "bfs"){
         current_screen.breadthfirstsearch();
+    }else if(current_screen.algorithmGetter() == "Astar"){
+        current_screen.AstarAlgorithm();
     }
 });
 
@@ -87,7 +95,7 @@ function nodeClass(x,y,nodeNum,isItGoal=false){
     if(this.nodeNumber==0){
         this.mass= 300;
     }
-    this.radius =80;
+    this.radius =60;
     this.beingDragged= false;
 
     // makes the goal a node
@@ -222,25 +230,32 @@ function current_Finite_Machine() {
     
     this.startNode = null;
     this.endNode = null;
-    this.algorithm = null;
+    
     this.visited = new Set();
     this.found_path = false;
     this.frontier = [];
     this.observedNode = null;
     this.first_run = true;
-    this.thesim;
+    this.theSimulator;
 
 
     this.connections= [];
+    
+    // for things such as Astar
+    this.currentHeuristic = null;
+    this.isItSimulated = false;
 
     // setups the canvas and stuff. Handles the creation of the nodes and connections.
-    this.startup =function(totalNodes,totalConnections){
+    this.startup =function(totalNodes,totalConnections,isItSimulated){
+        this.isItSimulated = isItSimulated;
         this.ctx  = this.canvas.getContext("2d");
         this.nodes = generateNodes(totalNodes);
         console.log("this nodes startup: ", this.nodes)
         
         connectNodes(this.nodes, totalConnections);
         
+
+
         // Add nodes to the canvas
         for (var i = 0; i < this.nodes.length; i++) {
             var node = this.nodes[i];
@@ -277,7 +292,7 @@ function current_Finite_Machine() {
         startEnd_Node_Selector(totalNodes);
         
         // starts the force layout Simulation
-        this.thesim = new simulation(this.canvas.offsetWidth,this.canvas.offsetHeight,this.nodes);
+        this.theSimulator = new simulation(this.canvas.offsetWidth,this.canvas.offsetHeight,this.nodes,isItSimulated);
     }
 
 
@@ -290,7 +305,7 @@ function current_Finite_Machine() {
         this.startNode=startNode
         this.endNode=endNode
         this.algorithm=aalgorithm
-
+        
         // this sets up the start node to be the current observer node
         // while also setting up the endnode to be the goal
         this.new_ObservedNode(this.nodes[this.startNode]);
@@ -344,7 +359,7 @@ function current_Finite_Machine() {
             }
             for (let successor of newNode.getNeighbors()){
                 //console.log(successor);
-                console.log("hayy: " , this.nodes[2].visited, " here is number ", this.nodes[2].nodeNumber, " heres the nodes: ", this.nodes);
+                //console.log("hayy: " , this.nodes[2].visited, " here is number ", this.nodes[2].nodeNumber, " heres the nodes: ", this.nodes);
                 if(!(successor.visited)){
                     successor.setWasComputed();
                     this.frontier.push({newNode:successor,path:path.concat([successor])})
@@ -390,6 +405,9 @@ function current_Finite_Machine() {
         }
     }
 
+    this.AstarAlgorithm = function(){
+        console.log("test");
+    }
 
     this.PrintCurrentPath=function(Path){
         document.getElementById("curPathId").textContent =Path.map(function(item) { return item["nodeNumber"]+1; });
@@ -411,7 +429,7 @@ function current_Finite_Machine() {
     this.foundPathGetter = function(){
         return this.found_path;
     }
-    this.algoGetter = function(){
+    this.algorithmGetter = function(){
         return this.algorithm;
     }
 }
@@ -549,7 +567,7 @@ function drawConnectionLine(startNode,endNode,cost){
     current_screen.ctx.stroke();
     // Add cost label to the middle of the line
     current_screen.ctx.fillStyle = "#000";
-    current_screen.ctx.fillText(cost, midX, midY);
+    current_screen.ctx.fillText(cost, midX, midY+20);
 }
 
 // this deletes all current nodes from the last layuout
