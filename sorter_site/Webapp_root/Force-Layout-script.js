@@ -3,25 +3,26 @@ class simulation {
     constructor(width, height, nodes,isSimulated=false) {
         this.width = width;
         this.height = height;
-        this.nodes = nodes;
         
         this.isSimulated = isSimulated;
         this.vx_list=new Array();
         this.vy_list=new Array();
         this.vx_list_neg=new Array();
         this.vy_list_neg=new Array();
-        this.simulationLoop();
+        this.simulationLoop(nodes);
     }
 
+    //getAnimation
+
     // Define the simulation loop
-    simulationLoop() {
+    simulationLoop(nodes) {
         if(this.isSimulated){
-            this.simulateForces(this.nodes);
+            this.simulateForces(nodes);
         }
         
-        this.checkCollisions(this.nodes);
+        this.checkCollisions(nodes);
 
-        this.updatePositions(this.nodes);
+        this.updatePositions(nodes);
         
         this.vx_list=new Array();
         this.vy_list=new Array();
@@ -30,8 +31,8 @@ class simulation {
 
         // Schedule the next loop iteration
         requestAnimationFrame(() => {
-            this.simulationLoop();
-            drawConnections(this.nodes);
+            this.simulationLoop(nodes);
+            drawConnections(nodes);
         });
     };
 

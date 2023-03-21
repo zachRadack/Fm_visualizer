@@ -5,11 +5,16 @@ var canvas=document.getElementById("canvas");
 
 var current_screen=new current_Finite_Machine();
 
+var animationFrame = -1;
 // this creates canvas
 $("#Create-canvas-btn").click(function() {
     document.getElementById("curConenctionId").textContent = "None";
     document.getElementById("curPathId").textContent = "None";
-    
+
+    if (animationFrame!= -1){
+    window.cancelAnimationFrame(animationFrame);
+    }
+
     current_screen=new current_Finite_Machine();
     wipeCanvas();
     var randomSeed = document.getElementById("seedTextBox").value;
@@ -590,4 +595,5 @@ function getAngle(node1, node2) {
     theta *= 180 / Math.PI; // rads to degs, range (-180, 180]
     //if (theta < 0) theta = 360 + theta; // range [0, 360)
     return Math.round(theta);
+    
 }
