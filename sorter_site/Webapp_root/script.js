@@ -11,10 +11,7 @@ $("#Create-canvas-btn").click(function() {
     document.getElementById("curConenctionId").textContent = "None";
     document.getElementById("curPathId").textContent = "None";
 
-    if (animationFrame!= -1){
-    window.cancelAnimationFrame(animationFrame);
-    }
-
+    current_screen.cancelAnimation();
     current_screen=new current_Finite_Machine();
     wipeCanvas();
     var randomSeed = document.getElementById("seedTextBox").value;
@@ -241,7 +238,7 @@ function current_Finite_Machine() {
     this.frontier = [];
     this.observedNode = null;
     this.first_run = true;
-    this.theSimulator;
+    this.theSimulator=false;
 
 
     this.connections= [];
@@ -300,6 +297,15 @@ function current_Finite_Machine() {
         this.theSimulator = new simulation(this.canvas.offsetWidth,this.canvas.offsetHeight,this.nodes,isItSimulated);
     }
 
+    // this makes it so the old animation stops, if this is not trigged, then if
+    // you hit "load canvas" a second time, it will be using the nodes from the first canvas
+    this.cancelAnimation= function(){
+        // upon loading, this.theSimulator before any load canvas is used
+        // is always false. Other than that, it should always be linked to a simulation.
+        if(this.theSimulator!= false){
+            this.theSimulator.stopAnimation();
+        }
+    }
 
     
     // this is when the user clicks "start/reset" button
@@ -572,7 +578,7 @@ function drawConnectionLine(startNode,endNode,cost){
     current_screen.ctx.stroke();
     // Add cost label to the middle of the line
     current_screen.ctx.fillStyle = "#000";
-    current_screen.ctx.fillText(cost, midX, midY+20);
+    current_screen.ctx.fillText(cost, midX+10, midY+20);
 }
 
 // this deletes all current nodes from the last layuout

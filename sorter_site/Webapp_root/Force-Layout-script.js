@@ -10,6 +10,7 @@ class simulation {
         this.vx_list_neg=new Array();
         this.vy_list_neg=new Array();
         this.simulationLoop(nodes);
+        this.animationId;
     }
 
     //getAnimation
@@ -30,11 +31,16 @@ class simulation {
         this.vy_list_neg=new Array();
 
         // Schedule the next loop iteration
-        requestAnimationFrame(() => {
+        this.animationId = requestAnimationFrame(() => {
             this.simulationLoop(nodes);
             drawConnections(nodes);
         });
     };
+
+    stopAnimation() {
+        cancelAnimationFrame(this.animationId);
+    }
+    
 
     // Define the boundary force, which is canvas
     // not perfect if they go fast enough, more meant as a light push back 
