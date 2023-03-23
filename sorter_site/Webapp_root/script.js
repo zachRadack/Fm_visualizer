@@ -251,9 +251,12 @@ function current_Finite_Machine() {
     this.found_path = false;
     this.frontier = [];
     this.observedNode = null;
-    this.first_run = true;
+    
     this.theSimulator=false;
-
+    
+    // these are initiator values
+    this.first_run = true;
+    this.connectionsMade = false;
 
     this.connections= [];
     
@@ -281,7 +284,7 @@ function current_Finite_Machine() {
                 id: i,
                 text: i + 1
             })
-
+            //createConnectionElement(node,i);
             
             $("#canvas").after(nodeEl);
             nodeEl.css({
@@ -307,6 +310,7 @@ function current_Finite_Machine() {
             });
             
         }
+        
         // Draw initial connections on canvas
         startEnd_Node_Selector(totalNodes);
         
@@ -561,6 +565,27 @@ function manhattanDistance(node1,node2){
     return -(Math.abs(node1.x - node2.x) + Math.abs(node1.y - node2.y));
 }
 
+function createConnectionElement(node,index){
+
+    for(var a = 0; a < node.NodeConnection.length; a++){
+        let CurNode = node;
+        var nodeEl = $("<div>", {
+            class: "connection_info",
+            id: index+"_connector_"+a,
+            text: CurNode.NodeConnection[a].cost
+        })
+        var center_point = find_centerpoint(CurNode,CurNode.NodeConnection[a].node);
+        
+        $("#canvas").after(nodeEl);
+        nodeEl.css({
+            left: center_point.x,
+            top: center_point.y 
+        })
+    
+    }
+
+
+}
 // Draw connections on canvas and puts the path cost on the line
 function drawConnections(nodes) {
     current_screen.ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -568,12 +593,21 @@ function drawConnections(nodes) {
     for (var i = 0; i < nodes.length; i++) {
         var connection = nodes[i].getNeighbors(true);
         var startNode = nodes[i].getCords();
-        //console.log("drawConnections: ",connection);
         // This itterates through all the connections of the current node
         for (var a = 0; a < connection.length; a++) {
             var endNode = connection[a].node.getCords();
             var cost = connection[a].cost;
             drawConnectionLine(startNode,endNode,cost);
+        }
+    }
+    for (var i = 0; i < nodes.length; i++) {
+        var connection = nodes[i].getNeighbors(true);
+        var startNode = nodes[i].getCords();
+        // This itterates through all the connections of the current node
+        for (var a = 0; a < connection.length; a++) {
+            var endNode = connection[a].node.getCords();
+            var cost = connection[a].cost;
+            draw_cost(startNode,endNode,cost);
         }
     }
 }
@@ -585,19 +619,38 @@ function drawConnectionLine_middleman(startNode,endNode,cost){
 }
 
 function drawConnectionLine(startNode,endNode,cost){
-    // Calculate midpoint of line for label placement
 
-    //Uses slope intercept to get the center of the line.
-    var b = findPointOnLine(startNode,endNode,20);
+
+    var b = find_centerpoint(startNode,endNode);
+
 
     // Draw line between nodes
     current_screen.ctx.beginPath();
     current_screen.ctx.moveTo(startNode.x, startNode.y);
     current_screen.ctx.lineTo(endNode.x, endNode.y);
     current_screen.ctx.stroke();
+}
+
+function draw_cost(startNode,endNode,cost){
+    let rect_width = 50;
+    let rect_height = 60;
+
+    //Uses slope intercept to get the center of the line.
+    var b = find_centerpoint(startNode,endNode);
+    var b_1 = {x:(b.x-(rect_width/2)),y:(b.y-(rect_height/2))};
+    //current_screen.ctx.fillRect(b_1.x, b_1.y, rect_width, rect_height);
+    current_screen.ctx.clearRect(b_1.x+3, b_1.y, rect_width*.9, rect_height*.9);
+    current_screen.ctx.strokeRect(b_1.x+3, b_1.y, rect_width*.86, rect_height*.86);
     // Add cost label to the middle of the line
     current_screen.ctx.fillStyle = "#000";
     current_screen.ctx.fillText(cost, b.x, b.y);
+}
+
+
+function find_centerpoint(node1,node2){
+    const middleX = (node1.x + node2.x) / 2;
+    const middleY = (node1.y + node2.y) / 2;
+    return {x:middleX,y:middleY}
 }
 
 
