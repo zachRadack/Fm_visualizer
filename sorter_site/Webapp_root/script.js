@@ -145,6 +145,20 @@ function nodeClass(x,y,nodeNum,isItGoal=false){
         }
     }
 
+    this.NewAngle= function(isthisRepeat=false){
+        for(var i=0;i<this.NodeConnection.length;i++){
+            let currentNeighbor =this.NodeConnection[i]
+            currentNeighbor.current_angle = getAngle(this,currentNeighbor.node);
+            if(isthisRepeat){
+                currentNeighbor.node.NewAngle(true);
+            }
+            if(this.nodeNumber==0){
+                document.getElementById("curPathId").textContent = this.NodeConnection[i].current_angle;
+            }
+        }
+
+    }
+
     // this adds to curConenctionId the current connection
     this.connectionPrinter=function(neighbors_Node,cost){
         // Get the current content of curConenctionId element
@@ -281,6 +295,9 @@ function current_Finite_Machine() {
                     current_screen.nodes[index].beingDragged=true;
                     current_screen.nodes[index].x = ui.position.left + 10;
                     current_screen.nodes[index].y = ui.position.top + 10;
+                    
+                    current_screen.nodes[index].NewAngle();
+                    
                     drawConnections(current_screen.nodes);
                 },
                 stop: function(event, ui) {
@@ -569,8 +586,10 @@ function drawConnectionLine_middleman(startNode,endNode,cost){
 
 function drawConnectionLine(startNode,endNode,cost){
     // Calculate midpoint of line for label placement
-    var midX = (startNode.x + endNode.x) / 2;
-    var midY = (startNode.y + endNode.y) / 2;
+
+    //Uses slope intercept to get the center of the line.
+    var b = findPointOnLine(startNode,endNode,20);
+
     // Draw line between nodes
     current_screen.ctx.beginPath();
     current_screen.ctx.moveTo(startNode.x, startNode.y);
@@ -578,9 +597,32 @@ function drawConnectionLine(startNode,endNode,cost){
     current_screen.ctx.stroke();
     // Add cost label to the middle of the line
     current_screen.ctx.fillStyle = "#000";
-    current_screen.ctx.fillText(cost, midX+10, midY+20);
+    current_screen.ctx.fillText(cost, b.x, b.y);
 }
 
+
+function findPointOnLine(node1,node2,distance = 10) {
+    // Step 1: Find the middle point of the line segment
+    const middleX = (node1.x + node2.x) / 2;
+    const middleY = (node1.y + node2.y) / 2;
+  
+    // Step 2: Find the slope of the line segment
+    const slope = (node2.y - node1.y) / (node2.x - node1.x);
+  
+    // Step 3: Find the perpendicular slope of the line segment
+    const perpSlope = -1 / slope;
+  
+    // Step 4: Use the perpendicular slope and distance to find two points that are 10 units away from the middle point of the line segment
+    const xOffset = Math.sqrt(distance ** 2 / (1 + perpSlope ** 2));
+    const yOffset = perpSlope * xOffset;
+    
+    const point1 = { x: middleX + xOffset, y: middleY + yOffset };
+    const point2 = { x: middleX - xOffset, y: middleY - yOffset };
+  
+    // Step 5: Choose one of these points as your final point
+    return point1;
+  }
+  
 // this deletes all current nodes from the last layuout
 function wipeCanvas(){
     current_screen.ctx.clearRect(0, 0, canvas.width, canvas.height);
