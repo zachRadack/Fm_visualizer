@@ -3,3 +3,11 @@
 0.4033021435482249
 
 node 0: x:427 y:334
+
+
+
+good example seed
+total nodes 10, total connections 2
+
+this one has alot of dist between 1 and 2, and well formatted to present
+0.25916584974151646

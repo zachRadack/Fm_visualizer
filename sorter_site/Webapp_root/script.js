@@ -48,8 +48,10 @@ $("#start-btn").click(function() {
         current_screen.Depthfirstsearch();
     }else if(algorithm = "bfs"){
         current_screen.breadthfirstsearch();
+    }else if(current_screen.algorithmGetter() == "Dijkstra"){
+        current_screen.Dijkstra();
     }else if(current_screen.algorithmGetter() == "Astar"){
-        current_screen.AstarAlgo();
+        current_screen.AstarAlgorithm();
     }
 });
 
@@ -61,6 +63,8 @@ $("#next-step-btn").click(function() {
         current_screen.Depthfirstsearch();
     }else if(current_screen.algorithmGetter() == "bfs"){
         current_screen.breadthfirstsearch();
+    }else if(current_screen.algorithmGetter() == "Dijkstra"){
+        current_screen.Dijkstra();
     }else if(current_screen.algorithmGetter() == "Astar"){
         current_screen.AstarAlgorithm();
     }
@@ -86,6 +90,8 @@ function nodeClass(x,y,nodeNum,isItGoal=false){
     // this is for when a loop went over this node
     // if this is true it means that it was added to a list of choices somewhere
     this.wasComputed =false;
+
+    this.heuristic= null;
 
 
     // Force Layout vars
@@ -136,7 +142,7 @@ function nodeClass(x,y,nodeNum,isItGoal=false){
             neighbors_Node.addConnection(this,cost,false);
         }
         if(!(this.areTheyConnected(neighbors_Node))){
-            this.NodeConnection.push({node:neighbors_Node,cost:cost, current_angle:getAngle(this,neighbors_Node), angle_tolerance:10});
+            this.NodeConnection.push({node:neighbors_Node,cost:cost});
             this.connectionPrinter(neighbors_Node,cost);
             this.connections+=1;
             return true;
@@ -229,6 +235,9 @@ function nodeClass(x,y,nodeNum,isItGoal=false){
         document.getElementById((this.nodeNumber).toString()).classList.add("visited-node");
     }
 
+    this.getHeuristicDistance= function(endnode){
+        return manhattanDistance(this,endnode);
+    }
     
 }
 
@@ -437,6 +446,10 @@ function current_Finite_Machine() {
         }
     }
 
+    this.Dijkstra = function(){
+        console.log("test");
+    }
+
     this.AstarAlgorithm = function(){
         console.log("test");
     }
@@ -546,7 +559,7 @@ function findClosestedNeighbor(node, nodes,numberOfNeighbors) {
     const neighbors = new PriorityQueue((a, b) => a[1] > b[1])
     for (var i = 0; i < nodes.length; i++) {
         if (node !== i) {
-            neighbors.push([nodes[i], manhattanDistance({x:nodes[node].x,y:nodes[node].y},{x:nodes[i].x,y:nodes[i].y})]);
+            neighbors.push([nodes[i], manhattanDistance(nodes[node],nodes[i])]);
         }
     }
     var returnList = [];
@@ -643,7 +656,12 @@ function draw_cost(startNode,endNode,cost){
     current_screen.ctx.strokeRect(b_1.x+3, b_1.y, rect_width*.86, rect_height*.86);
     // Add cost label to the middle of the line
     current_screen.ctx.fillStyle = "#000";
-    current_screen.ctx.fillText(cost, b.x, b.y);
+
+    //cost
+    current_screen.ctx.fillText(cost, b.x-10, b.y-10);
+
+    heuristic
+    current_screen.ctx.fillText(cost, b.x-10, b.y+10);
 }
 
 

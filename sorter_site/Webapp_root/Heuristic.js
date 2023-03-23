@@ -1,19 +1,22 @@
 class theHeuristic{
 
-    constructor(width, height, nodes,isSimulated=false){
+    constructor(width, height, nodes,startnode,endnode,isSimulated=false){
         this.width = width;
         this.height = height;
-        this.nodes = nodes;
         
+
         // If true, it means this thing will update with node movement.
         this.isSimulated = isSimulated;
+
+        setNodeHeuristic(nodes,endnode);
+        
     }
 
 
-    setNodeHeuristic(nodes){
+    setNodeHeuristic(nodes,endnode){
         for (const node of nodes) {
-            //
             
+            node.getHeuristicDistance(endnode);
         }
 
     }
@@ -21,7 +24,6 @@ class theHeuristic{
 
 
     }
-
 
 
 
