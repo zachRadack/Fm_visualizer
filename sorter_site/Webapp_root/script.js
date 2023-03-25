@@ -45,8 +45,10 @@ $("#start-btn").click(function() {
     current_screen.initializer(startNode,endNode,algorithm);
 
     if(algorithm = "dfs"){
+        current_screen.shouldItDrawCosts=false;
         current_screen.Depthfirstsearch();
     }else if(algorithm = "bfs"){
+        current_screen.shouldItDrawCosts=false;
         current_screen.breadthfirstsearch();
     }else if(current_screen.algorithmGetter() == "Dijkstra"){
         current_screen.Dijkstra();
@@ -68,7 +70,7 @@ $("#next-step-btn").click(function() {
     }else if(current_screen.algorithmGetter() == "Astar"){
         current_screen.AstarAlgorithm();
     }
-});
+}); 
 
 // THIS IS NOT USED YET, I need to figure out how to make it work. 
 // also I basically need to overhaul every action with nodes to use this instead
@@ -272,9 +274,11 @@ function current_Finite_Machine() {
     // for things such as Astar
     this.currentHeuristic = null;
     this.isItSimulated = false;
+    this.shouldItDrawCosts = true;
 
     // setups the canvas and stuff. Handles the creation of the nodes and connections.
     this.startup =function(totalNodes,totalConnections,isItSimulated){
+        this.shouldItDrawCosts=true;
         this.isItSimulated = isItSimulated;
         this.ctx  = this.canvas.getContext("2d");
         this.nodes = generateNodes(totalNodes);
@@ -282,7 +286,7 @@ function current_Finite_Machine() {
         
         connectNodes(this.nodes, totalConnections);
         
-
+        
 
         // Add nodes to the canvas
         for (var i = 0; i < this.nodes.length; i++) {
@@ -620,7 +624,9 @@ function drawConnections(nodes) {
         for (var a = 0; a < connection.length; a++) {
             var endNode = connection[a].node.getCords();
             var cost = connection[a].cost;
-            draw_cost(startNode,endNode,cost);
+            if(current_screen.shouldItDrawCosts){
+                draw_cost(startNode,endNode,cost);
+            }
         }
     }
 }
@@ -652,16 +658,17 @@ function draw_cost(startNode,endNode,cost){
     var b = find_centerpoint(startNode,endNode);
     var b_1 = {x:(b.x-(rect_width/2)),y:(b.y-(rect_height/2))};
     //current_screen.ctx.fillRect(b_1.x, b_1.y, rect_width, rect_height);
-    current_screen.ctx.clearRect(b_1.x+3, b_1.y, rect_width*.9, rect_height*.9);
-    current_screen.ctx.strokeRect(b_1.x+3, b_1.y, rect_width*.86, rect_height*.86);
+    
+
+    current_screen.ctx.fillStyle = 'rgba(255,255,255, 0.5)';
+    current_screen.ctx.fillRect(b_1.x+3, b_1.y, rect_width*.86, rect_height*.86);
     // Add cost label to the middle of the line
     current_screen.ctx.fillStyle = "#000";
-
     //cost
     current_screen.ctx.fillText(cost, b.x-10, b.y-10);
 
-    heuristic
-    current_screen.ctx.fillText(cost, b.x-10, b.y+10);
+    //heuristic
+    current_screen.ctx.fillText(0, b.x-10, b.y+10);
 }
 
 
