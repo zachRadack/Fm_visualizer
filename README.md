@@ -1,36 +1,41 @@
-# Goals-Website
+# Finite machine, Search visualizer 
 
-This is a Docker contained flask run HTML for a finite machine visualizer site
+This is a step by step search visualizer. It is currently under development. 
 
-In order to update the docker file run 
+I did this by breaking the typically searches so they only do a single itteration (with some technical expections).
 
-```
-docker build -t myflaskapp .
-docker run -i --rm --name myflaskappcontainer -p 5000:5000 -v "$PWD/fm_vm:/app" myflaskapp:latest 
-```
-Or if you wanna do it all at once
-```
-docker build -t myflaskapp .;docker run -i --rm --name myflaskappcontainer -p 5000:5000 -v "$PWD/fm_vm:/app" myflaskapp:latest 
-```
+This will only every do the next step when you hit **"next step"**
 
 
 
-I seem to sometimes run into a few issues so I will be putting a few methods I have used to resolve them
+It will go step by step to show how each search algorithem works
 
-IF you wish to run just the html and due to docker issues just run the app.py file like normal or you can run 
-```
-flask run
-```
 
-1. http://0.0.0.0:5000/ returns nothing when I open it in my browser
+# the colors are
+**white** = generic unnoticed node
 
-Use this in the browser URL instead
-```
-    localhost:5000
-```
-2.pip install -r requirements.txt
+**Green (is observed)**= its currently looking at this node.
 
-Sometimes requirements acts werid and a little derpy, never a bad idea to do this
+**blue (was computed)**= this node is currently in the algorithem list of moves
 
-also make sure the requirements you add actually are compatiable with other stuff (cough MarkupSafe and itsdangerous)
+**red (visited)**= this is the current path or for dfs and bfs, it means that is has visited it
 
+**purple (traversed)** = it has traversed, this is not used by dfs or bfs. 
+
+
+
+
+# There is currently:
+depth first search
+
+breadth first search
+
+Dijkstra
+
+
+
+
+# Disclaimer
+
+
+Due to how this was written, **depth first search** will always try to go with the latest move it has observered, which should usually always be whatever node is currently the highest number. **Breadth first search** has the inverse problem, though it seems to usually be less noticable.
