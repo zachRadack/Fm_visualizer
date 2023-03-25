@@ -10,6 +10,11 @@ This will only every do the next step when you hit **"next step"**
 
 It will go step by step to show how each search algorithem works
 
+Here is depth first search
+![image](https://user-images.githubusercontent.com/104032269/227746005-1c608ac0-056a-4f57-9fb9-2a6452b68261.png)
+
+Here is Dijkstra
+![image](https://user-images.githubusercontent.com/104032269/227746480-fc0b38d5-86fd-4dab-b660-b16e2faf72d2.png)
 
 # the colors are
 **white** = generic unnoticed node
@@ -33,7 +38,13 @@ breadth first search
 Dijkstra
 
 
+# Simulation mode
 
+This program does not use D3, but rather my own custom made force layout. It is really not optimal or optimized. Node Simulation can be turned off, and it is off by default. beware of using it as of time of writting.
+
+# How to use
+
+It is currently just an HTML file, run the HTML and your good.
 
 # Disclaimer
 
