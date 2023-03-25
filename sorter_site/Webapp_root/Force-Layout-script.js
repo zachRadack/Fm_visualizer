@@ -16,7 +16,7 @@ class simulation {
         
     }
 
-    curPath(curPath){
+    curPath_setter(curPath){
         this.globalcurPath=curPath;
     }
 
