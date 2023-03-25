@@ -38,3 +38,7 @@ total nodes 10, total connections 3
 
 total nodes 10, total connections 3
 0.4449182813675123
+
+
+total nodes 10, total connections 2
+0.3413374350798181

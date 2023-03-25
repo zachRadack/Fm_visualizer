@@ -67,6 +67,10 @@ pointer-events: none;
 .was-computer{
     background-color: #6567fd;
 }
+
+.was_travesered{
+    background-color: #b54ae7;
+}
 .observed-node{
 background-color: #13d613;
 } 
