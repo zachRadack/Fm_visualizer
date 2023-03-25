@@ -70,7 +70,7 @@ $("#next-step-btn").click(function () {
     } else if (current_screen.algorithmGetter() == "Astar") {
         current_screen.AstarAlgorithm();
     }
-    current_screen.theSimulator.curPath(current_screen.curPath);
+    current_screen.theSimulator.curPath_setter(current_screen.curPath);
 });
 
 // THIS IS NOT USED YET, I need to figure out how to make it work. 
@@ -317,6 +317,7 @@ function current_Finite_Machine() {
     this.theSimulator = false;
 
     this.curPath = [];
+    this.cost=0;
 
     // these are initiator values
     this.first_run = true;
@@ -526,7 +527,8 @@ function current_Finite_Machine() {
         console.log("peeking: ", this.frontier);
         const poppedNode = this.frontier.pop();
         const { newNode, path, cost } = poppedNode;
-        this.curPath = path;
+        this.curPath = poppedNode;
+        this.cost = cost;
         PrintCurrentPath(path);
         //console.log("peeked: ",this.frontier);
         // see if we hit the goal yet
@@ -694,6 +696,7 @@ function manhattanDistance(node1, node2) {
 
 // Draw connections on canvas and puts the path cost on the line
 function drawConnections(nodes, curPath = current_screen.curPath) {
+    var dune;
     current_screen.ctx.clearRect(0, 0, canvas.width, canvas.height);
     current_screen.ctx.font = "20px Arial";
     for (var i = 0; i < nodes.length; i++) {
@@ -702,15 +705,17 @@ function drawConnections(nodes, curPath = current_screen.curPath) {
         // This itterates through all the connections of the current node
         for (var a = 0; a < connection.length; a++) {
             var endNode = connection[a].node;
-            if (!(isItPathed(curPath, startNode, endNode))) {
-                drawConnectionLine(startNode, endNode, "rgba(0,0,0)");
-            } else {
-                drawConnectionLine(startNode, endNode, "rgba(255,0,0)");
-            }
-
+                if(curPath.path!=dune){
+                    if (!(isItPathed(curPath.path, startNode, endNode))) {
+                        drawConnectionLine(startNode, endNode, "rgba(0,0,0)");
+                    } else {
+                        drawConnectionLine(startNode, endNode, "rgba(255,0,0)");
+                    }
+                }else{
+                    drawConnectionLine(startNode, endNode, "rgba(0,0,0)");
+                }
         }
     }
-    //curPrint_connections=lightupCurrentPath(curPath,curPrint_connections);
 
 
     for (var i = 0; i < nodes.length; i++) {
@@ -721,7 +726,7 @@ function drawConnections(nodes, curPath = current_screen.curPath) {
             var endNode = connection[a].node.getCords();
             var cost = connection[a].cost;
             if (current_screen.shouldItDrawCosts) {
-                draw_cost(startNode, endNode, cost);
+                draw_cost(startNode, endNode, cost,curPath);
             }
         }
     }
@@ -768,20 +773,10 @@ function drawConnectionLine(startNode, endNode, color = 'rgba(0,0,0)') {
     current_screen.ctx.stroke();
 }
 
-function lightupCurrentPath(curPath) {
-    for (var i = 0; i < curPath.length; i++) {
-        var curStep = curPath[i];
-        console.log(current_screen.startNode.nodeNumber, " cur startnode");
-        if ((curStep.endnode.nodeNumber != current_screen.startNode.nodeNumber)) {
-            console.log(curStep.startnode, " ", curStep.endnode)
-            drawConnectionLine(curStep.startnode.getCords(), curStep.endnode.getCords(), 'rgba(255,0,0,1)');
-        }
-    }
-}
 
 
 
-function draw_cost(startNode, endNode, cost) {
+function draw_cost(startNode, endNode, cost,heuristic,previous=null,) {
     let rect_width = 50;
     let rect_height = 60;
 
@@ -797,10 +792,9 @@ function draw_cost(startNode, endNode, cost) {
     current_screen.ctx.fillStyle = "#000";
     //cost
     current_screen.ctx.fillText(cost, b.x - 10, b.y - 10);
-
-    if (current_screen.algorithm != "Dijkstra") {
+    if(heuristic.length!=0){
         //heuristic
-        current_screen.ctx.fillText(0, b.x - 10, b.y + 10);
+        current_screen.ctx.fillText(heuristic.cost-cost, b.x - 10, b.y + 10);
     }
 }
 
