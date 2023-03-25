@@ -44,10 +44,10 @@ $("#start-btn").click(function() {
 
     current_screen.initializer(startNode,endNode,algorithm);
 
-    if(algorithm = "dfs"){
+    if(algorithm == "dfs"){
         current_screen.shouldItDrawCosts=false;
         current_screen.Depthfirstsearch();
-    }else if(algorithm = "bfs"){
+    }else if(algorithm == "bfs"){
         current_screen.shouldItDrawCosts=false;
         current_screen.breadthfirstsearch();
     }else if(current_screen.algorithmGetter() == "Dijkstra"){
@@ -96,6 +96,8 @@ function nodeClass(x,y,nodeNum,isItGoal=false){
     this.heuristic= null;
 
 
+    //this
+    this.MaxMinsCosts = {maxCost: -10000,minCost: 10000}
     // Force Layout vars
     
     // inital velocity
@@ -123,7 +125,7 @@ function nodeClass(x,y,nodeNum,isItGoal=false){
     // send in the node object that you want to get the cost, if they are connected
     this.getCost = function(theNodeOfDesire){ 
         if(this.NodeConnection.length>0){
-            var areConnected = areTheyConnected(theNodeOfDesire,true); 
+            var areConnected = this.areTheyConnected(theNodeOfDesire,true); 
             if(areConnected[0]){
                 return this.NodeConnection[areConnected[1]].cost;
             }
@@ -270,6 +272,8 @@ function current_Finite_Machine() {
     this.connectionsMade = false;
 
     this.connections= [];
+
+    this.algorithm=null;
     
     // for things such as Astar
     this.currentHeuristic = null;
@@ -358,7 +362,14 @@ function current_Finite_Machine() {
         if (this.observedNode.isThisGoal()){
             this.found_path=true;
         }
-        this.frontier = [{newNode:this.observedNode,path: []}];
+        if((this.algorithm== "dfs")||(this.algorithm== "bfs")){
+            this.frontier = [{newNode:this.observedNode,path: []}];
+        }else{
+            this.frontier=new PriorityQueue((a, b) => a.cost < b.cost);
+            this.frontier.push({newNode:this.observedNode,path: [],cost:0});
+            console.log(this.frontier);
+        }
+
 
     }
 
@@ -388,6 +399,15 @@ function current_Finite_Machine() {
             console.log("dead end?")
         }
         const {newNode, path} = this.frontier.pop();
+        if((newNode.visited&&(!this.first_run))){
+            while((!newNode.visited)){
+                // this should help with minor bug prevents "air bubble step" which is caused because 
+                // if a node is computed twice, it will cause an air bubble step when it is vistied after
+                // already having been visited
+                const {newNode, path} = this.frontier.pop();
+                
+            }
+        }
         this.PrintCurrentPath(path);
         //console.log("hayy: " , this.nodes[2].visited, " here is number ", this.nodes[2].nodeNumber);
         // see if we hit the goal yet
@@ -398,13 +418,17 @@ function current_Finite_Machine() {
             this.end_game(path);
         }else if(!(newNode.visited)){
             if(this.first_run){
+                // first run is special, we do not want to push out of first node yet
                 this.first_run=false;
             }else{
                 this.new_ObservedNode(newNode);
             }
             for (let successor of newNode.getNeighbors()){
-                //console.log(successor);
-                //console.log("hayy: " , this.nodes[2].visited, " here is number ", this.nodes[2].nodeNumber, " heres the nodes: ", this.nodes);
+                if(successor.isThisGoal()){
+                    // if nearby, this will prioritize the goal node
+                    this.frontier.push({newNode:successor,path:path.concat([successor])})
+                    break;
+                }
                 if(!(successor.visited)){
                     successor.setWasComputed();
                     this.frontier.push({newNode:successor,path:path.concat([successor])})
@@ -415,6 +439,7 @@ function current_Finite_Machine() {
             this.Depthfirstsearch();
         }
     }
+    
 
     this.breadthfirstsearch =function(){
         console.log("Bfs");
@@ -422,8 +447,16 @@ function current_Finite_Machine() {
             console.log("dead end?")
         }
         const {newNode, path} = this.frontier.pop();
+        if((newNode.visited&&(!this.first_run))){
+            while((!newNode.visited)){
+                // this should help with minor bug prevents "air bubble step" which is caused because 
+                // if a node is computed twice, it will cause an air bubble step when it is vistied after
+                // already having been visited
+                const {newNode, path} = this.frontier.pop();
+                
+            }
+        }
         this.PrintCurrentPath(path);
-        //console.log("hayy: " , this.nodes[2].visited, " here is number ", this.nodes[2].nodeNumber);
         // see if we hit the goal yet
         if (newNode.isThisGoal()){
             this.found_path=true;
@@ -432,13 +465,17 @@ function current_Finite_Machine() {
             this.end_game(path);
         }else if(!(newNode.visited)){
             if(this.first_run){
+                // first run is special, we do not want to push out of first node yet
                 this.first_run=false;
             }else{
                 this.new_ObservedNode(newNode);
             }
             for (let successor of newNode.getNeighbors()){
-                //console.log(successor);
-                console.log("hayy: " , this.nodes[2].visited, " here is number ", this.nodes[2].nodeNumber, " heres the nodes: ", this.nodes);
+                if(successor.isThisGoal()){
+                    // if nearby, this will prioritize the goal node
+                    this.frontier.push({newNode:successor,path:path.concat([successor])})
+                    break;
+                }
                 if(!(successor.visited)){
                     successor.setWasComputed();
                     this.frontier.unshift({newNode:successor,path:path.concat([successor])})
@@ -451,7 +488,49 @@ function current_Finite_Machine() {
     }
 
     this.Dijkstra = function(){
-        console.log("test");
+        console.log("Dijkstra");
+        if(this.frontier.length){
+            console.log("dead end?")
+        }
+        const {newNode, path,cost} = this.frontier.pop();
+        if((newNode.visited&&(!this.first_run))){
+            while((!newNode.visited)){
+                // this should help with minor bug prevents "air bubble step" which is caused because 
+                // if a node is computed twice, it will cause an air bubble step when it is vistied after
+                // already having been visited
+                const {newNode, path} = this.frontier.pop();
+                
+            }
+        }
+        this.PrintCurrentPath(path);
+        // see if we hit the goal yet
+        if (newNode.isThisGoal()){
+            this.found_path=true;
+            // sends the path to end game
+            console.log("Goal Found");
+            this.end_game(path);
+        }else if(!(newNode.visited)){
+            if(this.first_run){
+                // first run is special, we do not want to push out of first node yet
+                this.first_run=false;
+            }else{
+                this.new_ObservedNode(newNode);
+            }
+            for (let successor of newNode.getNeighbors()){
+                if(successor.isThisGoal()){
+                    // if nearby, this will prioritize the goal node
+                    this.end_game(path);
+                    break;
+                }
+                if(!(successor.visited)){
+                    successor.setWasComputed();
+                    this.frontier.push({newNode:successor,path:path.concat([successor]),cost:cost+newNode.getCost(successor)});
+                }
+            }
+        }else if(newNode.visited){
+            console.log("ALREADY VISITED");
+            this.Depthfirstsearch();
+        }
     }
 
     this.AstarAlgorithm = function(){
@@ -512,10 +591,6 @@ function generateNodes(count) {
         var x = Math.floor(Math.random() * canvasWidth);
         var y = Math.floor(Math.random() * canvasHeight);
         nodeObjectList.push(new nodeClass(x,y,i));
-        //nodes.push({
-        //    x: x,
-        //    y: y
-        //});
     }
     return nodeObjectList;
 }
@@ -667,8 +742,10 @@ function draw_cost(startNode,endNode,cost){
     //cost
     current_screen.ctx.fillText(cost, b.x-10, b.y-10);
 
-    //heuristic
-    current_screen.ctx.fillText(0, b.x-10, b.y+10);
+    if(current_screen.algorithm!="Dijkstra"){
+        //heuristic
+        current_screen.ctx.fillText(0, b.x-10, b.y+10);
+    }
 }
 
 
