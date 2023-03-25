@@ -12,10 +12,13 @@ class simulation {
         this.simulationLoop(nodes);
         this.animationId;
 
+        this.globalcurPath=[];
         
     }
 
-
+    curPath(curPath){
+        this.globalcurPath=curPath;
+    }
 
     // Define the simulation loop
     simulationLoop(nodes) {
@@ -35,7 +38,7 @@ class simulation {
         // Schedule the next loop iteration
         this.animationId = requestAnimationFrame(() => {
             this.simulationLoop(nodes);
-            drawConnections(nodes);
+            drawConnections(nodes,this.globalcurPath);
         });
     };
 

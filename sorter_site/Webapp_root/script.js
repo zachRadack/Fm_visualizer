@@ -70,6 +70,7 @@ $("#next-step-btn").click(function() {
     }else if(current_screen.algorithmGetter() == "Astar"){
         current_screen.AstarAlgorithm();
     }
+    current_screen.theSimulator.curPath(current_screen.curPath);
 }); 
 
 // THIS IS NOT USED YET, I need to figure out how to make it work. 
@@ -243,6 +244,10 @@ function nodeClass(x,y,nodeNum,isItGoal=false){
     this.getHeuristicDistance= function(endnode){
         return manhattanDistance(this,endnode);
     }
+    this.valueOf = function() {
+        return this.nodeNumber;
+      }
+
     
 }
 
@@ -394,6 +399,7 @@ function current_Finite_Machine() {
             console.log("dead end?")
         }
         const {newNode, path} = this.frontier.pop();
+        this.curPath=path;
         if((newNode.visited&&(!this.first_run))){
             while((!newNode.visited)){
                 // this should help with minor bug prevents "air bubble step" which is caused because 
@@ -442,6 +448,7 @@ function current_Finite_Machine() {
             console.log("dead end?")
         }
         const {newNode, path} = this.frontier.pop();
+        this.curPath=path;
         if((newNode.visited&&(!this.first_run))){
             while((!newNode.visited)){
                 // this should help with minor bug prevents "air bubble step" which is caused because 
@@ -501,7 +508,7 @@ function current_Finite_Machine() {
         }
         PrintCurrentPath(path);
         lightupCurrentPath(path);
-        console.log("peeked: ",this.frontier);
+        //console.log("peeked: ",this.frontier);
         // see if we hit the goal yet
         if (newNode.isThisGoal()){
             this.found_path=true;
@@ -518,16 +525,16 @@ function current_Finite_Machine() {
             }
             for (let successor of newNode.getNeighbors()){
                 if(!(successor.visited)){
-                    console.log("push: ",this.frontier);
+                    //console.log("push: ",this.frontier);
                     successor.setWasComputed();
                     this.frontier.push({newNode:successor,path:path.concat([{startnode:newNode,endnode:successor}]),cost:cost+newNode.getCost(successor)});
                 }
             }
         }else if(newNode.visited){
-            console.log("ALREADY VISITED");
+            //console.log("ALREADY VISITED");
             this.Dijkstra();
         }
-        console.log("final: ",this.frontier);
+        //console.log("final: ",this.frontier);
     }
 
 
@@ -664,16 +671,21 @@ function drawConnections(nodes,curPath=current_screen.curPath) {
     current_screen.ctx.font = "20px Arial";
     for (var i = 0; i < nodes.length; i++) {
         var connection = nodes[i].getNeighbors(true);
-        var startNode = nodes[i].getCords();
+        var startNode = nodes[i];
         // This itterates through all the connections of the current node
         for (var a = 0; a < connection.length; a++) {
-            var endNode = connection[a].node.getCords();
-            var cost = connection[a].cost;
-            drawConnectionLine(startNode,endNode);
+            var endNode = connection[a].node;
+            if(!(isItPathed(curPath,startNode,endNode))){
+                drawConnectionLine(startNode,endNode,"rgba(0,0,0)");
+            }else{
+                drawConnectionLine(startNode,endNode,"rgba(255,0,0)");
+            }
+            
         }
     }
-    lightupCurrentPath(curPath);
+    //curPrint_connections=lightupCurrentPath(curPath,curPrint_connections);
     
+
     for (var i = 0; i < nodes.length; i++) {
         var connection = nodes[i].getNeighbors(true);
         var startNode = nodes[i].getCords();
@@ -688,6 +700,31 @@ function drawConnections(nodes,curPath=current_screen.curPath) {
     }
 }
 
+function isItPathed(curPath,startnode,endnode){
+    for(var i=0;i<curPath.length;i++){
+        var curStep=curPath[i];
+        if((curStep.endnode!=current_screen.startNode)){
+            if((areTheyEqual_AsymFlipped(curStep,startnode,endnode))){
+                return true
+            }
+        }
+    }
+    return false;
+}
+
+function areTheyEqual_AsymFlipped(singlenode,StaringNode,EndingNode){
+    if((singlenode.startnode==StaringNode)){
+        if((singlenode.endnode==EndingNode)){
+            return true;
+        }
+    }else if((singlenode.endnode==StaringNode)){
+        if((singlenode.startnode==EndingNode)){
+            return true;
+        }
+    }
+    return false;
+}
+
 
 function drawConnectionLine_middleman(startNode,endNode){
     current_screen.ctx.font = "20px Arial";
@@ -695,7 +732,12 @@ function drawConnectionLine_middleman(startNode,endNode){
 }
 
 function drawConnectionLine(startNode,endNode,color='rgba(0,0,0)'){
-    current_screen.ctx.fillStyle = color;
+    if(startNode==0){
+        if(endNode==7){
+            console.log("yo");
+        }
+    }
+    current_screen.ctx.strokeStyle = color;
     // Draw line between nodes
     current_screen.ctx.beginPath();
     current_screen.ctx.moveTo(startNode.x, startNode.y);
@@ -704,7 +746,8 @@ function drawConnectionLine(startNode,endNode,color='rgba(0,0,0)'){
 }
 
 function lightupCurrentPath(curPath){
-    for(var curStep of curPath){
+    for(var i=0;i<curPath.length;i++){
+        var curStep=curPath[i];
         console.log(current_screen.startNode.nodeNumber," cur startnode");
         if((curStep.endnode.nodeNumber!=current_screen.startNode.nodeNumber)){
             console.log(curStep.startnode, " ", curStep.endnode)
@@ -712,6 +755,8 @@ function lightupCurrentPath(curPath){
         }
     }
 }
+
+
 
 function draw_cost(startNode,endNode,cost){
     let rect_width = 50;
