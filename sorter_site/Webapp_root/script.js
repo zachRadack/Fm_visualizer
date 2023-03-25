@@ -127,7 +127,8 @@ function nodeClass(x,y,nodeNum,isItGoal=false){
         if(this.NodeConnection.length>0){
             var areConnected = this.areTheyConnected(theNodeOfDesire,true); 
             if(areConnected[0]){
-                return this.NodeConnection[areConnected[1]].cost;
+                var desiredConnection = this.NodeConnection[areConnected[1]];
+                return desiredConnection.cost+desiredConnection.heuristic;
             }
         }
     }
@@ -146,7 +147,7 @@ function nodeClass(x,y,nodeNum,isItGoal=false){
             neighbors_Node.addConnection(this,cost,false);
         }
         if(!(this.areTheyConnected(neighbors_Node))){
-            this.NodeConnection.push({node:neighbors_Node,cost:cost});
+            this.NodeConnection.push({node:neighbors_Node,cost:cost,heuristic:0});
             this.connectionPrinter(neighbors_Node,cost);
             this.connections+=1;
             return true;
@@ -267,12 +268,13 @@ function current_Finite_Machine() {
     
     this.theSimulator=false;
     
+    this.curPath = [];
+
     // these are initiator values
     this.first_run = true;
     this.connectionsMade = false;
 
     this.connections= [];
-
     this.algorithm=null;
     
     // for things such as Astar
@@ -301,7 +303,6 @@ function current_Finite_Machine() {
                 id: i,
                 text: i + 1
             })
-            //createConnectionElement(node,i);
             
             $("#canvas").after(nodeEl);
             nodeEl.css({
@@ -357,19 +358,13 @@ function current_Finite_Machine() {
         
         // this sets up the start node to be the current observer node
         // while also setting up the endnode to be the goal
-        this.new_ObservedNode(this.nodes[this.startNode]);
+        this.observedNode= new_ObservedNode(this.nodes[this.startNode],this.observedNode,this.first_run);
         this.nodes[this.endNode].makeNodeGoal();
         if (this.observedNode.isThisGoal()){
             this.found_path=true;
         }
-        if((this.algorithm== "dfs")||(this.algorithm== "bfs")){
-            this.frontier = [{newNode:this.observedNode,path: []}];
-        }else{
-            this.frontier=new PriorityQueue((a, b) => a.cost < b.cost);
-            this.frontier.push({newNode:this.observedNode,path: [],cost:0});
-            console.log(this.frontier);
-        }
-
+        this.frontier.push({newNode:this.observedNode,path: [{startnode:this.observedNode,endnode:this.observedNode}],cost:0});
+        this.curPat=[{startnode:this.observedNode,endnode:this.observedNode}];
 
     }
 
@@ -382,8 +377,8 @@ function current_Finite_Machine() {
         this.observedNode.setObserver();
 
         path.forEach(function (aNode, i) {
-            console.log("aNode: ",aNode);
-            document.getElementById((aNode.nodeNumber).toString()).classList.add("end-game-path");
+            console.log("aNode: ",aNode.endnode);
+            document.getElementById((aNode.endnode.nodeNumber).toString()).classList.add("end-game-path");
             
         });
         // makes it so the goal is a diffrent color and start is too, making it easier to understand where
@@ -408,7 +403,7 @@ function current_Finite_Machine() {
                 
             }
         }
-        this.PrintCurrentPath(path);
+        PrintCurrentPath(path);
         //console.log("hayy: " , this.nodes[2].visited, " here is number ", this.nodes[2].nodeNumber);
         // see if we hit the goal yet
         if (newNode.isThisGoal()){
@@ -421,17 +416,17 @@ function current_Finite_Machine() {
                 // first run is special, we do not want to push out of first node yet
                 this.first_run=false;
             }else{
-                this.new_ObservedNode(newNode);
+                this.observedNode =new_ObservedNode(newNode,this.observedNode,this.first_run);
             }
             for (let successor of newNode.getNeighbors()){
                 if(successor.isThisGoal()){
                     // if nearby, this will prioritize the goal node
-                    this.frontier.push({newNode:successor,path:path.concat([successor])})
+                    this.frontier.push({newNode:successor,path:path.concat([{startnode:newNode,endnode:successor}])})
                     break;
                 }
                 if(!(successor.visited)){
                     successor.setWasComputed();
-                    this.frontier.push({newNode:successor,path:path.concat([successor])})
+                    this.frontier.push({newNode:successor,path:path.concat([{startnode:newNode,endnode:successor}])})
                 }
             }
         }else if(newNode.visited){
@@ -456,7 +451,7 @@ function current_Finite_Machine() {
                 
             }
         }
-        this.PrintCurrentPath(path);
+        PrintCurrentPath(path);
         // see if we hit the goal yet
         if (newNode.isThisGoal()){
             this.found_path=true;
@@ -468,17 +463,17 @@ function current_Finite_Machine() {
                 // first run is special, we do not want to push out of first node yet
                 this.first_run=false;
             }else{
-                this.new_ObservedNode(newNode);
+                this.observedNode=new_ObservedNode(newNode,this.observedNode,this.first_run);
             }
             for (let successor of newNode.getNeighbors()){
                 if(successor.isThisGoal()){
                     // if nearby, this will prioritize the goal node
-                    this.frontier.push({newNode:successor,path:path.concat([successor])})
+                    this.frontier.push({newNode:successor,path:path.concat([{startnode:newNode,endnode:successor}])})
                     break;
                 }
                 if(!(successor.visited)){
                     successor.setWasComputed();
-                    this.frontier.unshift({newNode:successor,path:path.concat([successor])})
+                    this.frontier.unshift({newNode:successor,path:path.concat([{startnode:newNode,endnode:successor}])})
                 }
             }
         }else if(newNode.visited){
@@ -492,7 +487,9 @@ function current_Finite_Machine() {
         if(this.frontier.length){
             console.log("dead end?")
         }
+        console.log("peeking: ",this.frontier);
         const {newNode, path,cost} = this.frontier.pop();
+        this.curPath=path;
         if((newNode.visited&&(!this.first_run))){
             while((!newNode.visited)){
                 // this should help with minor bug prevents "air bubble step" which is caused because 
@@ -502,7 +499,9 @@ function current_Finite_Machine() {
                 
             }
         }
-        this.PrintCurrentPath(path);
+        PrintCurrentPath(path);
+        lightupCurrentPath(path);
+        console.log("peeked: ",this.frontier);
         // see if we hit the goal yet
         if (newNode.isThisGoal()){
             this.found_path=true;
@@ -510,49 +509,32 @@ function current_Finite_Machine() {
             console.log("Goal Found");
             this.end_game(path);
         }else if(!(newNode.visited)){
+
             if(this.first_run){
                 // first run is special, we do not want to push out of first node yet
                 this.first_run=false;
             }else{
-                this.new_ObservedNode(newNode);
+                this.observedNode= new_ObservedNode(newNode,this.observedNode,this.first_run);
             }
             for (let successor of newNode.getNeighbors()){
-                if(successor.isThisGoal()){
-                    // if nearby, this will prioritize the goal node
-                    this.end_game(path);
-                    break;
-                }
                 if(!(successor.visited)){
+                    console.log("push: ",this.frontier);
                     successor.setWasComputed();
-                    this.frontier.push({newNode:successor,path:path.concat([successor]),cost:cost+newNode.getCost(successor)});
+                    this.frontier.push({newNode:successor,path:path.concat([{startnode:newNode,endnode:successor}]),cost:cost+newNode.getCost(successor)});
                 }
             }
         }else if(newNode.visited){
             console.log("ALREADY VISITED");
-            this.Depthfirstsearch();
+            this.Dijkstra();
         }
+        console.log("final: ",this.frontier);
     }
+
+
 
     this.AstarAlgorithm = function(){
         console.log("test");
     }
-
-    this.PrintCurrentPath=function(Path){
-        document.getElementById("curPathId").textContent =Path.map(function(item) { return item["nodeNumber"]+1; });
-    }
-    // this function handles making current node green and if there already is one
-    // it will first remove that ones  observed-node class and add visited-node class, which makes it red
-    this.new_ObservedNode =function(newNode){
-        // Sets classes of nodes, by changing background colors of them, to visualize where the search is
-        let dune;
-        // if observed node is not initilaized, it gets skipped
-        if (this.first_run == false){
-            this.observedNode.setObserver();
-        }
-        this.observedNode = newNode;
-        this.observedNode.setObserver();
-    }
-
 
     this.foundPathGetter = function(){
         return this.found_path;
@@ -562,6 +544,28 @@ function current_Finite_Machine() {
     }
 }
 
+// prints current path to an html element
+function PrintCurrentPath(Path){
+    document.getElementById("curPathId").textContent ="";
+    
+    Path.forEach(function(item,key) {
+        document.getElementById("curPathId").textContent=document.getElementById("curPathId").textContent+ String(item.endnode.nodeNumber+1)+ "==>";
+        });
+}
+
+// this function handles making current node green and if there already is one
+// it will first remove that ones  observed-node class and add visited-node class, which makes it red
+function new_ObservedNode(newNode,observedNode,first_run){
+    // Sets classes of nodes, by changing background colors of them, to visualize where the search is
+    let dune;
+    // if observed node is not initilaized, it gets skipped
+    if (first_run == false){
+        observedNode.setObserver();
+    }
+    observedNode = newNode;
+    observedNode.setObserver();
+    return observedNode;
+}
 // handles creating more node options under the start end drop down menus
 // if the user wants 20 nodes this shows 20 options in both start and end drop downs.
 function startEnd_Node_Selector(nodes){
@@ -611,18 +615,14 @@ function connectNodes(nodes, count) {
         
         for (a = 0; a < end.length; a++) {
         const cost = Math.floor(Math.random() * 10) + 1;
-            //connections.push(createConnectionObject(start,end[a],cost));
             let didItConnect= nodes[i].addConnection(end[a],cost);
             if(didItConnect){
-                drawConnectionLine_middleman(nodes[i],end[a],cost);
+                drawConnectionLine_middleman(nodes[i],end[a]);
             }
     }
     }
 
-    // print a message indicating that the implementation has been changed
     console.log("Reconnected the nodes");
-    // return the array of connections
-    //return connections;
 }
 
 
@@ -657,29 +657,9 @@ function manhattanDistance(node1,node2){
     return -(Math.abs(node1.x - node2.x) + Math.abs(node1.y - node2.y));
 }
 
-function createConnectionElement(node,index){
 
-    for(var a = 0; a < node.NodeConnection.length; a++){
-        let CurNode = node;
-        var nodeEl = $("<div>", {
-            class: "connection_info",
-            id: index+"_connector_"+a,
-            text: CurNode.NodeConnection[a].cost
-        })
-        var center_point = find_centerpoint(CurNode,CurNode.NodeConnection[a].node);
-        
-        $("#canvas").after(nodeEl);
-        nodeEl.css({
-            left: center_point.x,
-            top: center_point.y 
-        })
-    
-    }
-
-
-}
 // Draw connections on canvas and puts the path cost on the line
-function drawConnections(nodes) {
+function drawConnections(nodes,curPath=current_screen.curPath) {
     current_screen.ctx.clearRect(0, 0, canvas.width, canvas.height);
     current_screen.ctx.font = "20px Arial";
     for (var i = 0; i < nodes.length; i++) {
@@ -689,9 +669,11 @@ function drawConnections(nodes) {
         for (var a = 0; a < connection.length; a++) {
             var endNode = connection[a].node.getCords();
             var cost = connection[a].cost;
-            drawConnectionLine(startNode,endNode,cost);
+            drawConnectionLine(startNode,endNode);
         }
     }
+    lightupCurrentPath(curPath);
+    
     for (var i = 0; i < nodes.length; i++) {
         var connection = nodes[i].getNeighbors(true);
         var startNode = nodes[i].getCords();
@@ -707,22 +689,28 @@ function drawConnections(nodes) {
 }
 
 
-function drawConnectionLine_middleman(startNode,endNode,cost){
+function drawConnectionLine_middleman(startNode,endNode){
     current_screen.ctx.font = "20px Arial";
-    drawConnectionLine(startNode,endNode,cost);
+    drawConnectionLine(startNode,endNode);
 }
 
-function drawConnectionLine(startNode,endNode,cost){
-
-
-    var b = find_centerpoint(startNode,endNode);
-
-
+function drawConnectionLine(startNode,endNode,color='rgba(0,0,0)'){
+    current_screen.ctx.fillStyle = color;
     // Draw line between nodes
     current_screen.ctx.beginPath();
     current_screen.ctx.moveTo(startNode.x, startNode.y);
     current_screen.ctx.lineTo(endNode.x, endNode.y);
     current_screen.ctx.stroke();
+}
+
+function lightupCurrentPath(curPath){
+    for(var curStep of curPath){
+        console.log(current_screen.startNode.nodeNumber," cur startnode");
+        if((curStep.endnode.nodeNumber!=current_screen.startNode.nodeNumber)){
+            console.log(curStep.startnode, " ", curStep.endnode)
+            drawConnectionLine(curStep.startnode.getCords(),curStep.endnode.getCords(),'rgba(255,0,0,1)');
+        }
+    }
 }
 
 function draw_cost(startNode,endNode,cost){
@@ -749,6 +737,8 @@ function draw_cost(startNode,endNode,cost){
 }
 
 
+
+
 function find_centerpoint(node1,node2){
     const middleX = (node1.x + node2.x) / 2;
     const middleY = (node1.y + node2.y) / 2;
@@ -756,28 +746,6 @@ function find_centerpoint(node1,node2){
 }
 
 
-function findPointOnLine(node1,node2,distance = 10) {
-    // Step 1: Find the middle point of the line segment
-    const middleX = (node1.x + node2.x) / 2;
-    const middleY = (node1.y + node2.y) / 2;
-  
-    // Step 2: Find the slope of the line segment
-    const slope = (node2.y - node1.y) / (node2.x - node1.x);
-  
-    // Step 3: Find the perpendicular slope of the line segment
-    const perpSlope = -1 / slope;
-  
-    // Step 4: Use the perpendicular slope and distance to find two points that are 10 units away from the middle point of the line segment
-    const xOffset = Math.sqrt(distance ** 2 / (1 + perpSlope ** 2));
-    const yOffset = perpSlope * xOffset;
-    
-    const point1 = { x: middleX + xOffset, y: middleY + yOffset };
-    const point2 = { x: middleX - xOffset, y: middleY - yOffset };
-  
-    // Step 5: Choose one of these points as your final point
-    return point1;
-  }
-  
 // this deletes all current nodes from the last layuout
 function wipeCanvas(){
     current_screen.ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -800,3 +768,4 @@ function getAngle(node1, node2) {
     return Math.round(theta);
     
 }
+

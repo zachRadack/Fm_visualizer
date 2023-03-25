@@ -17,3 +17,21 @@ good dykska seed
 total nodes 10, total connections 2
 
 0.06291109319649146
+
+
+good seeed 
+total nodes 10, total connections 2
+
+0.6037442547685222
+
+
+werid one
+total nodes 10, total connections 3
+0.9899878029490256
+
+
+broken one, just for test
+total nodes 10, total connections 3
+
+0.3471171993427977
+

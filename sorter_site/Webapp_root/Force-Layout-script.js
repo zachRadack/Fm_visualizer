@@ -11,10 +11,11 @@ class simulation {
         this.vy_list_neg=new Array();
         this.simulationLoop(nodes);
         this.animationId;
+
         
     }
 
-    //getAnimation
+
 
     // Define the simulation loop
     simulationLoop(nodes) {
