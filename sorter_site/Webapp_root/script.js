@@ -4,7 +4,7 @@
 var canvas = document.getElementById("canvas");
 
 var current_screen = new current_Finite_Machine();
-
+var totalnodechange ={totalnodes:0};
 var animationFrame = -1;
 // this creates canvas
 $("#Create-canvas-btn").click(function () {
@@ -25,7 +25,6 @@ $("#Create-canvas-btn").click(function () {
     var totalNodes = parseInt(document.getElementById("totalNodes").value);
     var totalConnections = parseInt(document.getElementById("totalConnections").value);
     var isItSimulated = document.querySelector('#isItSimulated').checked;
-    console.log(isItSimulated);
     current_screen.startup(totalNodes, totalConnections, isItSimulated);
 
 });
@@ -34,7 +33,6 @@ $("#Create-canvas-btn").click(function () {
 $("#start-btn").click(function () {
 
     var startNode = parseInt($("#start").val());
-    //colorNode(startNode,"red");
     var endNode = parseInt($("#end").val());
     var algorithm = $("#algorithm").val();
 
@@ -335,8 +333,7 @@ function current_Finite_Machine() {
 
     this.theSimulator = false;
 
-    this.curPath = [];
-    this.cost=0;
+    this.curPath = {curentPath:[],curCost:0};
 
     // these are initiator values
     this.first_run = true;
@@ -546,8 +543,7 @@ function current_Finite_Machine() {
         console.log("peeking: ", this.frontier);
         const poppedNode = this.frontier.pop();
         const { newNode, path, cost } = poppedNode;
-        this.curPath = poppedNode;
-        this.cost = cost;
+        this.curPath = {curentPath:poppedNode,curCost:cost};
         PrintCurrentPath(path);
         //console.log("peeked: ",this.frontier);
         // see if we hit the goal yet
@@ -818,10 +814,10 @@ function draw_cost(startNode, endNode, cost,heuristic,drawHuerisitc=false) {
     current_screen.ctx.fillStyle = "#000";
     //cost
     current_screen.ctx.fillText(cost, b.x - 10, b.y - 10);
-    if((drawHuerisitc)&&(heuristic.length!=0)){
+    if((drawHuerisitc)&&(heuristic.curentPath.length!=0)){
 
-        //heuristic
-        current_screen.ctx.fillText(heuristic.cost+cost, b.x - 10, b.y + 10);
+        //heuristic :[],curCost:
+        current_screen.ctx.fillText(heuristic.curCost, b.x - 10, b.y + 10);
     }
 }
 
