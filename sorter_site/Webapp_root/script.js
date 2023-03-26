@@ -97,18 +97,25 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
     this.heuristic = null;
 
 
-    //this
-    this.MaxMinsCosts = { maxCost: -10000, minCost: 10000 }
-    // Force Layout vars
+    //this is meant to be the min max cost of connections for heuristic reasons
+    this.MaxMinsCosts = { maxCost: -10000, minCost: 100000 }
 
-    // inital velocity
+    // internal velocity
     this.vx = 0;
     this.vy = 0;
+
+    // how hard it moves
     this.mass = 200;
+
+    // an attempt to make node zero hard to move
     if (this.nodeNumber == 0) {
         this.mass = 300;
     }
+
+    // This will be min distance between nodes
     this.radius = 60;
+
+    // if a node is being dragged, it turns off the simulation physics for it
     this.beingDragged = false;
 
     // makes the goal a node
@@ -116,10 +123,13 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
         this.isGoal = true;
     }
 
+    // this is called when the node is added to any list that is being searched.
     this.setWasComputed = function () {
         this.wasComputed = true;
         document.getElementById((this.nodeNumber).toString()).classList.add("was-computer");
     }
+
+    // To goal or not to goal, that is the goal
     this.isThisGoal = function () {
         return this.isGoal;
     }
@@ -157,6 +167,7 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
         }
     }
 
+    // hold over function, probably should delete.
     this.NewAngle = function (isthisRepeat = false) {
         for (var i = 0; i < this.NodeConnection.length; i++) {
             let currentNeighbor = this.NodeConnection[i]
@@ -165,7 +176,7 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
                 currentNeighbor.node.NewAngle(true);
             }
             if (this.nodeNumber == 0) {
-                document.getElementById("curPathId").textContent = this.NodeConnection[i].current_angle;
+                //document.getElementById("curAngleId").textContent = this.NodeConnection[i].current_angle;
             }
         }
 
@@ -258,9 +269,12 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
         }
     }
 
+    // this as of now, returns only manhattan distances
     this.getHeuristicDistance = function (endnode) {
         return manhattanDistance(this, endnode);
     }
+
+    // If I do a comparison, nodeNumber is the most reliable way to know if 2 nodes are the same
     this.valueOf = function () {
         return this.nodeNumber;
     }
@@ -269,13 +283,18 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
 
 }
 
+
+// Handles the paths that are inside of frontier.
 function pathClass(newNode, path, cost = 0) {
     this.newNode = newNode;
+    this.startnode = path.startnode;
     this.path = path;
     this.cost = cost;
+    this.Heuristic_cost=0;
 
-
-
+    // Handles the werid interaction that happens when non dfs/bfs searchs
+    // try to swap over to a diffrent path. This is called every time.
+    // not efficent but hopefully the just in time optimizies it.
     this.setAsSeen = function (nodes) {
         for (var i = 0; i < nodes.length; i++) {
             var curNode = nodes[i];
@@ -717,26 +736,32 @@ function drawConnections(nodes, curPath = current_screen.curPath) {
         }
     }
 
-
-    for (var i = 0; i < nodes.length; i++) {
-        var connection = nodes[i].getNeighbors(true);
-        var startNode = nodes[i].getCords();
-        // This itterates through all the connections of the current node
-        for (var a = 0; a < connection.length; a++) {
-            var endNode = connection[a].node.getCords();
-            var cost = connection[a].cost;
-            if (current_screen.shouldItDrawCosts) {
-                draw_cost(startNode, endNode, cost,curPath);
+    if (current_screen.shouldItDrawCosts) {
+        for (var i = 0; i < nodes.length; i++) {
+            var connection = nodes[i].getNeighbors(true);
+            var startNode = nodes[i].getCords();
+            // This itterates through all the connections of the current node
+            for (var a = 0; a < connection.length; a++) {
+                var endNode = connection[a].node.getCords();
+                var cost = connection[a].cost;
+                if(connection[a].node.wasComputed){
+                    draw_cost(startNode, endNode, cost,curPath,true);
+                }else{
+                    draw_cost(startNode, endNode, cost,curPath);
+                }
             }
         }
     }
 }
 
+
+// This checks to see if the current node is connected to a path
+// used by non dfs and bfs
 function isItPathed(curPath, startnode, endnode) {
     for (var i = 0; i < curPath.length; i++) {
         var curStep = curPath[i];
         if ((curStep.endnode != current_screen.startNode)) {
-            if ((areTheyEqual_AsymFlipped(curStep, startnode, endnode))) {
+            if ((areTheyEqual_AsymFlipped(curStep, {startnode:startnode, endnode:endnode}))) {
                 return true
             }
         }
@@ -744,13 +769,14 @@ function isItPathed(curPath, startnode, endnode) {
     return false;
 }
 
-function areTheyEqual_AsymFlipped(singlenode, StaringNode, EndingNode) {
-    if ((singlenode.startnode == StaringNode)) {
-        if ((singlenode.endnode == EndingNode)) {
+// this compares two coords to see if they are the same.
+function areTheyEqual_AsymFlipped(singlenode, Node2) {
+    if ((singlenode.startnode == Node2.startnode)) {
+        if ((singlenode.endnode == Node2.endnode)) {
             return true;
         }
-    } else if ((singlenode.endnode == StaringNode)) {
-        if ((singlenode.startnode == EndingNode)) {
+    } else if ((singlenode.endnode == Node2.startnode)) {
+        if ((singlenode.startnode == Node2.endnode)) {
             return true;
         }
     }
@@ -776,7 +802,7 @@ function drawConnectionLine(startNode, endNode, color = 'rgba(0,0,0)') {
 
 
 
-function draw_cost(startNode, endNode, cost,heuristic,previous=null,) {
+function draw_cost(startNode, endNode, cost,heuristic,drawHuerisitc=false) {
     let rect_width = 50;
     let rect_height = 60;
 
@@ -792,9 +818,10 @@ function draw_cost(startNode, endNode, cost,heuristic,previous=null,) {
     current_screen.ctx.fillStyle = "#000";
     //cost
     current_screen.ctx.fillText(cost, b.x - 10, b.y - 10);
-    if(heuristic.length!=0){
+    if((drawHuerisitc)&&(heuristic.length!=0)){
+
         //heuristic
-        current_screen.ctx.fillText(heuristic.cost-cost, b.x - 10, b.y + 10);
+        current_screen.ctx.fillText(heuristic.cost+cost, b.x - 10, b.y + 10);
     }
 }
 
