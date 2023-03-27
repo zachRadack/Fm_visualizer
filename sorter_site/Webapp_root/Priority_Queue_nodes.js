@@ -65,3 +65,52 @@ class PriorityQueue {
     }
   }
 }
+
+
+
+class PriorityQueue_graphmaker {
+    constructor() {
+      this.items = [];
+    }
+  
+    push(element, priority) {
+        let dune;
+        //if()
+        let queueElement = { element, priority };
+    
+        let added = false;
+        for (let i=0; i<this.items.length; i++) {
+            if (Math.abs(queueElement.priority) < Math.abs(this.items[i].priority)) {
+            this.items.splice(i, 0, queueElement);
+            added = true;
+            break;
+            }
+        }
+    
+        if (!added) {
+            this.items.push(queueElement);
+        }
+
+        
+    }
+  
+    pop() {
+      return this.items.shift();
+    }
+  
+    front() {
+      return this.items[0];
+    }
+  
+    isEmpty() {
+      return this.items.length === 0;
+    }
+  
+    size() {
+      return this.items.length;
+    }
+  
+    print() {
+      console.log(this.items);
+    }
+  }

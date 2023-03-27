@@ -1,5 +1,3 @@
-//import { PriorityQueue } from "./Priority_Queue_nodes.js";
-
 
 var canvas = document.getElementById("canvas");
 
@@ -71,215 +69,7 @@ $("#next-step-btn").click(function () {
     current_screen.theSimulator.curPath_setter(current_screen.curPath);
 });
 
-// THIS IS NOT USED YET, I need to figure out how to make it work. 
-// also I basically need to overhaul every action with nodes to use this instead
-function nodeClass(x, y, nodeNum, isItGoal = false) {
-    this.nodeNumber = nodeNum;
-    this.x = x;
-    this.y = y;
-    this.NodeConnection = [];
-    this.connections = 0;
 
-    // refrence to html
-    this.HTMLnodes;
-
-    this.isGoal = isItGoal;
-    // has it been visited
-    this.visited = false;
-    // this is when the algorithem is currently looking at it
-    this.isObserved = false;
-    // this is for when a loop went over this node
-    // if this is true it means that it was added to a list of choices somewhere
-    this.wasComputed = false;
-
-    this.heuristic = null;
-
-
-    //this is meant to be the min max cost of connections for heuristic reasons
-    this.MaxMinsCosts = { maxCost: -10000, minCost: 100000 }
-
-    // internal velocity
-    this.vx = 0;
-    this.vy = 0;
-
-    // how hard it moves
-    this.mass = 200;
-
-    // an attempt to make node zero hard to move
-    if (this.nodeNumber == 0) {
-        this.mass = 300;
-    }
-
-    // This will be min distance between nodes
-    this.radius = 60;
-
-    // if a node is being dragged, it turns off the simulation physics for it
-    this.beingDragged = false;
-
-    // makes the goal a node
-    this.makeNodeGoal = function () {
-        this.isGoal = true;
-    }
-
-    // this is called when the node is added to any list that is being searched.
-    this.setWasComputed = function () {
-        this.wasComputed = true;
-        document.getElementById((this.nodeNumber).toString()).classList.add("was-computer");
-    }
-
-    // To goal or not to goal, that is the goal
-    this.isThisGoal = function () {
-        return this.isGoal;
-    }
-    // send in the node object that you want to get the cost, if they are connected
-    this.getCost = function (theNodeOfDesire) {
-        if (this.NodeConnection.length > 0) {
-            var areConnected = this.areTheyConnected(theNodeOfDesire, true);
-            if (areConnected[0]) {
-                var desiredConnection = this.NodeConnection[areConnected[1]];
-                return desiredConnection.cost + desiredConnection.heuristic;
-            }
-        }
-    }
-
-
-    this.getCords = function () {
-        return { x: this.x, y: this.y };
-    }
-
-    // Connections are objects that have a refrence to the connected node
-    // and the cost to said node. Also adding a connection is 2 way
-    // secondarycall is used to prevent infinite recursion.
-    this.addConnection = function (neighbors_Node, cost, secondarycall = true) {
-        let a = this.nodeNumber;// delete later, meant for debuging
-        if (secondarycall == true) {
-            neighbors_Node.addConnection(this, cost, false);
-        }
-        if (!(this.areTheyConnected(neighbors_Node))) {
-            this.NodeConnection.push({ node: neighbors_Node, cost: cost, heuristic: 0 });
-            this.connectionPrinter(neighbors_Node, cost);
-            this.connections += 1;
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    // hold over function, probably should delete.
-    this.NewAngle = function (isthisRepeat = false) {
-        for (var i = 0; i < this.NodeConnection.length; i++) {
-            let currentNeighbor = this.NodeConnection[i]
-            currentNeighbor.current_angle = getAngle(this, currentNeighbor.node);
-            if (isthisRepeat) {
-                currentNeighbor.node.NewAngle(true);
-            }
-            if (this.nodeNumber == 0) {
-                //document.getElementById("curAngleId").textContent = this.NodeConnection[i].current_angle;
-            }
-        }
-
-    }
-
-    // this adds to curConenctionId the current connection
-    this.connectionPrinter = function (neighbors_Node, cost) {
-        // Get the current content of curConenctionId element
-        let curConenctionId = document.getElementById("curConenctionId").textContent;
-        if (curConenctionId == "None") {
-            curConenctionId = "";
-        }
-        // Append the new connection details to the existing content
-
-        const newConnection = `[${this.nodeNumber+1}] => [${neighbors_Node.nodeNumber+1}] XX `;
-        const updatedConenctionId = `${curConenctionId}${newConnection}`;
-
-        // Set the updated content to curConenctionId element
-        document.getElementById("curConenctionId").textContent = updatedConenctionId;
-    }
-
-    // checks to see if the given node is connected to this node, returnTheIndex
-    // will return an array with both the boolean with true being a connection, and if there is connection it
-    // will return the index of the connection in the array, and if there is no connection, it returns -1
-    this.areTheyConnected = function (theNodeOfDesire, returnTheIndex = false) {
-        for (var i = 0; i < this.NodeConnection.length; i++) {
-            if (this.NodeConnection[i].node.nodeNumber == theNodeOfDesire.nodeNumber) {
-                if (returnTheIndex) {
-                    return [true, i];
-
-                } else {
-                    return true;
-                }
-            }
-        }
-        // there was no connection
-        if (returnTheIndex) {
-            return [false, -1];
-        } else {
-            return false;
-        }
-    }
-
-    // returns array of neighbors
-    // the array that is returned has objects that are
-    // formatted as {node:refrence to node, cost:cost to node}
-    this.getNeighbors = function (returnCost = false) {
-        if (!(returnCost)) {
-            return this.NodeConnection.map(function (item) { return item["node"]; })
-        }
-        return this.NodeConnection;
-    }
-
-    // if it is already observed, then it will be removed, and set to become a visitor
-    this.setObserver = function (setToVisitor = true) {
-        if (this.isObserved) {
-            if (setToVisitor) {
-                this.setVisited();
-            }
-            document.getElementById((this.nodeNumber).toString()).classList.remove("observed-node");
-            this.isObserved = false;
-        } else {
-            document.getElementById((this.nodeNumber).toString()).classList.add("observed-node");
-            this.isObserved = true;
-        }
-    }
-    //sets current node as visitor
-    // if you put in true or false, it will instead set it to that.
-    this.setVisited = function (newState = null) {
-        let dune;
-        if (newState == dune) {
-            if (this.visited) {
-                this.visited = false;
-            } else {
-                this.visited = true;
-            }
-        } else {
-            this.visited = newState;
-        }
-
-        // if it is now visited, this adds the visited node
-        // otherwise it removes it. The negative werid and 
-        if (this.visited) {
-            document.getElementById((this.nodeNumber).toString()).classList.add("visited-node");
-
-            // was traversed is for when visited is removed, due to certain algorithems, traversed means it has been there atleast
-            document.getElementById((this.nodeNumber).toString()).classList.add("was_travesered");
-        } else {
-            document.getElementById((this.nodeNumber).toString()).classList.remove("visited-node");
-        }
-    }
-
-    // this as of now, returns only manhattan distances
-    this.getHeuristicDistance = function (endnode) {
-        return manhattanDistance(this, endnode);
-    }
-
-    // If I do a comparison, nodeNumber is the most reliable way to know if 2 nodes are the same
-    this.valueOf = function () {
-        return this.nodeNumber;
-    }
-
-    
-
-}
 
 
 // Handles the paths that are inside of frontier.
@@ -617,6 +407,7 @@ function new_ObservedNode(newNode, observedNode, first_run, path = null, nodes =
     observedNode.setObserver();
     return observedNode;
 }
+
 // handles creating more node options under the start end drop down menus
 // if the user wants 20 nodes this shows 20 options in both start and end drop downs.
 function startEnd_Node_Selector(nodes) {
@@ -650,57 +441,6 @@ function generateNodes(count) {
     return nodeObjectList;
 }
 
-
-// It takes in a list of nodes and the desired number of connections.
-// It returns an array of connections in the form of [startNode, endNode, cost].
-function connectNodes(nodes, count) {
-    console.log("connectNodes ", nodes);
-
-    // Ensure that all nodes have at least one connection
-    // For each node, connect it to another random node if it isn't already connected
-    for (let i = 0; i < nodes.length; i++) {
-        const start = i;
-
-        // check if end is already connected or equal to start
-        let end = findClosestedNeighbor(start, nodes, count);
-
-        for (a = 0; a < end.length; a++) {
-            const cost = Math.floor(Math.random() * 10) + 1;
-            let didItConnect = nodes[i].addConnection(end[a], cost);
-            if (didItConnect) {
-                drawConnectionLine_middleman(nodes[i], end[a]);
-            }
-        }
-    }
-
-    console.log("Reconnected the nodes");
-}
-
-
-
-
-// finds numberOfNeighbors of closest neighbors to the node
-// it will be used to connect nodes to each other as of now
-// not yet properly connected up the system
-function findClosestedNeighbor(node, nodes, numberOfNeighbors) {
-    curNumb = 0;
-
-    // used a priority queue in hopes of finding closest neighbors
-    const neighbors = new PriorityQueue((a, b) => a[1] > b[1])
-    for (var i = 0; i < nodes.length; i++) {
-        if (node !== i) {
-            neighbors.push([nodes[i], manhattanDistance(nodes[node], nodes[i])]);
-        }
-    }
-    var returnList = [];
-    for (var i = 0; i < numberOfNeighbors; i++) {
-        var curneighbor = neighbors.pop()[0];
-        returnList.push(curneighbor);
-    }
-
-    return returnList;
-}
-
 // get the x y distance between two nodes, this will update where ever the node is currently
 // however, remeber, NODES CAN MOVE! Use this to get a snapshot of the current canvas
 // but do not assume that the nodes will stay in the same place
@@ -710,7 +450,7 @@ function manhattanDistance(node1, node2) {
 
 
 // Draw connections on canvas and puts the path cost on the line
-function drawConnections(nodes, curPath = current_screen.curPath) {
+function drawConnections(nodes, curPath = current_screen.curentPath) {
     var dune;
     current_screen.ctx.clearRect(0, 0, canvas.width, canvas.height);
     current_screen.ctx.font = "20px Arial";
