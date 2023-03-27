@@ -557,11 +557,12 @@ function draw_cost(startNode, endNode, cost,heuristic,drawHuerisitc=false) {
     current_screen.ctx.fillStyle = "#000";
     //cost
     current_screen.ctx.fillText(cost, b.x - 10, b.y - 10);
+    if(heuristic.length!=0){
     if((drawHuerisitc)&&(heuristic.curentPath.path.length!=0)){
 
         //heuristic :[],curCost:
         current_screen.ctx.fillText(heuristic.curCost, b.x - 10, b.y + 10);
-    }
+    }}
 }
 
 
