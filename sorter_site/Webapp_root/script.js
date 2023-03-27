@@ -254,8 +254,9 @@ function current_Finite_Machine() {
         if (this.frontier.length) {
             console.log("dead end?")
         }
-        const { newNode, path } = this.frontier.pop();
-        this.curPath = path;
+        const poppedNode = this.frontier.pop();
+        const { newNode, path } = poppedNode;
+        this.curPath = {curentPath:poppedNode};
         PrintCurrentPath(path);
         //console.log("hayy: " , this.nodes[2].visited, " here is number ", this.nodes[2].nodeNumber);
         // see if we hit the goal yet
@@ -290,9 +291,9 @@ function current_Finite_Machine() {
 
     this.breadthfirstsearch = function () {
         console.log("Bfs");
-        const { newNode, path } = this.frontier.pop();
-        this.curPath = path;
-        
+        const poppedNode = this.frontier.pop();
+        const { newNode, path } = poppedNode;
+        this.curPath = {curentPath:poppedNode};
         PrintCurrentPath(path);
         // see if we hit the goal yet
         if (newNode.isThisGoal()) {
@@ -457,11 +458,12 @@ function drawConnections(nodes, curPath = current_screen.curentPath) {
     for (var i = 0; i < nodes.length; i++) {
         var connection = nodes[i].getNeighbors(true);
         var startNode = nodes[i];
-        // This itterates through all the connections of the current node
-        for (var a = 0; a < connection.length; a++) {
-            var endNode = connection[a].node;
-                if(curPath.path!=dune){
-                    if (!(isItPathed(curPath.path, startNode, endNode))) {
+        
+            // This itterates through all the connections of the current node
+            for (var a = 0; a < connection.length; a++) {
+                var endNode = connection[a].node;
+                if(curPath.length != 0){
+                    if (!(isItPathed(curPath, startNode, endNode))) {
                         drawConnectionLine(startNode, endNode, "rgba(0,0,0)");
                     } else {
                         drawConnectionLine(startNode, endNode, "rgba(255,0,0)");
@@ -469,7 +471,8 @@ function drawConnections(nodes, curPath = current_screen.curentPath) {
                 }else{
                     drawConnectionLine(startNode, endNode, "rgba(0,0,0)");
                 }
-        }
+            }
+        
     }
 
     if (current_screen.shouldItDrawCosts) {
@@ -494,8 +497,8 @@ function drawConnections(nodes, curPath = current_screen.curentPath) {
 // This checks to see if the current node is connected to a path
 // used by non dfs and bfs
 function isItPathed(curPath, startnode, endnode) {
-    for (var i = 0; i < curPath.length; i++) {
-        var curStep = curPath[i];
+    for (var i = 0; i < curPath.curentPath.path.length; i++) {
+        var curStep = curPath.curentPath.path[i];
         if ((curStep.endnode != current_screen.startNode)) {
             if ((areTheyEqual_AsymFlipped(curStep, {startnode:startnode, endnode:endnode}))) {
                 return true
@@ -554,7 +557,7 @@ function draw_cost(startNode, endNode, cost,heuristic,drawHuerisitc=false) {
     current_screen.ctx.fillStyle = "#000";
     //cost
     current_screen.ctx.fillText(cost, b.x - 10, b.y - 10);
-    if((drawHuerisitc)&&(heuristic.curentPath.length!=0)){
+    if((drawHuerisitc)&&(heuristic.curentPath.path.length!=0)){
 
         //heuristic :[],curCost:
         current_screen.ctx.fillText(heuristic.curCost, b.x - 10, b.y + 10);
