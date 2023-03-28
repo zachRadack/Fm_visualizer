@@ -174,7 +174,7 @@ function current_Finite_Machine() {
 
                     current_screen.nodes[index].NewAngle();
 
-                    drawConnections(current_screen.nodes);
+                    drawConnections(current_screen.nodes,current_screen.curPath);
                 },
                 stop: function (event, ui) {
                     var index = $(this).text() - 1;
@@ -451,7 +451,7 @@ function manhattanDistance(node1, node2) {
 
 
 // Draw connections on canvas and puts the path cost on the line
-function drawConnections(nodes, curPath = current_screen.curentPath) {
+function drawConnections(nodes, curPath = current_screen.curPath) {
     var dune;
     current_screen.ctx.clearRect(0, 0, canvas.width, canvas.height);
     current_screen.ctx.font = "20px Arial";
@@ -497,11 +497,13 @@ function drawConnections(nodes, curPath = current_screen.curentPath) {
 // This checks to see if the current node is connected to a path
 // used by non dfs and bfs
 function isItPathed(curPath, startnode, endnode) {
-    for (var i = 0; i < curPath.curentPath.path.length; i++) {
-        var curStep = curPath.curentPath.path[i];
-        if ((curStep.endnode != current_screen.startNode)) {
-            if ((areTheyEqual_AsymFlipped(curStep, {startnode:startnode, endnode:endnode}))) {
-                return true
+    if(curPath.curentPath.length!=0){
+        for (var i = 0; i < curPath.curentPath.path.length; i++) {
+            var curStep = curPath.curentPath.path[i];
+            if ((curStep.endnode != current_screen.startNode)) {
+                if ((areTheyEqual_AsymFlipped(curStep, {startnode:startnode, endnode:endnode}))) {
+                    return true
+                }
             }
         }
     }
