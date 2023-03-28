@@ -55,9 +55,7 @@ $("#start-btn").click(function () {
 
 // this pushes the algorithm through a single step.
 $("#next-step-btn").click(function () {
-    if (current_screen.foundPathGetter == true) {
-        current_screen.end_game();
-    } else if (current_screen.algorithmGetter() == "dfs") {
+    if (current_screen.algorithmGetter() == "dfs") {
         current_screen.Depthfirstsearch();
     } else if (current_screen.algorithmGetter() == "bfs") {
         current_screen.breadthfirstsearch();
@@ -99,6 +97,10 @@ function pathClass(newNode, path, cost = 0) {
 
     this.getVisited = function () {
         return this.path
+    }
+
+    this.setheuristic_Dijkstra = function(setCost){
+        this.Heuristic_cost = setCost;
     }
 
 }
@@ -174,7 +176,7 @@ function current_Finite_Machine() {
 
                     current_screen.nodes[index].NewAngle();
 
-                    drawConnections(current_screen.nodes);
+                    drawConnections(current_screen.nodes,current_screen.curPath);
                 },
                 stop: function (event, ui) {
                     var index = $(this).text() - 1;
@@ -235,10 +237,10 @@ function current_Finite_Machine() {
         // node color (as of time of writing this, it is pink.)
         // then it goes through with the current path and makes it set to the observed node color
         // which is green.
+        console.log("Goal Found");
         this.observedNode.setObserver();
         
         path.forEach(function (aNode, i) {
-            console.log("aNode: ", aNode.endnode);
             document.getElementById((aNode.endnode.nodeNumber).toString()).classList.add("end-game-path");
 
         });
@@ -250,20 +252,14 @@ function current_Finite_Machine() {
 
     // this is the depth first search algorithm
     this.Depthfirstsearch = function () {
-        console.log("dfs");
-        if (this.frontier.length) {
-            console.log("dead end?")
-        }
-        const poppedNode = this.frontier.pop();
-        const { newNode, path } = poppedNode;
-        this.curPath = {curentPath:poppedNode};
+        const { newNode, path, cost,poppedNode} = this.setNewCurrentPath();
         PrintCurrentPath(path);
         //console.log("hayy: " , this.nodes[2].visited, " here is number ", this.nodes[2].nodeNumber);
         // see if we hit the goal yet
         if (newNode.isThisGoal()) {
             this.found_path = true;
             // sends the path to end game
-            console.log("Goal Found");
+
             this.end_game(path);
         } else if ((!(newNode.visited)&&!(newNode.isObserved))||(this.first_run)) {
             if (this.first_run) {
@@ -291,15 +287,12 @@ function current_Finite_Machine() {
 
     this.breadthfirstsearch = function () {
         console.log("Bfs");
-        const poppedNode = this.frontier.pop();
-        const { newNode, path } = poppedNode;
-        this.curPath = {curentPath:poppedNode};
+        const { newNode, path, cost,poppedNode} = this.setNewCurrentPath();
         PrintCurrentPath(path);
         // see if we hit the goal yet
         if (newNode.isThisGoal()) {
             this.found_path = true;
             // sends the path to end game
-            console.log("Goal Found");
             this.end_game(path);
         } else if ((!(newNode.visited)&&!(newNode.isObserved))||(this.first_run)) {
             if (this.first_run) {
@@ -328,20 +321,16 @@ function current_Finite_Machine() {
 
     this.Dijkstra = function () {
         console.log("Dijkstra");
-        if (this.frontier.length) {
-            console.log("dead end?")
-        }
-        console.log("peeking: ", this.frontier);
-        const poppedNode = this.frontier.pop();
-        const { newNode, path, cost } = poppedNode;
-        this.curPath = {curentPath:poppedNode,curCost:cost};
+
+
+        const { newNode, path, cost,poppedNode} = this.setNewCurrentPath();
         PrintCurrentPath(path);
-        //console.log("peeked: ",this.frontier);
+
         // see if we hit the goal yet
         if (newNode.isThisGoal()) {
             this.found_path = true;
             // sends the path to end game
-            console.log("Goal Found");
+            
             this.end_game(path);
         } else if ((!(newNode.visited)&&!(newNode.isObserved))||(this.first_run)){
 
@@ -366,15 +355,17 @@ function current_Finite_Machine() {
         console.log("final: ", this.frontier);
     }
 
-
+    this.setNewCurrentPath  = function(){
+        const poppedNode = this.frontier.pop();
+        const { newNode, path, cost } = poppedNode;
+        this.curPath = {curentPath:poppedNode,curCost:cost};
+        return { newNode, path, cost,poppedNode} ;
+    }
 
     this.AstarAlgorithm = function () {
         console.log("test");
     }
 
-    this.foundPathGetter = function () {
-        return this.found_path;
-    }
     this.algorithmGetter = function () {
         return this.algorithm;
     }
@@ -451,7 +442,7 @@ function manhattanDistance(node1, node2) {
 
 
 // Draw connections on canvas and puts the path cost on the line
-function drawConnections(nodes, curPath = current_screen.curentPath) {
+function drawConnections(nodes, curPath = current_screen.curPath) {
     var dune;
     current_screen.ctx.clearRect(0, 0, canvas.width, canvas.height);
     current_screen.ctx.font = "20px Arial";
@@ -497,11 +488,13 @@ function drawConnections(nodes, curPath = current_screen.curentPath) {
 // This checks to see if the current node is connected to a path
 // used by non dfs and bfs
 function isItPathed(curPath, startnode, endnode) {
-    for (var i = 0; i < curPath.curentPath.path.length; i++) {
-        var curStep = curPath.curentPath.path[i];
-        if ((curStep.endnode != current_screen.startNode)) {
-            if ((areTheyEqual_AsymFlipped(curStep, {startnode:startnode, endnode:endnode}))) {
-                return true
+    if(curPath.curentPath.length!=0){
+        for (var i = 0; i < curPath.curentPath.path.length; i++) {
+            var curStep = curPath.curentPath.path[i];
+            if ((curStep.endnode != current_screen.startNode)) {
+                if ((areTheyEqual_AsymFlipped(curStep, {startnode:startnode, endnode:endnode}))) {
+                    return true
+                }
             }
         }
     }
