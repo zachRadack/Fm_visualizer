@@ -81,51 +81,54 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
         var letitrun=true;
         if(neighbors_Node!=dune){
             if (secondarycall == true) {
-                letitrun =neighbors_Node.addConnection(this, cost, false);
-                if(letitrun){
-                    this.connectthem(neighbors_Node, cost);
+                letitrun =neighbors_Node.addConnection(this, cost,false);
+                if(letitrun[0]){
+                    this.connectthem(this, cost,false,letitrun[1]);
                     return true;
-                }else{
-                    // full none connect
-                    return false;
                 }
             }else if (!(this.areTheyConnected(neighbors_Node))) {
                 // this is the first connection attempt, and it worked
-                this.connectthem(neighbors_Node, cost);
-                return true;
-            } else {
-                // first connection attempt failed
-                return false;
+                return [true,this.connectthem(this, cost)] ;
             }
-        }else{
-            // none valid neighbors_Node given
-            return false;
         }
+        // No connection
+        return false;
     }
 
     // does the actually linkage
-    this.connectthem= function(neighbors_Node, cost){
-        this.NodeConnection.push({ node: neighbors_Node, cost: cost, heuristic: 0 });
+    this.connectthem = function(neighbors_Node, cost,second_connect =true,pathObject=null){
+
         this.connectionPrinter(neighbors_Node, cost);
         this.connections += 1;
+        if(second_connect){
+            pathObject = new nodeConnectionObject(this, cost);
+            this.NodeConnection.push(pathObject);
+            return pathObject;
+        }else{
+            pathObject.set_NodeConnection2(this);
+            this.NodeConnection.push(pathObject);
+        }
+
+
     }
 
     // hold over function, probably should delete.
     this.NewAngle = function (isthisRepeat = false) {
         for (var i = 0; i < this.NodeConnection.length; i++) {
-            let currentNeighbor = this.NodeConnection[i]
-            currentNeighbor.current_angle = getAngle(this, currentNeighbor.node);
+            let currentNeighbor = this.NodeConnection[i];
+            currentNeighbor.current_angle = getAngle(this, currentNeighbor.getTheOther(this));
             if (isthisRepeat) {
-                currentNeighbor.node.NewAngle(true);
+                currentNeighbor.getTheOther(this).NewAngle(true);
             }
             if (this.nodeNumber == 0) {
                 //document.getElementById("curAngleId").textContent = this.NodeConnection[i].current_angle;
             }
         }
-
+        
     }
 
-    // this adds to curConenctionId the current connection
+    // this adds to curConenctionId the current connection. This shows all the connections at the bottom
+    // of the site.
     this.connectionPrinter = function (neighbors_Node, cost) {
         // Get the current content of curConenctionId element
         let curConenctionId = document.getElementById("curConenctionId").textContent;
@@ -133,7 +136,6 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
             curConenctionId = "";
         }
         // Append the new connection details to the existing content
-
         const newConnection = `[${this.nodeNumber+1}] => [${neighbors_Node.nodeNumber+1}] XX `;
         const updatedConenctionId = `${curConenctionId}${newConnection}`;
 
@@ -146,7 +148,7 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
     // will return the index of the connection in the array, and if there is no connection, it returns -1
     this.areTheyConnected = function (theNodeOfDesire, returnTheIndex = false) {
         for (var i = 0; i < this.NodeConnection.length; i++) {
-            if (this.NodeConnection[i].node.nodeNumber == theNodeOfDesire.nodeNumber) {
+            if ((this.NodeConnection[i].areTheyConnected_Connection(this,theNodeOfDesire))) {
                 if (returnTheIndex) {
                     return [true, i];
 
@@ -168,7 +170,7 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
     // formatted as {node:refrence to node, cost:cost to node}
     this.getNeighbors = function (returnCost = false) {
         if (!(returnCost)) {
-            return this.NodeConnection.map(function (item) { return item["node"]; })
+            return this.NodeConnection.map(function (item) { return item.getTheOther(this); })
         }
         return this.NodeConnection;
     }
@@ -212,6 +214,7 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
         }
     }
 
+    // this sets the Dijkstra heuristic in both paths of the current conncetion
     this.setDijkstra_heuristic = function (newHeuristicCost,endnode,secondarycall = true) {
         var isItGood = true;
         if(secondarycall){
@@ -239,4 +242,35 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
 
     
 
+}
+
+
+function nodeConnectionObject(node, cost, heuristic=0){
+    this.nodeConnection1=node;
+    this.nodeConnection2;
+    this.cost = cost;
+    this.heuristic= heuristic;
+
+    
+    
+    this.set_NodeConnection2= function(node2){
+        this.nodeConnection2=node2;
+    }
+    
+    this.areTheyConnected_Connection = function(node1,node2){
+        if(((node1==this.nodeConnection1)&&(node2==this.nodeConnection2))||((node2==this.nodeConnection1)&&(node1==this.nodeConnection2))){
+            if(((node1==this.nodeConnection1)&&(node1==this.nodeConnection2))||((node2==this.nodeConnection1)&&(node2==this.nodeConnection2)))
+            return true;
+        }
+        return false;
+    }
+
+    // Put in a node that you currently know and you will get the other node.
+    this.getTheOther = function(currentNode){
+        if(this.nodeConnection1!=currentNode){
+            return this.nodeConnection1;
+        }else{
+            return this.nodeConnection2;
+        }
+    }
 }

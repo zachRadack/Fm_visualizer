@@ -17,8 +17,8 @@ function connectNodes(nodes, count) {
     for (let i = 0; i < edges.size(); i++) {
         let {element,priority} = edges.pop();
 
-        if (!uf.connected(element[0].nodeNumber, element[1].nodeNumber)) {
-            if(element[0].addConnection(element[1], element[2],true)){
+        if (!uf.connected(element[0].nodeNumber, element[1].nodeNumber)&&(element[0].nodeNumber!=element[1].nodeNumber)) {
+            if(element[0].addConnection(element[1], element[2])){
                 uf.union(element[0].nodeNumber, element[1].nodeNumber);
                 
                 
@@ -69,10 +69,6 @@ function UnionFind(size) {
 // it will be used to connect nodes to each other as of now
 // not yet properly connected up the system
 function findClosestedNeighbor(edges,node, nodes, numberOfNeighbors,cost) {
-    curNumb = 0;
-
-    // used a priority queue in hopes of finding closest neighbors
-    const neighbors = new PriorityQueue()
     for (var i = 0; i < nodes.length-1; i++) {
         if (node !== nodes[i]) {
             edges.push([node,nodes[i], cost],manhattanDistance(node, nodes[i]));

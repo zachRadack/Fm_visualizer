@@ -340,6 +340,7 @@ function current_Finite_Machine() {
             } else {
                 this.observedNode = new_ObservedNode(newNode, this.observedNode, this.first_run, poppedNode, this.nodes);
             }
+            console.log(newNode.getNeighbors());
             for (let successor of newNode.getNeighbors()) {
                 if (!(successor.visited)) {
                     //console.log("push: ",this.frontier);
@@ -448,12 +449,12 @@ function drawConnections(nodes, curPath = current_screen.curPath) {
     current_screen.ctx.clearRect(0, 0, canvas.width, canvas.height);
     current_screen.ctx.font = "20px Arial";
     for (var i = 0; i < nodes.length; i++) {
-        var connection = nodes[i].getNeighbors(true);
+        var connection = nodes[i].getNeighbors();
         var startNode = nodes[i];
         
             // This itterates through all the connections of the current node
             for (var a = 0; a < connection.length; a++) {
-                var endNode = connection[a].node;
+                var endNode = connection[a];
                 if(curPath.length != 0){
                     if (!(isItPathed(curPath, startNode, endNode))) {
                         drawConnectionLine(startNode, endNode, "rgba(0,0,0)");
@@ -473,10 +474,11 @@ function drawConnections(nodes, curPath = current_screen.curPath) {
             var startNode = nodes[i].getCords();
             // This itterates through all the connections of the current node
             for (var a = 0; a < connection.length; a++) {
-                var endNode = connection[a].node.getCords();
+                var tempEndNode = connection[a].getTheOther(nodes[i]);
+                var endNode = tempEndNode.getCords();
                 var cost = connection[a].cost;
-                if(connection[a].node.wasComputed){
-                    draw_cost(startNode, endNode, cost,[nodes[i],connection[a].node],true);
+                if(tempEndNode.wasComputed){
+                    draw_cost(startNode, endNode, cost,[nodes[i],tempEndNode],true);
                 }else{
                     draw_cost(startNode, endNode, cost,curPath);
                 }
