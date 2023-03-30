@@ -19,11 +19,9 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
     // if this is true it means that it was added to a list of choices somewhere
     this.wasComputed = false;
 
-    this.heuristic = null;
+    this.heuristic = 99999999999999;
 
 
-    //this is meant to be the min max cost of connections for heuristic reasons
-    this.MaxMinsCosts = { maxCost: -10000, minCost: 100000 }
 
     // internal velocity
     this.vx = 0;
@@ -214,9 +212,24 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
         }
     }
 
-    // this as of now, returns only manhattan distances
-    this.getHeuristicDistance = function (endnode) {
-        return manhattanDistance(this, endnode);
+    this.setDijkstra_heuristic = function (newHeuristicCost,endnode,secondarycall = true) {
+        var isItGood = true;
+        if(secondarycall){
+            isItGood =endnode.setDijkstra_heuristic(newHeuristicCost,this,false);
+        }
+        var current_end_Node = this.areTheyConnected(endnode,true);
+        var curConnection = this.NodeConnection[current_end_Node[1]];
+        if((isItGood)&&(current_end_Node[0])&&(curConnection.heuristic < newHeuristicCost)){
+            curConnection.heuristic = newHeuristicCost;
+            return true;
+        }
+
+        return false;
+    }
+    
+    // This returns heruistic connection
+    this.getDijkstra_heuristic = function (endnode) {
+        return this.NodeConnection[this.areTheyConnected(endnode,true)[1]].heuristic;
     }
 
     // If I do a comparison, nodeNumber is the most reliable way to know if 2 nodes are the same

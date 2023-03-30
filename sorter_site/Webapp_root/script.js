@@ -216,6 +216,7 @@ function current_Finite_Machine() {
         // this sets up the start node to be the current observer node
         // while also setting up the endnode to be the goal
         this.observedNode = new_ObservedNode(this.nodes[this.startNode], this.observedNode, this.first_run);
+        this.observedNode.setWasComputed();
         this.nodes[this.endNode].makeNodeGoal();
         if (this.observedNode.isThisGoal()) {
             this.found_path = true;
@@ -346,6 +347,7 @@ function current_Finite_Machine() {
                     successor.setWasComputed();
                     var newcost = cost + newNode.getCost(successor);
                     this.frontier.push(new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }]), newcost));
+                    newNode.setDijkstra_heuristic(newcost,successor);
                 }
             }
         } else if ((newNode.visited)||(newNode.isObserved)) {
@@ -475,7 +477,7 @@ function drawConnections(nodes, curPath = current_screen.curPath) {
                 var endNode = connection[a].node.getCords();
                 var cost = connection[a].cost;
                 if(connection[a].node.wasComputed){
-                    draw_cost(startNode, endNode, cost,curPath,true);
+                    draw_cost(startNode, endNode, cost,[nodes[i],connection[a].node],true);
                 }else{
                     draw_cost(startNode, endNode, cost,curPath);
                 }
@@ -534,7 +536,7 @@ function drawConnectionLine(startNode, endNode, color = 'rgba(0,0,0)') {
 
 
 
-function draw_cost(startNode, endNode, cost,heuristic,drawHuerisitc=false) {
+function draw_cost(startNode, endNode, cost,NodeEnd=null,drawHuerisitc=false) {
     let rect_width = 50;
     let rect_height = 60;
 
@@ -550,12 +552,10 @@ function draw_cost(startNode, endNode, cost,heuristic,drawHuerisitc=false) {
     current_screen.ctx.fillStyle = "#000";
     //cost
     current_screen.ctx.fillText(cost, b.x - 10, b.y - 10);
-    if(heuristic.length!=0){
-    if((drawHuerisitc)&&(heuristic.curentPath.path.length!=0)){
+    if((drawHuerisitc)&&(NodeEnd[0].wasComputed)&&(NodeEnd[0].getDijkstra_heuristic(NodeEnd[1])!=0)){
 
-        //heuristic :[],curCost:
-        current_screen.ctx.fillText(heuristic.curCost, b.x - 10, b.y + 10);
-    }}
+        current_screen.ctx.fillText(NodeEnd[0].getDijkstra_heuristic(NodeEnd[1]), b.x - 10, b.y + 10);
+    }
 }
 
 
