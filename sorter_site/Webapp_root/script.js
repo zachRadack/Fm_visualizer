@@ -323,7 +323,6 @@ function current_Finite_Machine() {
     this.Dijkstra = function () {
         console.log("Dijkstra");
 
-
         const { newNode, path, cost,poppedNode} = this.setNewCurrentPath();
         PrintCurrentPath(path);
 
@@ -543,15 +542,17 @@ function draw_cost(startNode, endNode, cost,NodeEnd=null,drawHuerisitc=false) {
     //Uses slope intercept to get the center of the line.
     var b = find_centerpoint(startNode, endNode);
     var b_1 = { x: (b.x - (rect_width / 2)), y: (b.y - (rect_height / 2)) };
-    //current_screen.ctx.fillRect(b_1.x, b_1.y, rect_width, rect_height);
 
 
     current_screen.ctx.fillStyle = 'rgba(255,255,255, 0.5)';
     current_screen.ctx.fillRect(b_1.x + 3, b_1.y, rect_width * .86, rect_height * .86);
     // Add cost label to the middle of the line
     current_screen.ctx.fillStyle = "#000";
+
     //cost
     current_screen.ctx.fillText(cost, b.x - 10, b.y - 10);
+
+    // this is the hueristic according to the nodes
     if((drawHuerisitc)&&(NodeEnd[0].wasComputed)&&(NodeEnd[0].getDijkstra_heuristic(NodeEnd[1])!=0)){
 
         current_screen.ctx.fillText(NodeEnd[0].getDijkstra_heuristic(NodeEnd[1]), b.x - 10, b.y + 10);
@@ -560,7 +561,7 @@ function draw_cost(startNode, endNode, cost,NodeEnd=null,drawHuerisitc=false) {
 
 
 
-
+// finds the ceneter point, this is used for draw_cost function.
 function find_centerpoint(node1, node2) {
     const middleX = (node1.x + node2.x) / 2;
     const middleY = (node1.y + node2.y) / 2;
