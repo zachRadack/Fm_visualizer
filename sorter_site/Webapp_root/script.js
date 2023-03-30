@@ -4,7 +4,12 @@ var canvas = document.getElementById("canvas");
 var current_screen = new current_Finite_Machine();
 var totalnodechange ={totalnodes:0};
 var animationFrame = -1;
-// this creates canvas
+
+/**
+ * Creates/wipes the canvas. Then loads up a new current_screen object.
+ * This handles full wiping of everything.
+ * 
+ */
 $("#Create-canvas-btn").click(function () {
     document.getElementById("curConenctionId").textContent = "None";
     document.getElementById("curPathId").textContent = "None";
@@ -27,7 +32,9 @@ $("#Create-canvas-btn").click(function () {
 
 });
 
-// handles the starting of the algorithm, and sets everything in
+/**
+ * Handles the starting of the algorithm, and sets everything in motion.
+ */
 $("#start-btn").click(function () {
 
     var startNode = parseInt($("#start").val());
@@ -53,7 +60,9 @@ $("#start-btn").click(function () {
     }
 });
 
-// this pushes the algorithm through a single step.
+/** 
+ * This pushes the algorithm through a single step.
+ */
 $("#next-step-btn").click(function () {
     if (current_screen.algorithmGetter() == "dfs") {
         current_screen.Depthfirstsearch();
@@ -70,7 +79,13 @@ $("#next-step-btn").click(function () {
 
 
 
-// Handles the paths that are inside of frontier.
+/** 
+ * Handles the paths that are inside of frontier.
+ * 
+ * @param {nodeClass} newNode - The node that is being added to the frontier.
+ * @param {pathClass} path - The path that is being added to the frontier.
+ * @param {int} cost - The cost of the path.
+ */
 function pathClass(newNode, path, cost = 0) {
     this.newNode = newNode;
     this.startnode = path.startnode;
@@ -106,9 +121,10 @@ function pathClass(newNode, path, cost = 0) {
 }
 
 /////////////////////////////////////////////////////////////////
-// This is the current instance of the finite machine.
-// this is where all the machine happens, and the way to reset this is by
-// setting current_screen to a new instance of this class.
+/**  
+ * This is the current instance of the finite machine.
+ *  This is where all the machine happens, and the way to reset this is by setting current_screen to a new instance of this class.
+*/
 function current_Finite_Machine() {
 
     this.canvas = document.getElementById("canvas");
@@ -139,7 +155,17 @@ function current_Finite_Machine() {
     this.isItSimulated = false;
     this.shouldItDrawCosts = true;
 
-    // setups the canvas and stuff. Handles the creation of the nodes and connections.
+    /** 
+     * Setups the canvas and stuff. Handles the creation of the nodes and connections.
+     * 
+     * This creates all things for the actual canvas, and the nodes. It is triggered by "Load canvas" button.
+     * 
+     * Also starts up the physics simulation, which is always on, however the repel/ attract forces are off by default.
+     * 
+     * @param {int} totalNodes - The total number of nodes that will be created.
+     * @param {int} totalConnections - The total number of connections that will be created. (Not implmented yet/broken)
+     * @param {boolean} isItSimulated - If the canvas is being simulated or not. Off by default.
+     */
     this.startup = function (totalNodes, totalConnections, isItSimulated) {
         this.shouldItDrawCosts = true;
         this.isItSimulated = isItSimulated;
@@ -193,8 +219,9 @@ function current_Finite_Machine() {
         this.theSimulator = new simulation(this.canvas.offsetWidth, this.canvas.offsetHeight, this.nodes, isItSimulated);
     }
 
-    // this makes it so the old animation stops, if this is not trigged, then if
-    // you hit "load canvas" a second time, it will be using the nodes from the first canvas
+    /** 
+     * This cancels the current simulation. It does not restart it however.
+     */
     this.cancelAnimation = function () {
         // upon loading, this.theSimulator before any load canvas is used
         // is always false. Other than that, it should always be linked to a simulation.
@@ -204,9 +231,14 @@ function current_Finite_Machine() {
     }
 
 
-    // this is when the user clicks "start/reset" button
-    // the startup handles the canvas creation, this handles the start of the
-    // search algorithm.
+    /** 
+     * this is when the user clicks "start/reset" button.
+     * the startup handles the canvas creation, this handles the start of the search algorithm.
+     * 
+     * @param {int} startNode - The node that the search will start from.
+     * @param {int} endNode - The node that the search will end at.
+     * @param {string} aalgorithm - The algorithm that will be used to search.
+     */
     this.initializer = function (startNode, endNode, aalgorithm) {
 
         this.startNode = startNode
