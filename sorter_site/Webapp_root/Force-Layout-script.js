@@ -297,7 +297,8 @@ class simulation {
             // transfer velocities into speeds
             node.x += node.vx;
             node.y += node.vy;
-
+            
+            node.setAllDistanceCosts();
             this.updateCSSmovement(node);
             }
         }

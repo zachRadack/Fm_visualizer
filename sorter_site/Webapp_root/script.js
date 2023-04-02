@@ -155,6 +155,9 @@ function current_Finite_Machine() {
     this.isItSimulated = false;
     this.shouldItDrawCosts = true;
 
+    this.isDistanceScore;
+    
+    this.NodeCanvasSizeMultipler=manhattanDistance({x:this.canvas.offsetWidth,y:this.canvas.offsetHeight},{x:0,y:0})/50;
     /** 
      * Setups the canvas and stuff. Handles the creation of the nodes and connections.
      * 
@@ -166,14 +169,15 @@ function current_Finite_Machine() {
      * @param {number} totalConnections - The total number of connections that will be created. (Not implmented yet/broken)
      * @param {boolean} isItSimulated - If the canvas is being simulated or not. Off by default.
      */
-    this.startup = function (totalNodes, totalConnections, isItSimulated) {
+    this.startup = function (totalNodes, totalConnections, isItSimulated,isDistanceScore=true) {
         this.shouldItDrawCosts = true;
+        this.isDistanceScore=isDistanceScore;
         this.isItSimulated = isItSimulated;
         this.ctx = this.canvas.getContext("2d");
-        this.nodes = generateNodes(totalNodes);
+        this.nodes = generateNodes(totalNodes,this.NodeCanvasSizeMultipler);
         console.log("this nodes startup: ", this.nodes)
-
-        connectNodes(this.nodes, totalConnections);
+        
+        connectNodes(this.nodes, totalConnections,this.isDistanceScore,this.canvas.offsetWidth, this.canvas.offsetHeight);
 
 
 
@@ -195,11 +199,14 @@ function current_Finite_Machine() {
                 containment: "parent",
                 drag: function (event, ui) {
                     var index = $(this).text() - 1;
-
-                    current_screen.nodes[index].beingDragged = true;
-                    current_screen.nodes[index].x = ui.position.left + 10;
-                    current_screen.nodes[index].y = ui.position.top + 10;
-
+                    var curNode = current_screen.nodes[index];
+                    curNode.beingDragged = true;
+                    curNode.x = ui.position.left + 10;
+                    curNode.y = ui.position.top + 10;
+                    if((current_screen.isDistanceScoreGetter())&&(curNode.runHasStarted())){
+                        curNode.setAllDistanceCosts();
+                    }
+                    
 
                     drawConnections(current_screen.nodes,current_screen.curPath);
                 },
@@ -375,6 +382,9 @@ function current_Finite_Machine() {
             if (this.first_run) {
                 // first run is special, we do not want to push out of first node yet
                 this.first_run = false;
+                for (var i = 0; i < this.nodes.length; i++) {
+                    this.nodes[i].runHasStarted();
+                }
             } else {
                 this.observedNode = new_ObservedNode(newNode, this.observedNode, this.first_run, poppedNode, this.nodes);
             }
@@ -413,6 +423,10 @@ function current_Finite_Machine() {
 
     this.algorithmGetter = function () {
         return this.algorithm;
+    }
+    
+    this.isDistanceScoreGetter = function(){
+        return this.isDistanceScore;
     }
 }
 
@@ -489,15 +503,16 @@ function startEnd_Node_Selector(nodes) {
  * @param {number} count 
  * @returns {[nodeClass]} list of all generated nodes
  */
-function generateNodes(count) {
+function generateNodes(count,distanceMultipler) {
     var canvas = $("#canvas");
     var canvasWidth = canvas.width();
     var canvasHeight = canvas.height();
     var nodeObjectList = [];
+    const screenscore=manhattanDistance({x:canvasWidth,y:canvasHeight},{x:0,y:0})/50;
     for (var i = 0; i < count; i++) {
         var x = Math.floor(Math.random() * canvasWidth);
         var y = Math.floor(Math.random() * canvasHeight);
-        nodeObjectList.push(new nodeClass(x, y, i));
+        nodeObjectList.push(new nodeClass(x, y, i,distanceMultipler));
     }
     return nodeObjectList;
 }

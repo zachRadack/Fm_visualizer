@@ -1,34 +1,41 @@
 /**  It takes in a list of nodes and the desired number of connections.
  *  It returns an array of connections in the form of [startNode, endNode, cost].
  *
- * todo: Make costs 
+ * todo: Make costs be based on distance
  * todo: fix count
  * 
  * @param {[nodeClass]} nodes - The nodes that are being checked
  * @param {number} count - The number of connections to make (not yet implemented/broken) 
+ * @param {bool} distanceCost defaults to false, if true, then scores are distance and are constantly updated
+ * @param {number} screen_width 
+ * @param {number} screen_height 
  */
-function connectNodes(nodes, count) {
+function connectNodes(nodes, count,distanceCost=false,screen_width=1,screen_height=1) {
     console.log("connectNodes ", nodes);
-    var edges = new PriorityQueue_graphmaker((a, b) => a[3] < b[3]);
+    var edges = new PriorityQueue_graphmaker((a, b) => a[1] < b[1]);
     
     for (let start = 0; start < nodes.length; start++) {
-
-        const cost = Math.floor(Math.random() * 10) + 1;
-        findClosestedNeighbor(edges,nodes[start], nodes, nodes.length-1,cost);
+        
+        
+        findClosestedNeighbor(edges,nodes[start], nodes, nodes.length-1);
         
     }
     
-    /**
-     * Kruskal's algorithm, minimizes free floating nodes, and 
-     * tries to ensures that all nodes have at least one connection
-     * @param {number} length
-     */
+    if((distanceCost)){
+        var screenscore=manhattanDistance({x:screen_width,y:screen_height},{x:0,y:0})/50;
+    }
     let uf = new UnionFind(nodes.length);
     for (let i = 0; i < edges.size(); i++) {
         let {element,priority} = edges.pop();
 
         if (!uf.connected(element[0].nodeNumber, element[1].nodeNumber)) {
-            if(element[0].addConnection(element[1], element[2],true)){
+
+            if(distanceCost){
+                var cost = Math.round((Math.abs(priority/screenscore)));
+            }else{
+                var cost = Math.floor(Math.random() * 10) + 1;
+            }
+            if(element[0].addConnection(element[1], cost)){
                 uf.union(element[0].nodeNumber, element[1].nodeNumber);
                 
                 
@@ -106,7 +113,7 @@ function UnionFind(size) {
  * 
  * Returns nothings, but it will add the closest neighbors to the edges array
  */
-function findClosestedNeighbor(edges,node, nodes, numberOfNeighbors,cost) {
+function findClosestedNeighbor(edges,node, nodes, numberOfNeighbors) {
     curNumb = 0;
 
     // used a priority queue in hopes of finding closest neighbors
@@ -115,7 +122,7 @@ function findClosestedNeighbor(edges,node, nodes, numberOfNeighbors,cost) {
         if (node !== nodes[i]) {
 
 
-            edges.push([node,nodes[i], cost],manhattanDistance(node, nodes[i]));
+            edges.push([node,nodes[i]],manhattanDistance(node, nodes[i]));
         }
     }
 

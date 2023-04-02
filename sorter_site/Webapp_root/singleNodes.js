@@ -8,7 +8,7 @@
  * @param {number} nodeNum 
  * @param {bool} isItGoal 
  */
-function nodeClass(x, y, nodeNum, isItGoal = false) {
+function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true) {
     this.nodeNumber = nodeNum;
     this.x = x;
     this.y = y;
@@ -18,7 +18,7 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
     // refrence to html
     this.HTMLnodes;
 
-    this.isGoal = isItGoal;
+    this.isGoal = false;
     // has it been visited
     this.visited = false;
     // this is when the algorithem is currently looking at it
@@ -29,6 +29,13 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
 
     this.heuristic = 99999999999999;
 
+
+    this.NodeCanvasSizeMultipler=NodeCanvasSizeMultipler;
+
+    // adding this because jquery drag scope is funky and really really broken
+    // this is meant to stop
+    this.isDistanceScore=isDistanceScore;
+    this.hasRunStarted= false;
 
 
     // internal velocity
@@ -78,7 +85,7 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
      * @returns {number} total cost (with hueristic) between the 2 nodes connection
      */
     this.getCost = function (theNodeOfDesire) {
-        if (this.NodeConnection.length > 0) {
+        if (this.nodeConnectionLength() > 0) {
             var areConnected = this.areTheyConnected(theNodeOfDesire, true);
             if (areConnected[0]) {
                 var desiredConnection = this.NodeConnection[areConnected[1]];
@@ -145,6 +152,40 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
     }
 
 
+
+
+    this.setAllDistanceCosts = function(){
+        for (var i = 0; i < this.nodeConnectionLength(); i++) {
+            this.setDistanceCostToNeighbor(this.NodeConnection[i].node);
+        }
+    }
+
+    /**
+     * This will set the cost between a node's connections
+     * 
+     * @param {number} distance distance between this node and the other node
+     */
+    this.setDistanceCostToNeighbor = function(theNodeOfDesire,secondarycall=true){
+        var connection=this.areTheyConnected(theNodeOfDesire,true);
+        var distance = manhattanDistance(this.getCords(),theNodeOfDesire.getCords())
+        this.NodeConnection[connection[1]].cost = this.get_distance_Cost(distance);
+        if(secondarycall){
+            theNodeOfDesire.setDistanceCostToNeighbor(this,false);
+        }
+        
+    }
+    
+        /**
+         * This will enable the cost of nodes to be determined by distance from the current node
+         * 
+         * 
+         * @param {number} distance distance between this node and the other node
+         */
+        this.get_distance_Cost= function(distance){
+            return Math.round((Math.abs(distance/this.NodeCanvasSizeMultipler)));
+        }
+
+
     /**
      * this adds to curConenctionId the current connection
      * @param {nodeClass} neighbors_Node 
@@ -174,7 +215,7 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
      * @returns {bool} If they are connected
      */
     this.areTheyConnected = function (theNodeOfDesire, returnTheIndex = false) {
-        for (var i = 0; i < this.NodeConnection.length; i++) {
+        for (var i = 0; i < this.nodeConnectionLength(); i++) {
             if (this.NodeConnection[i].node.nodeNumber == theNodeOfDesire.nodeNumber) {
                 if (returnTheIndex) {
                     return [true, i];
@@ -284,6 +325,19 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
     }
 
     /**
+     * Returns number of connections
+     * @returns {Number} Number of connections
+     */
+    this.nodeConnectionLength = function(){
+        return this.NodeConnection.length;
+    }
+
+
+    this.runHasStarted = function(){
+        this.hasRunStarted=true;
+    }
+
+    /**
      * If I do a comparison, nodeNumber is the most reliable way to know if 2 nodes are the same
      * 
      * (Node number is the number assosiated with the current node, it is 1 less than what the users see)
@@ -293,7 +347,5 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
     this.valueOf = function () {
         return this.nodeNumber;
     }
-
-    
 
 }
