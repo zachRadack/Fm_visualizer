@@ -14,7 +14,7 @@ Here is depth first search
 ![image](https://user-images.githubusercontent.com/104032269/227746005-1c608ac0-056a-4f57-9fb9-2a6452b68261.png)
 
 Here is Dijkstra
-![image](https://user-images.githubusercontent.com/104032269/227746480-fc0b38d5-86fd-4dab-b660-b16e2faf72d2.png)
+![image](https://user-images.githubusercontent.com/104032269/228747774-138e5850-ac7e-46e4-8b31-158163255a22.png)
 
 # the colors are
 **white** = generic unnoticed node

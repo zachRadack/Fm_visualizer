@@ -156,6 +156,8 @@ function current_Finite_Machine() {
     this.shouldItDrawCosts = true;
 
     this.isDistanceScore;
+
+    this.astar_Distance_Check = false;
     
     this.NodeCanvasSizeMultipler=manhattanDistance({x:this.canvas.offsetWidth,y:this.canvas.offsetHeight},{x:0,y:0})/50;
     /** 
@@ -203,11 +205,6 @@ function current_Finite_Machine() {
                     curNode.beingDragged = true;
                     curNode.x = ui.position.left + 10;
                     curNode.y = ui.position.top + 10;
-                    if((current_screen.isDistanceScoreGetter())&&(curNode.runHasStarted())){
-                        curNode.setAllDistanceCosts();
-                    }
-                    
-
                     drawConnections(current_screen.nodes,current_screen.curPath);
                 },
                 stop: function (event, ui) {
@@ -303,12 +300,7 @@ function current_Finite_Machine() {
 
             this.end_game(path);
         } else if ((!(newNode.visited)&&!(newNode.isObserved))||(this.first_run)) {
-            if (this.first_run) {
-                // first run is special, we do not want to push out of first node yet
-                this.first_run = false;
-            } else {
-                this.observedNode = new_ObservedNode(newNode, this.observedNode, this.first_run);
-            }
+            this.isGameOver(newNode,poppedNode);
             for (let successor of newNode.getNeighbors()) {
                 this.frontier.push(new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }])));
                 if (successor.isThisGoal()) {
@@ -338,12 +330,7 @@ function current_Finite_Machine() {
             // sends the path to end game
             this.end_game(path);
         } else if ((!(newNode.visited)&&!(newNode.isObserved))||(this.first_run)) {
-            if (this.first_run) {
-                // first run is special, we do not want to push out of first node yet
-                this.first_run = false;
-            } else {
-                this.observedNode = new_ObservedNode(newNode, this.observedNode, this.first_run);
-            }
+            this.isGameOver(newNode,poppedNode);
             for (let successor of newNode.getNeighbors()) {
                 var newPath = new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }]));
                 if (successor.isThisGoal()) {
@@ -379,15 +366,7 @@ function current_Finite_Machine() {
             this.end_game(path);
         } else if ((!(newNode.visited)&&!(newNode.isObserved))||(this.first_run)){
 
-            if (this.first_run) {
-                // first run is special, we do not want to push out of first node yet
-                this.first_run = false;
-                for (var i = 0; i < this.nodes.length; i++) {
-                    this.nodes[i].runHasStarted();
-                }
-            } else {
-                this.observedNode = new_ObservedNode(newNode, this.observedNode, this.first_run, poppedNode, this.nodes);
-            }
+            this.isGameOver(newNode,poppedNode);
             for (let successor of newNode.getNeighbors()) {
                 if (!(successor.visited)) {
                     //console.log("push: ",this.frontier);
@@ -404,6 +383,57 @@ function current_Finite_Machine() {
         console.log("final: ", this.frontier);
     }
 
+    this.AstarAlgorithm = function () {
+        console.log("test");
+
+        const { newNode, path, cost,poppedNode} = this.setNewCurrentPath();
+        PrintCurrentPath(path);
+        
+        // see if we hit the goal yet
+        if (newNode.isThisGoal()) {
+            this.found_path = true;
+            // sends the path to end game
+            
+            this.end_game(path);
+        }else if(astar_Distance_Check) {
+            
+        }else if ((!(newNode.visited)&&!(newNode.isObserved))||(this.first_run)){
+
+            this.isGameOver(newNode,poppedNode);
+            for (let successor of newNode.getNeighbors()) {
+                if (!(successor.visited)) {
+                    //console.log("push: ",this.frontier);
+                    successor.setWasComputed();
+                    var newcost = cost + newNode.getCost(successor);
+                    this.frontier.push(new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }]), newcost));
+                    newNode.setDijkstra_heuristic(newcost,successor);
+                }
+            }
+        } else if ((newNode.visited)||(newNode.isObserved)) {
+            //console.log("ALREADY VISITED");
+            this.AstarAlgorithm();
+        }
+        console.log("final: ", this.frontier);
+    }
+    
+    /**
+     * Checks to see if gameover, and if not, then sets new observer node
+     * 
+     * @param {nodeClass} newNode 
+     * @param {nodeClass} poppedNode 
+     */
+    this.isGameOver = function(newNode,poppedNode){
+        if (this.first_run) {
+            // first run is special, we do not want to push out of first node yet
+            this.first_run = false;
+            for (var i = 0; i < this.nodes.length; i++) {
+                this.nodes[i].runHasStarted();
+            }
+        } else {
+            this.observedNode = new_ObservedNode(newNode, this.observedNode, this.first_run, poppedNode, this.nodes);
+        }
+    }
+
     /**
      * This functions pops next this.frontier and returns popped variables, along with
      * the actual reference to the pathClass itself
@@ -417,9 +447,7 @@ function current_Finite_Machine() {
         return { newNode, path, cost,poppedNode} ;
     }
 
-    this.AstarAlgorithm = function () {
-        console.log("test");
-    }
+    
 
     this.algorithmGetter = function () {
         return this.algorithm;

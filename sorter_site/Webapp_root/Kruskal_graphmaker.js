@@ -25,12 +25,17 @@ function connectNodes(nodes, count,distanceCost=false,screen_width=1,screen_heig
         var screenscore=manhattanDistance({x:screen_width,y:screen_height},{x:0,y:0})/50;
     }
     let uf = new UnionFind(nodes.length);
-    for (let i = 0; i < edges.size(); i++) {
+    const edgeSize=edges.size()
+    for (let i = 0; i < edgeSize; i++) {
         let {element,priority} = edges.pop();
-
+        if((element[0]==0||element[1]==0)||(element[0]==2||element[1]==2)){
+            console.log("T");
+        }
         if (!uf.connected(element[0].nodeNumber, element[1].nodeNumber)) {
 
+            // todo move cost finders fully into node class or anywhere else.
             if(distanceCost){
+                //var cost = element[0].get_distance_Cost(priority);
                 var cost = Math.round((Math.abs(priority/screenscore)));
             }else{
                 var cost = Math.floor(Math.random() * 10) + 1;
@@ -43,9 +48,91 @@ function connectNodes(nodes, count,distanceCost=false,screen_width=1,screen_heig
             }
         }
     }
+    
+    const uniqueVars = new Set(uf.parent);
+    
 
+
+    
+
+    //var disconnectedNodes = minibreadthFirstSearch(nodes,mostCommonNumber(uf.parent));
+    console.log(uniqueVars.size); 
     console.log("Reconnected the nodes");
 }
+
+
+/**
+ * Finds all disconnected nodes, starts at the most linked up node
+ * ! depercated, keeping this update so it can be recored just in case i need it later
+ * @param {nodeClass} nodes 
+ * @return {object} a list of all disconnected nodes
+ */
+function minibreadthFirstSearch(nodes,mostConnectedNode){
+    visited= [nodes[mostConnectedNode]]
+    observed = 0;
+    firstrun = true
+    frontier=[new pathClass(nodes[mostConnectedNode], [{ startnode: nodes[mostConnectedNode], endnode: nodes[mostConnectedNode] }])];
+
+
+    while((frontier.length>0)){
+        console.log("frontier: ",frontier);
+        const {newNode, path} = frontier.pop();
+        if (!(visited.includes(newNode))||(firstrun)) {
+            if(firstrun){
+                firstrun=false;
+            }else{
+                visited.push(newNode);
+            }
+            for (let successor of newNode.getNeighbors()) {
+                if (!(visited.includes(successor))) {
+                    var newPath = new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }]));
+                    
+                    frontier.unshift(newPath)
+                }
+            }
+        }
+    }
+    var disconnectedNodes = nodes.filter((num) => !visited.includes(num));
+    if(visited.length<nodes.length){
+        console.log("missing links: ",disconnectedNodes);
+    }
+    return disconnectedNodes;
+    
+}
+
+/**
+ * Find the most common number in the array
+ *  ! depercated, keeping this update so it can be recored just in case i need it later
+ * @param {[number]} arr 
+ * @returns {number}
+ */
+function mostCommonNumber(arr){
+
+    const freq = {};
+    arr.forEach((num) => {freq[num] = freq[num] ? freq[num] + 1 : 1;});
+
+    return Object.keys(freq).reduce((a, b) => freq[a] > freq[b] ? a : b);
+}
+
+/**
+ * This itterates through all but the most common value in array
+ *  ! depercated, keeping this update so it can be recored just in case i need it later
+ * @param {[number]} arr 
+ */
+function iterateWithoutMostCommonNumber(arr) {
+    let mostFrequentNum;
+
+    mostFrequentNum = mostCommonNumber(arr);
+  
+    // Iterate through every index that does not have the most common number
+    for (let i = 0; i < arr.length; i++) {
+      if (arr[i] !== mostFrequentNum) {
+        console.log(`Processing index ${i} with value ${arr[i]}`);
+        // Do something with the index here
+      }
+    }
+  }
+  
 
 
 /**
@@ -109,19 +196,18 @@ function UnionFind(size) {
  * @param {nodeClass} node - the node to find the closest neighbors to
  * @param {[nodeClass]} nodes - the list of all nodes from current Screen
  * @param {number} numberOfNeighbors - the number of neighbors to find (not yet implemented)
- * @param {number} cost - the cost of the connection
  * 
  * Returns nothings, but it will add the closest neighbors to the edges array
  */
 function findClosestedNeighbor(edges,node, nodes, numberOfNeighbors) {
     curNumb = 0;
 
-    // used a priority queue in hopes of finding closest neighbors
-    const neighbors = new PriorityQueue()
     for (var i = 0; i < nodes.length-1; i++) {
         if (node !== nodes[i]) {
 
-
+            if(nodes[i]==1){
+                console.log("te");
+            }
             edges.push([node,nodes[i]],manhattanDistance(node, nodes[i]));
         }
     }
