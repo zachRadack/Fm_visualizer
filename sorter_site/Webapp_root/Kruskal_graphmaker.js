@@ -48,91 +48,12 @@ function connectNodes(nodes, count,distanceCost=false,screen_width=1,screen_heig
             }
         }
     }
-    
-    const uniqueVars = new Set(uf.parent);
-    
 
-
-    
-
-    //var disconnectedNodes = minibreadthFirstSearch(nodes,mostCommonNumber(uf.parent));
-    console.log(uniqueVars.size); 
     console.log("Reconnected the nodes");
 }
 
 
-/**
- * Finds all disconnected nodes, starts at the most linked up node
- * ! depercated, keeping this update so it can be recored just in case i need it later
- * @param {nodeClass} nodes 
- * @return {object} a list of all disconnected nodes
- */
-function minibreadthFirstSearch(nodes,mostConnectedNode){
-    visited= [nodes[mostConnectedNode]]
-    observed = 0;
-    firstrun = true
-    frontier=[new pathClass(nodes[mostConnectedNode], [{ startnode: nodes[mostConnectedNode], endnode: nodes[mostConnectedNode] }])];
 
-
-    while((frontier.length>0)){
-        console.log("frontier: ",frontier);
-        const {newNode, path} = frontier.pop();
-        if (!(visited.includes(newNode))||(firstrun)) {
-            if(firstrun){
-                firstrun=false;
-            }else{
-                visited.push(newNode);
-            }
-            for (let successor of newNode.getNeighbors()) {
-                if (!(visited.includes(successor))) {
-                    var newPath = new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }]));
-                    
-                    frontier.unshift(newPath)
-                }
-            }
-        }
-    }
-    var disconnectedNodes = nodes.filter((num) => !visited.includes(num));
-    if(visited.length<nodes.length){
-        console.log("missing links: ",disconnectedNodes);
-    }
-    return disconnectedNodes;
-    
-}
-
-/**
- * Find the most common number in the array
- *  ! depercated, keeping this update so it can be recored just in case i need it later
- * @param {[number]} arr 
- * @returns {number}
- */
-function mostCommonNumber(arr){
-
-    const freq = {};
-    arr.forEach((num) => {freq[num] = freq[num] ? freq[num] + 1 : 1;});
-
-    return Object.keys(freq).reduce((a, b) => freq[a] > freq[b] ? a : b);
-}
-
-/**
- * This itterates through all but the most common value in array
- *  ! depercated, keeping this update so it can be recored just in case i need it later
- * @param {[number]} arr 
- */
-function iterateWithoutMostCommonNumber(arr) {
-    let mostFrequentNum;
-
-    mostFrequentNum = mostCommonNumber(arr);
-  
-    // Iterate through every index that does not have the most common number
-    for (let i = 0; i < arr.length; i++) {
-      if (arr[i] !== mostFrequentNum) {
-        console.log(`Processing index ${i} with value ${arr[i]}`);
-        // Do something with the index here
-      }
-    }
-  }
-  
 
 
 /**
