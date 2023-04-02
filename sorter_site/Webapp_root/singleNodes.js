@@ -1,5 +1,13 @@
-// THIS IS NOT USED YET, I need to figure out how to make it work. 
-// also I basically need to overhaul every action with nodes to use this instead
+/**
+ * This controls individual nodes in an instance.
+ * It manages most things related to individual nodes from setting adding conenctions
+ * to holding their current coordinates
+ * 
+ * @param {number} x 
+ * @param {number} y 
+ * @param {number} nodeNum 
+ * @param {bool} isItGoal 
+ */
 function nodeClass(x, y, nodeNum, isItGoal = false) {
     this.nodeNumber = nodeNum;
     this.x = x;
@@ -41,22 +49,34 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
     // if a node is being dragged, it turns off the simulation physics for it
     this.beingDragged = false;
 
-    // makes the goal a node
+    /**
+     * makes the node a goal
+     */
     this.makeNodeGoal = function () {
         this.isGoal = true;
     }
 
-    // this is called when the node is added to any list that is being searched.
+    /**
+     * This is called when the node is added to any list that is being searched.
+     */
     this.setWasComputed = function () {
         this.wasComputed = true;
         document.getElementById((this.nodeNumber).toString()).classList.add("was-computer");
     }
 
-    // To goal or not to goal, that is the goal
+    /**
+     * To goal or not to goal, that is the goal
+     * @returns {bool} if given node is a goal
+     */
     this.isThisGoal = function () {
         return this.isGoal;
     }
-    // send in the node object that you want to get the cost, if they are connected
+    /**
+     * send in the node object that you want to get the cost, if they are connected
+     * returns -1 if the 2 nodes are not connected
+     * @param {nodeClass} theNodeOfDesire 
+     * @returns {number} total cost (with hueristic) between the 2 nodes connection
+     */
     this.getCost = function (theNodeOfDesire) {
         if (this.NodeConnection.length > 0) {
             var areConnected = this.areTheyConnected(theNodeOfDesire, true);
@@ -65,16 +85,26 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
                 return desiredConnection.cost + desiredConnection.heuristic;
             }
         }
+        return -1
     }
 
-
+    /**
+     * This returns the nodes coords.
+     * @returns {object} x y formatted object of the nodes coords
+     */
     this.getCords = function () {
         return { x: this.x, y: this.y };
     }
 
-    // Connections are objects that have a refrence to the connected node
-    // and the cost to said node. Also adding a connection is 2 way
-    // secondarycall is used to prevent infinite recursion.
+    /**
+     * Connections are objects that have a refrence to the connected node
+     * and the cost to said node. Also adding a connection is 2 way
+     * secondarycall is used to prevent infinite recursion.
+     * @param {nodeClass} neighbors_Node 
+     * @param {number} cost 
+     * @param {bool} secondarycall Do not use, its for internal use
+     * @returns {bool} If connection worked
+     */
     this.addConnection = function (neighbors_Node, cost, secondarycall = true) {
         //let a = this.nodeNumber;// delete later, meant for debuging
         let dune;
@@ -103,29 +133,23 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
         }
     }
 
-    // does the actually linkage
+    /**
+     * does the actually linkage
+     * @param {nodeClass} neighbors_Node 
+     * @param {number} cost  
+     */
     this.connectthem= function(neighbors_Node, cost){
         this.NodeConnection.push({ node: neighbors_Node, cost: cost, heuristic: 0 });
         this.connectionPrinter(neighbors_Node, cost);
         this.connections += 1;
     }
 
-    // hold over function, probably should delete.
-    this.NewAngle = function (isthisRepeat = false) {
-        for (var i = 0; i < this.NodeConnection.length; i++) {
-            let currentNeighbor = this.NodeConnection[i]
-            currentNeighbor.current_angle = getAngle(this, currentNeighbor.node);
-            if (isthisRepeat) {
-                currentNeighbor.node.NewAngle(true);
-            }
-            if (this.nodeNumber == 0) {
-                //document.getElementById("curAngleId").textContent = this.NodeConnection[i].current_angle;
-            }
-        }
 
-    }
-
-    // this adds to curConenctionId the current connection
+    /**
+     * this adds to curConenctionId the current connection
+     * @param {nodeClass} neighbors_Node 
+     * @param {number} cost  
+     */
     this.connectionPrinter = function (neighbors_Node, cost) {
         // Get the current content of curConenctionId element
         let curConenctionId = document.getElementById("curConenctionId").textContent;
@@ -141,9 +165,14 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
         document.getElementById("curConenctionId").textContent = updatedConenctionId;
     }
 
-    // checks to see if the given node is connected to this node, returnTheIndex
-    // will return an array with both the boolean with true being a connection, and if there is connection it
-    // will return the index of the connection in the array, and if there is no connection, it returns -1
+    /**
+     * checks to see if the given node is connected to this node, returnTheIndex
+     * will return an array with both the boolean with true being a connection, and if there is connection it
+     * will return the index of the connection in the array, and if there is no connection, it returns -1
+     * @param {nodeClass} theNodeOfDesire 
+     * @param {bool} returnTheIndex If true, returns the index of the connection in NodeConnection
+     * @returns {bool} If they are connected
+     */
     this.areTheyConnected = function (theNodeOfDesire, returnTheIndex = false) {
         for (var i = 0; i < this.NodeConnection.length; i++) {
             if (this.NodeConnection[i].node.nodeNumber == theNodeOfDesire.nodeNumber) {
@@ -163,9 +192,13 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
         }
     }
 
-    // returns array of neighbors
-    // the array that is returned has objects that are
-    // formatted as {node:refrence to node, cost:cost to node}
+    /**
+     * returns array of neighbors
+     * the array that is returned has objects that are
+     * formatted as {node:refrence to node, cost:cost to node}
+     * @param {bool} returnCost If true, it returns NodeConnection but as an array of the nodeclasses
+     * @returns {[object]} either returns as array of nodeconnection or 
+     */
     this.getNeighbors = function (returnCost = false) {
         if (!(returnCost)) {
             return this.NodeConnection.map(function (item) { return item["node"]; })
@@ -173,7 +206,10 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
         return this.NodeConnection;
     }
 
-    // if it is already observed, then it will be removed, and set to become a visitor
+    /**
+     * if it is already observed, then it will be removed, and set to become a visitor
+     * @param {bool} setToVisitor Defaults to true, if you want it to be visitor
+     */
     this.setObserver = function (setToVisitor = true) {
         if (this.isObserved) {
             if (setToVisitor) {
@@ -186,8 +222,10 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
             this.isObserved = true;
         }
     }
-    //sets current node as visitor
-    // if you put in true or false, it will instead set it to that.
+    /**
+     * Toggles current node as visitor
+     * @param {bool} newState Optinal, does not toggle visitor and will set or unset visitor
+     */
     this.setVisited = function (newState = null) {
         let dune;
         if (newState == dune) {
@@ -212,6 +250,15 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
         }
     }
 
+    /**
+     * This functions checks the heuristic cost with new one,
+     * if it is less than the old one, then it replaces it.
+     * 
+     * @param {number} newHeuristicCost 
+     * @param {nodeClass} endnode 
+     * @param {bool} secondarycall Do not use, its for internal use
+     * @returns {bool} If herusitic was changed
+     */
     this.setDijkstra_heuristic = function (newHeuristicCost,endnode,secondarycall = true) {
         var isItGood = true;
         if(secondarycall){
@@ -227,12 +274,22 @@ function nodeClass(x, y, nodeNum, isItGoal = false) {
         return false;
     }
     
-    // This returns heruistic connection
+    /**
+     * This returns heruistic connection
+     * @param {nodeClass} endnode 
+     * @returns {number} Paths Heuristic
+     */
     this.getDijkstra_heuristic = function (endnode) {
         return this.NodeConnection[this.areTheyConnected(endnode,true)[1]].heuristic;
     }
 
-    // If I do a comparison, nodeNumber is the most reliable way to know if 2 nodes are the same
+    /**
+     * If I do a comparison, nodeNumber is the most reliable way to know if 2 nodes are the same
+     * 
+     * (Node number is the number assosiated with the current node, it is 1 less than what the users see)
+     * 
+     * @returns {number} the node number of the current node
+     */
     this.valueOf = function () {
         return this.nodeNumber;
     }

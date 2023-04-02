@@ -1,5 +1,11 @@
 //This is an attempt at creating my own custom force layout
 class simulation {
+    /**
+     * @param {number} width - The width of the canvas
+     * @param {number} height - The height of the canvas
+     * @param {[nodeClass]} nodes - The nodes that are being checked
+     * @param {boolean} isSimulated - If the simulation is being run, off by default
+     */
     constructor(width, height, nodes,isSimulated=false) {
         this.width = width;
         this.height = height;
@@ -16,11 +22,23 @@ class simulation {
         
     }
 
+    /**
+     * Sets the globalcurPath, it represents current algorithems path
+     * 
+     * @param {Object} curPath - Object that is the current path of the algorithm
+     * @param {[pathClass]} curPath.curentPath - The current path of the algorithm
+     * @param {number} curPath.curCost - The current cost of the algorithm
+     * 
+     */
     curPath_setter(curPath){
         this.globalcurPath=curPath;
     }
 
-    // Define the simulation loop
+    /** 
+     * Define the simulation loop
+     * 
+     * @param {[nodeClass]} nodes - The nodes that are being checked
+     */
     simulationLoop(nodes) {
         if(this.isSimulated){
             this.simulateForces(nodes);
@@ -47,9 +65,13 @@ class simulation {
     }
     
 
-    // Define the boundary force, which is canvas
-    // not perfect if they go fast enough, more meant as a light push back 
-    // into reality.
+    /** 
+     * Define the boundary force, which is canvas not perfect
+     * if they go fast enough, more meant as a light push back into reality.
+     * Does what centering force does, but even stronger
+     * 
+     * @param {nodeClass} node - The node that is being checked
+     * */
     boundaryForce(node) {
         const padding = 100;
         const x = node.x;
@@ -76,7 +98,12 @@ class simulation {
         
     }
 
-    // This pulls them together
+    /**
+     * This updates nodes vx and xy based on their masss and distance from each other
+     * and pulls them away from each other
+     * @param {nodeClass} node1 
+     * @param {nodeClass} node2 
+     */
     attractionForce(node1, node2) {
         const dx = node2.x - node1.x;
         const dy = node2.y - node1.y;
@@ -91,7 +118,12 @@ class simulation {
 
     };
 
-    // This pulls them apart
+    /**
+     * This updates nodes vx and xy based on their masss and distance from each other
+     * and pushes them away from each other
+     * @param {nodeClass} node1 
+     * @param {nodeClass} node2 
+     */
     repulsionForce(node1, node2) {
         const dx = node2.x - node1.x;
         const dy = node2.y - node1.y;
@@ -108,9 +140,12 @@ class simulation {
     };
 
 
-    // this tries to keep them near the center of the
-    // canvas
-    // needs alot more tinkering on the force multipler
+    /**
+     * This tries to attract nodes to the center of the canvas
+     * Comparatively weak force, though it is also exponential after a certain point.
+     * 
+     * @param {nodeClass} node the node to center
+     */
     centeringForce(node) {
 
         const centerX = this.width / 2;
@@ -123,7 +158,13 @@ class simulation {
         node.vy += force * dy / distance;
     };
 
-    // this does all the attract, repulse, boundry and then centering
+    /** 
+     * this does all the attract, repulse, boundry and then centering
+     * 
+     * 
+     * @param {[nodeClass]} nodes - The nodes that are being checked
+     * 
+     */
     simulateForces(nodes) {
         for (const node of nodes) {
             if ((node.beingDragged == false)) {
@@ -168,7 +209,12 @@ class simulation {
     
 
 
-    // Check if two nodes are overlapping
+    /**
+     * Check if two nodes are overlapping
+     * @param {nodeClass} node1 
+     * @param {nodeClass} node2 
+     * @returns {bool}
+     */
     checkNodeCollision(node1, node2) {
         const dx = node2.x - node1.x;
         const dy = node2.y - node1.y;
@@ -177,7 +223,10 @@ class simulation {
         return distance < node1.radius + node2.radius;
     };
 
-    // Check for collisions between all pairs of nodes
+    /**
+     * Check for collisions between all pairs of nodes
+     * @param {[nodeClass]} nodes 
+     */
     checkCollisions(nodes) {
         for (let i = 0; i < nodes.length; i++) {
             for (let j = i + 1; j < nodes.length; j++) {
@@ -202,11 +251,12 @@ class simulation {
     };
 
 
-    // this function normalizes all the speeds in hopes of
-    // preventing them from going suborbital
-    // take half of what ever normalizeVal is and that is the pos and neg
-    // speed limit they will go
-    // this is the speed limit <============================================
+    /**
+     *  this function normalizes all the speeds in hopes of
+     * preventing them from going suborbital take half of what ever normalizeVal
+     *  is and that is the pos and neg speed limit they will go this is the speed limit 
+     * @param {[nodeClass]} nodes 
+     */
     speedNormalizer(nodes){
         var normalizeVal = 6;
         const min_vx = Math.min(...this.vx_list);
@@ -217,12 +267,14 @@ class simulation {
             node.vx = (node.vx - min_vx) / (max_vx - min_vx) * normalizeVal - (normalizeVal/2);
             node.vy = (node.vy - min_vy) / (max_vy - min_vy) * normalizeVal - (normalizeVal/2);
         }
-        //return NormalizedSpeds
     }
 
     
 
-    // Update the positions of the nodes based on the forces
+    /**
+     * Update the positions of the nodes based on the forces
+     * @param {[nodeClass]} nodes
+     */
     updatePositions(nodes) {
         if(this.isSimulated){
             //this.speedNormalizer(nodes);
@@ -244,12 +296,11 @@ class simulation {
         }
     };
 
-    
-      
-
-
-
-
+    /**
+     * This updates all the nodes locations
+     * 
+     * @param {[nodeClass]} nodes
+     */
     updateCSSmovement(node) {
         // Get the element with ID "myElement"
         let myElement = document.getElementById(node.nodeNumber);
