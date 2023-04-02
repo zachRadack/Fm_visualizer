@@ -7,17 +7,24 @@ class simulation {
      * @param {boolean} isSimulated - If the simulation is being run, off by default
      */
     constructor(width, height, nodes,isSimulated=false) {
+        // canvas sizes
         this.width = width;
         this.height = height;
         
+        // if nodes float around
         this.isSimulated = isSimulated;
+        // accceleration min/maxs. This is for speed normalization
         this.vx_list=new Array();
         this.vy_list=new Array();
         this.vx_list_neg=new Array();
         this.vy_list_neg=new Array();
         this.simulationLoop(nodes);
+
+        // this allows for cancelling animation later
         this.animationId;
 
+        // this is the curpath according to currentscreen
+        // should be updated whenever possible.
         this.globalcurPath=[];
         
     }
@@ -290,7 +297,9 @@ class simulation {
             // transfer velocities into speeds
             node.x += node.vx;
             node.y += node.vy;
-
+            if(!node.hasRunStarted){
+                node.setAllDistanceCosts();
+            }
             this.updateCSSmovement(node);
             }
         }
