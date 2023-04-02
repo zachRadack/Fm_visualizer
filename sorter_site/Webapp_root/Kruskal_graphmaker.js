@@ -35,7 +35,7 @@ function connectNodes(nodes, count,distanceCost=false,screen_width=1,screen_heig
 
             // todo move cost finders fully into node class or anywhere else.
             if(distanceCost){
-                //var cost = element[0].get_distance_Cost(priority);
+                //var cost = element[0].getConnectionDistanceCost(priority);
                 var cost = Math.round((Math.abs(priority/screenscore)));
             }else{
                 var cost = Math.floor(Math.random() * 10) + 1;

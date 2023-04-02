@@ -26,7 +26,7 @@ class simulation {
         // this is the curpath according to currentscreen
         // should be updated whenever possible.
         this.globalcurPath=[];
-        
+        this.hasAlgoDistanceVisualizerFinished={isRangeFindingDone:true};
     }
 
     /**
@@ -35,10 +35,16 @@ class simulation {
      * @param {Object} curPath - Object that is the current path of the algorithm
      * @param {[pathClass]} curPath.curentPath - The current path of the algorithm
      * @param {number} curPath.curCost - The current cost of the algorithm
-     * 
+     * @param {bool} hasAlgoDistanceVisualizerFinished Are we in the distance visualizer phase.
      */
-    curPath_setter(curPath){
-        this.globalcurPath=curPath;
+    curPath_setter(curPath,hasAlgoDistanceVisualizerFinished){
+        if(hasAlgoDistanceVisualizerFinished.isRangeFindingDone){
+            this.globalcurPath=curPath;
+        }else{
+            this.hasAlgoDistanceVisualizerFinished=hasAlgoDistanceVisualizerFinished;
+            this.globalcurPath = this.hasAlgoDistanceVisualizerFinished.curPath;
+        }
+        
     }
 
     /** 
@@ -63,7 +69,8 @@ class simulation {
         // Schedule the next loop iteration
         this.animationId = requestAnimationFrame(() => {
             this.simulationLoop(nodes);
-            drawConnections(nodes,this.globalcurPath);
+            drawConnections(nodes,this.globalcurPath,this.hasAlgoDistanceVisualizerFinished);
+
         });
     };
 
@@ -297,7 +304,7 @@ class simulation {
             // transfer velocities into speeds
             node.x += node.vx;
             node.y += node.vy;
-            node.setAllDistanceCosts();
+            node.setAllConnectionDistanceCosts();
             this.updateCSSmovement(node);
             }
         }
