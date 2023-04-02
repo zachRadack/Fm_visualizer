@@ -32,9 +32,10 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
 
     this.NodeCanvasSizeMultipler=NodeCanvasSizeMultipler;
 
-    // adding this because jquery drag scope is funky and really really broken
-    // this is meant to stop
+    // Todo, implment check to signify that score is distnace
     this.isDistanceScore=isDistanceScore;
+    // this signifies if run has started
+    // !If this is true, connection costs will not change
     this.hasRunStarted= false;
 
 
@@ -153,10 +154,15 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
 
 
 
-
+    /**
+     * This updates all connections costs, based on distance
+     * This does not get triggered if 
+     */
     this.setAllDistanceCosts = function(){
-        for (var i = 0; i < this.nodeConnectionLength(); i++) {
-            this.setDistanceCostToNeighbor(this.NodeConnection[i].node);
+        if(!this.hasRunStarted){
+            for (var i = 0; i < this.nodeConnectionLength(); i++) {
+                this.setDistanceCostToNeighbor(this.NodeConnection[i].node);
+            }
         }
     }
 
@@ -333,6 +339,9 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
     }
 
 
+    /**
+     * This function is used to signify to stop changing all connection costs
+     */
     this.runHasStarted = function(){
         this.hasRunStarted=true;
     }
