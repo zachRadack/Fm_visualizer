@@ -4,8 +4,8 @@
  * todo: Make costs 
  * todo: fix count
  * 
- * @param {nodeClass} nodes - The nodes that are being checked
- * @param {int} count - The number of connections to make (not yet implemented/broken) 
+ * @param {[nodeClass]} nodes - The nodes that are being checked
+ * @param {number} count - The number of connections to make (not yet implemented/broken) 
  */
 function connectNodes(nodes, count) {
     console.log("connectNodes ", nodes);
@@ -17,10 +17,11 @@ function connectNodes(nodes, count) {
         findClosestedNeighbor(edges,nodes[start], nodes, nodes.length-1,cost);
         
     }
-
-    /**  Kruskal's algorithm, minimizes free floating nodes, and 
+    
+    /**
+     * Kruskal's algorithm, minimizes free floating nodes, and 
      * tries to ensures that all nodes have at least one connection
-     * 
+     * @param {number} length
      */
     let uf = new UnionFind(nodes.length);
     for (let i = 0; i < edges.size(); i++) {
@@ -44,7 +45,7 @@ function connectNodes(nodes, count) {
  * This assists Kruskal's algorithm by properly linking up nodes
  * It is an information blackhole, it takes in a node, and a list of nodes
  * 
- * @param {int} size  - the number of nodes
+ * @param {number} size  - the number of nodes
  */
 function UnionFind(size) {
     this.parent = new Array(size);
@@ -69,8 +70,8 @@ function UnionFind(size) {
     /**
      * Helps union two nodes together
      * 
-     * @param {int} x - Node nodeNumber of what you are looking for
-     * @param {int} y - Node nodeNumber that you want to connect.
+     * @param {number} x - Node nodeNumber of what you are looking for
+     * @param {number} y - Node nodeNumber that you want to connect.
      */
     this.union = function (x, y) {
         let rootX = this.find(x);
@@ -100,8 +101,8 @@ function UnionFind(size) {
  * @param {PriorityQueue_graphmaker} edges - the Priority Queue graphmaker
  * @param {nodeClass} node - the node to find the closest neighbors to
  * @param {[nodeClass]} nodes - the list of all nodes from current Screen
- * @param {int} numberOfNeighbors - the number of neighbors to find (not yet implemented)
- * @param {int} cost - the cost of the connection
+ * @param {number} numberOfNeighbors - the number of neighbors to find (not yet implemented)
+ * @param {number} cost - the cost of the connection
  * 
  * Returns nothings, but it will add the closest neighbors to the edges array
  */

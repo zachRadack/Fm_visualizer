@@ -84,7 +84,7 @@ $("#next-step-btn").click(function () {
  * 
  * @param {nodeClass} newNode - The node that is being added to the frontier.
  * @param {pathClass} path - The path that is being added to the frontier.
- * @param {int} cost - The cost of the path.
+ * @param {number} cost - The cost of the path.
  */
 function pathClass(newNode, path, cost = 0) {
     this.newNode = newNode;
@@ -162,8 +162,8 @@ function current_Finite_Machine() {
      * 
      * Also starts up the physics simulation, which is always on, however the repel/ attract forces are off by default.
      * 
-     * @param {int} totalNodes - The total number of nodes that will be created.
-     * @param {int} totalConnections - The total number of connections that will be created. (Not implmented yet/broken)
+     * @param {number} totalNodes - The total number of nodes that will be created.
+     * @param {number} totalConnections - The total number of connections that will be created. (Not implmented yet/broken)
      * @param {boolean} isItSimulated - If the canvas is being simulated or not. Off by default.
      */
     this.startup = function (totalNodes, totalConnections, isItSimulated) {
@@ -200,7 +200,6 @@ function current_Finite_Machine() {
                     current_screen.nodes[index].x = ui.position.left + 10;
                     current_screen.nodes[index].y = ui.position.top + 10;
 
-                    current_screen.nodes[index].NewAngle();
 
                     drawConnections(current_screen.nodes,current_screen.curPath);
                 },
@@ -235,8 +234,8 @@ function current_Finite_Machine() {
      * this is when the user clicks "start/reset" button.
      * the startup handles the canvas creation, this handles the start of the search algorithm.
      * 
-     * @param {int} startNode - The node that the search will start from.
-     * @param {int} endNode - The node that the search will end at.
+     * @param {number} startNode - The node that the search will start from.
+     * @param {number} endNode - The node that the search will end at.
      * @param {string} aalgorithm - The algorithm that will be used to search.
      */
     this.initializer = function (startNode, endNode, aalgorithm) {
@@ -283,7 +282,9 @@ function current_Finite_Machine() {
         document.getElementById((this.endNode).toString()).classList.add("the-goal");
     }
 
-    // this is the depth first search algorithm
+    /** 
+     * this does a single step of depthfirst search
+    */
     this.Depthfirstsearch = function () {
         const { newNode, path, cost,poppedNode} = this.setNewCurrentPath();
         PrintCurrentPath(path);
@@ -317,7 +318,9 @@ function current_Finite_Machine() {
         }
     }
 
-
+    /** 
+     * this does a single step of breadthfirst search
+    */
     this.breadthfirstsearch = function () {
         console.log("Bfs");
         const { newNode, path, cost,poppedNode} = this.setNewCurrentPath();
@@ -352,6 +355,9 @@ function current_Finite_Machine() {
         }
     }
 
+    /** 
+     * this does a single step of Dijkstra
+    */
     this.Dijkstra = function () {
         console.log("Dijkstra");
 
@@ -388,9 +394,15 @@ function current_Finite_Machine() {
         console.log("final: ", this.frontier);
     }
 
+    /**
+     * This functions pops next this.frontier and returns popped variables, along with
+     * the actual reference to the pathClass itself
+     * @returns {nodeClass, pathClass, int, nodeClass}
+     */
     this.setNewCurrentPath  = function(){
         const poppedNode = this.frontier.pop();
         const { newNode, path, cost } = poppedNode;
+        // sets current path that is chosen
         this.curPath = {curentPath:poppedNode,curCost:cost};
         return { newNode, path, cost,poppedNode} ;
     }
@@ -404,7 +416,13 @@ function current_Finite_Machine() {
     }
 }
 
-// prints current path to an html element
+/**
+ * prints current path to an html element
+ * @param {Object} Path - This is the current path that is currently in mind by the algorithem. 
+ * @param {[Object]} curPath
+ * @param {nodeClass} Path.curPath.startnode 
+ * @param {nodeClass} Path.curPath.startnode
+ */
 function PrintCurrentPath(Path) {
     document.getElementById("curPathId").textContent = "";
 
@@ -413,8 +431,16 @@ function PrintCurrentPath(Path) {
     });
 }
 
-// this function handles making current node green and if there already is one
-// it will first remove that ones  observed-node class and add visited-node class, which makes it red
+    /**
+     * this function handles making current node green and if there already is one
+     * it will first remove that ones  observed-node class and add visited-node class, which makes it red
+     * @param {nodeClass} newNode - This is the New observed node
+     * @param {nodeClass} observedNode - Old observered Node
+     * @param {bool} first_run - true means it is first
+     * @param {pathClass} path - Current selected path, for algorithems
+     * @param {[nodeClass]} nodes - All current Nodes
+     * @returns {nodeClass} The new observed 
+     */
 function new_ObservedNode(newNode, observedNode, first_run, path = null, nodes = null) {
     // Sets classes of nodes, by changing background colors of them, to visualize where the search is
     let dune;
@@ -433,8 +459,14 @@ function new_ObservedNode(newNode, observedNode, first_run, path = null, nodes =
     return observedNode;
 }
 
-// handles creating more node options under the start end drop down menus
-// if the user wants 20 nodes this shows 20 options in both start and end drop downs.
+/**
+ * Handles creating more node options under the start end drop down menus
+ * if the user wants 20 nodes this shows 20 options in both start and end drop downs.
+ * 
+ * Todo: Add check so it does not keep adding more every time load canvas is pressed.
+ * 
+ * @param {[newNodes]} - all current nodes
+ *  */
 function startEnd_Node_Selector(nodes) {
     //<option value="0">Node 1</option>
     if (nodes > 2) {
@@ -451,8 +483,12 @@ function startEnd_Node_Selector(nodes) {
     }
 }
 
-// creates the actual nodes by putting them into the html and puts them
-// where ever the coordinates are setup to.
+/**
+ * creates the actual nodes by putting them into the html and puts them
+ *  where ever the coordinates are setup to.
+ * @param {number} count 
+ * @returns {[nodeClass]} list of all generated nodes
+ */
 function generateNodes(count) {
     var canvas = $("#canvas");
     var canvasWidth = canvas.width();
@@ -466,15 +502,26 @@ function generateNodes(count) {
     return nodeObjectList;
 }
 
-// get the x y distance between two nodes, this will update where ever the node is currently
-// however, remeber, NODES CAN MOVE! Use this to get a snapshot of the current canvas
-// but do not assume that the nodes will stay in the same place
+/**
+ * get the x y distance between two nodes, this will update where ever the node is currently
+ *  however, remeber, NODES CAN MOVE! Use this to get a snapshot of the current canvas
+ *  but do not assume that the nodes will stay in the same place
+ * @param {nodeClass} node1 
+ * @param {nodeClass} node2 
+ * @returns {float} Distance between the two nodes
+ */
 function manhattanDistance(node1, node2) {
     return -(Math.abs(node1.x - node2.x) + Math.abs(node1.y - node2.y));
 }
 
 
-// Draw connections on canvas and puts the path cost on the line
+/**
+ * Draw connections on canvas and puts the path cost on the line
+ * @param {[nodeClass]} nodes: List all all current nodes
+ * @param {Object} curPath The current chosen path and assosiated cost
+ * @param {pathClass} curPath.currentpath this is the current path
+ * @param {number} curPath.cost given paths cost
+ */
 function drawConnections(nodes, curPath = current_screen.curPath) {
     var dune;
     current_screen.ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -518,8 +565,16 @@ function drawConnections(nodes, curPath = current_screen.curPath) {
 }
 
 
-// This checks to see if the current node is connected to a path
-// used by non dfs and bfs
+/**
+ * This checks to see if the current node is connected to a path
+ * used by non dfs and bfs
+ * @param {Object} curPath The current chosen path and assosiated cost
+ * @param {pathClass} curPath.currentpath this is the current path
+ * @param {number} curPath.cost given paths cost
+ * @param {nodeClass} startnode Where
+ * @param {nodeClass} endnode 
+ * @returns 
+ */
 function isItPathed(curPath, startnode, endnode) {
     if(curPath.curentPath.length!=0){
         for (var i = 0; i < curPath.curentPath.path.length; i++) {
@@ -534,7 +589,19 @@ function isItPathed(curPath, startnode, endnode) {
     return false;
 }
 
-// this compares two coords to see if they are the same.
+/**
+ * this compares two connections between nodes to see if they are the same.
+ * 
+ * Todo: make this entire function make sense. This functions formatting is a crime
+ * 
+ * @param {Object} singlenode connection 1
+ * @param {nodeClass} singlenode.startnode this is the start current connection
+ * @param {nodeClass} singlenode.endnode this is the end connection
+ * @param {Object} Node2 seconed connection
+ * @param {nodeClass} Node2.startnode this is the start current connection
+ * @param {nodeClass} Node2.endnode this is the end connection
+ * @returns {bool} If the 2 paths are the same
+ */
 function areTheyEqual_AsymFlipped(singlenode, Node2) {
     if ((singlenode.startnode == Node2.startnode)) {
         if ((singlenode.endnode == Node2.endnode)) {
@@ -548,12 +615,26 @@ function areTheyEqual_AsymFlipped(singlenode, Node2) {
     return false;
 }
 
-
+/**
+ * This is a werid holdover functions only called in from the graph maker
+ *
+ * TODO: delete this later.
+ * 
+ * @param {nodeClass} startNode 
+ * @param {nodeClass} endNode 
+ */
 function drawConnectionLine_middleman(startNode, endNode) {
     current_screen.ctx.font = "20px Arial";
     drawConnectionLine(startNode, endNode);
 }
 
+/**
+ * Draws the lines between nodes
+ * 
+ * @param {nodeClass} startNode 
+ * @param {nodeClass} endNode 
+ * @param {string} color -strokeStyle color style, defaults to black (i.e. "rgba(0,0,0)")
+ */
 function drawConnectionLine(startNode, endNode, color = 'rgba(0,0,0)') {
 
     current_screen.ctx.strokeStyle = color;
@@ -566,7 +647,19 @@ function drawConnectionLine(startNode, endNode, color = 'rgba(0,0,0)') {
 
 
 
-
+/**
+ * Draws the little nice cost box between nodes
+ * 
+ * @param {object} startNode this is an X Y coords for one node
+ * @param {number} startNode.x 
+ * @param {number} startNode.y 
+ * @param {object} endNode this is an X Y coords for one node
+ * @param {number} endNode.x 
+ * @param {number} endNode.y 
+ * @param {number} cost - cost
+ * @param {nodeClass} NodeEnd (optional) - defaults null
+ * @param {bool} drawHuerisitc - defaults false, determines if heuristic cost is drawn
+ */
 function draw_cost(startNode, endNode, cost,NodeEnd=null,drawHuerisitc=false) {
     let rect_width = 50;
     let rect_height = 60;
@@ -593,7 +686,18 @@ function draw_cost(startNode, endNode, cost,NodeEnd=null,drawHuerisitc=false) {
 
 
 
-// finds the ceneter point, this is used for draw_cost function.
+/**
+ * finds the ceneter point, this is used for draw_cost function.
+ * 
+ * @param {object} node1 this is an X Y coords for one node
+ * @param {number} node1.x 
+ * @param {number} node1.y 
+ * @param {object} node2 this is an X Y coords for one node
+ * @param {number} node2.x 
+ * @param {number} node2.y 
+ * 
+ * @returns {{x:int, y:int}}  this is an X Y coords in an object
+ */
 function find_centerpoint(node1, node2) {
     const middleX = (node1.x + node2.x) / 2;
     const middleY = (node1.y + node2.y) / 2;
@@ -601,7 +705,9 @@ function find_centerpoint(node1, node2) {
 }
 
 
-// this deletes all current nodes from the last layuout
+/**
+ * this deletes all current nodes from the last layuout
+ */
 function wipeCanvas() {
     current_screen.ctx.clearRect(0, 0, canvas.width, canvas.height);
     // Get a collection of all elements with the "my-class" class
@@ -613,14 +719,4 @@ function wipeCanvas() {
     }
 }
 
-
-function getAngle(node1, node2) {
-    var dy = node1.y - node2.y;
-    var dx = node1.x - node2.y;
-    var theta = Math.atan2(dy, dx); // range (-PI, PI]
-    theta *= 180 / Math.PI; // rads to degs, range (-180, 180]
-    //if (theta < 0) theta = 360 + theta; // range [0, 360)
-    return Math.round(theta);
-
-}
 
