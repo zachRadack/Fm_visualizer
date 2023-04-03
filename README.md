@@ -37,6 +37,8 @@ breadth first search
 
 Dijkstra
 
+A star
+
 
 # Simulation mode
 
