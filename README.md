@@ -6,7 +6,7 @@ I did this by breaking the typically searches so they only do a single itteratio
 
 This will only every do the next step when you hit **"next step"**
 
-
+Shows even the distance finding of Astar
 
 It will go step by step to show how each search algorithem works
 
@@ -27,7 +27,7 @@ Here is Dijkstra
 
 **purple (traversed)** = it has traversed, this is not used by dfs or bfs. 
 
-
+**Yellow (finding distance)** - used by Astar
 
 
 # There is currently:
