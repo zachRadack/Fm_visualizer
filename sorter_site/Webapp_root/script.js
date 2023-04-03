@@ -5,6 +5,7 @@ var current_screen = new current_Finite_Machine();
 var totalnodechange ={totalnodes:0};
 var animationFrame = -1;
 
+$(document).ready(function() {
 /**
  * Creates/wipes the canvas. Then loads up a new current_screen object.
  * This handles full wiping of everything.
@@ -55,8 +56,13 @@ $("#start-btn").click(function () {
         current_screen.breadthfirstsearch();
     } else if (current_screen.algorithmGetter() == "Dijkstra") {
         current_screen.Dijkstra();
-    } else if (current_screen.algorithmGetter() == "Astar") {
+    } else if(current_screen.algorithmGetter() == "UniformCostSearch"){
+        current_screen.UniformCostSearch();
+    }else if (current_screen.algorithmGetter() == "Astar") {
         current_screen.AstarAlgorithm();
+    }
+    for (var i = 0; i < current_screen.nodes.length; i++) {
+        current_screen.nodes[i].runHasStarted();
     }
 });
 
@@ -64,19 +70,22 @@ $("#start-btn").click(function () {
  * This pushes the algorithm through a single step.
  */
 $("#next-step-btn").click(function () {
+    
     if (current_screen.algorithmGetter() == "dfs") {
         current_screen.Depthfirstsearch();
     } else if (current_screen.algorithmGetter() == "bfs") {
         current_screen.breadthfirstsearch();
     } else if (current_screen.algorithmGetter() == "Dijkstra") {
         current_screen.Dijkstra();
+    }else if(current_screen.algorithmGetter() == "UniformCostSearch"){
+        current_screen.UniformCostSearch();
     } else if (current_screen.algorithmGetter() == "Astar") {
         current_screen.AstarAlgorithm();
     }
-    current_screen.theSimulator.curPath_setter(current_screen.curPath);
+    current_screen.theSimulator.curPath_setter(current_screen.curPath,current_screen.hasAlgoDistanceVisualizerFinished);
 });
 
-
+});
 
 
 /** 
@@ -86,13 +95,14 @@ $("#next-step-btn").click(function () {
  * @param {pathClass} path - The path that is being added to the frontier.
  * @param {number} cost - The cost of the path.
  */
-function pathClass(newNode, path, cost = 0) {
+function pathClass(newNode, path, cost = 0,distanceHeuristic=0) {
     this.newNode = newNode;
     this.startnode = path.startnode;
     this.path = path;
     this.cost = cost;
+    this.distanceHeuristic = distanceHeuristic;
     this.Heuristic_cost=0;
-
+    
     // Handles the werid interaction that happens when non dfs/bfs searchs
     // try to swap over to a diffrent path. This is called every time.
     // not efficent but hopefully the just in time optimizies it.
@@ -116,6 +126,10 @@ function pathClass(newNode, path, cost = 0) {
 
     this.setheuristic_Dijkstra = function(setCost){
         this.Heuristic_cost = setCost;
+    }
+
+    this.setDistanceHeruistic = function(distCost){
+        this.DistCost = distCost;
     }
 
 }
@@ -150,16 +164,17 @@ function current_Finite_Machine() {
     this.connections = [];
     this.algorithm = null;
 
-    // for things such as Astar
+    // for things such as uniform first cost
     this.currentHeuristic = null;
     this.isItSimulated = false;
     this.shouldItDrawCosts = true;
 
     this.isDistanceScore;
-
-    this.astar_Distance_Check = false;
-    
     this.NodeCanvasSizeMultipler=manhattanDistance({x:this.canvas.offsetWidth,y:this.canvas.offsetHeight},{x:0,y:0})/50;
+    // used in astar to represent if ready to start actual search algorithem
+    this.hasAlgoDistanceVisualizerFinished = {isRangeFindingDone:true};
+    
+    
     /** 
      * Setups the canvas and stuff. Handles the creation of the nodes and connections.
      * 
@@ -205,7 +220,7 @@ function current_Finite_Machine() {
                     curNode.beingDragged = true;
                     curNode.x = ui.position.left + 10;
                     curNode.y = ui.position.top + 10;
-                    drawConnections(current_screen.nodes,current_screen.curPath);
+                    
                 },
                 stop: function (event, ui) {
                     var index = $(this).text() - 1;
@@ -256,15 +271,39 @@ function current_Finite_Machine() {
         if (this.observedNode.isThisGoal()) {
             this.found_path = true;
         }
+
+        // weither or not the selected search is a uninformed search algorithm
         if ((this.algorithm == "dfs") || (this.algorithm == "bfs")) {
             this.frontier.push(new pathClass(this.observedNode, [{ startnode: this.observedNode, endnode: this.observedNode }]));
-        } else {
-            this.frontier = new PriorityQueue((a, b) => a.cost < b.cost);
+        } else if(this.algorithm == "Dijkstra"){
+            this.frontier = new PriorityQueue((a, b) => (a.cost+a.heuristic) < (b.cost+b.heuristic));
+            this.frontier.push(new pathClass(this.observedNode, [{ startnode: this.observedNode, endnode: this.observedNode }]));
+        }  else if (this.algorithm == "UniformCostSearch"){
+            this.frontier = new PriorityQueue((a, b) => (a.cost+a.distanceHeuristic) < (b.cost+b.distanceHeuristic));
+            this.frontier.push(new pathClass(this.observedNode, [{ startnode: this.observedNode, endnode: this.observedNode }]));
+        } else if (this.algorithm == "Astar"){
+            this.frontier = new PriorityQueue((a, b) => (a.cost+a.distanceHeuristic) < (b.cost+b.distanceHeuristic));
             this.frontier.push(new pathClass(this.observedNode, [{ startnode: this.observedNode, endnode: this.observedNode }]));
         }
 
-        this.curPat = [{ startnode: this.observedNode, endnode: this.observedNode }];
+        
+        
+        // If the algorithem uses physical distance in calculation, then add it here
+        if((this.algorithm == "UniformCostSearch")||this.algorithm == "Astar"){
+            this.hasAlgoDistanceVisualizerFinished= new minibreadthFirstSearch(this.nodes,this.nodes[this.startNode],this.nodes[this.endNode],this.NodeCanvasSizeMultipler,false);
+            for(const node in this.nodes){
+                this.nodes[node].UCS_setGoalNode(this.nodes[this.endNode]);
+            }
+            
+        }else{
+            this.hasAlgoDistanceVisualizerFinished= new minibreadthFirstSearch(this.nodes,this.nodes[this.startNode],this.nodes[this.endNode],this.NodeCanvasSizeMultipler,true);
+            this.curPat = [{ startnode: this.observedNode, endnode: this.observedNode }];
 
+        }
+        document.getElementById((this.endNode).toString()).classList.add("the-goal");
+
+        this.theSimulator.curPath_setter(this.curPath,this.hasAlgoDistanceVisualizerFinished);
+        
     }
 
     // handles when the search algos find the goal node
@@ -383,39 +422,59 @@ function current_Finite_Machine() {
         console.log("final: ", this.frontier);
     }
 
-    this.AstarAlgorithm = function () {
-        console.log("test");
-
-        const { newNode, path, cost,poppedNode} = this.setNewCurrentPath();
-        PrintCurrentPath(path);
-        
-        // see if we hit the goal yet
-        if (newNode.isThisGoal()) {
-            this.found_path = true;
-            // sends the path to end game
-            
-            this.end_game(path);
-        }else if(astar_Distance_Check) {
-            
-        }else if ((!(newNode.visited)&&!(newNode.isObserved))||(this.first_run)){
-
-            this.isGameOver(newNode,poppedNode);
-            for (let successor of newNode.getNeighbors()) {
-                if (!(successor.visited)) {
-                    //console.log("push: ",this.frontier);
-                    successor.setWasComputed();
-                    var newcost = cost + newNode.getCost(successor);
-                    this.frontier.push(new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }]), newcost));
-                    newNode.setDijkstra_heuristic(newcost,successor);
-                }
+    this.AstarAlgorithm = function (){
+        console.log("AstarAlgorithm");
+        if(this.hasAlgoDistanceVisualizerFinished.isRangeFindingDone==false){
+            //visualizer step
+            if(this.hasAlgoDistanceVisualizerFinished.bfsStep()){
+                //var newFrontier = new PriorityQueue((a, b) => (a.cost+a.distanceHeuristic) < (b.cost+b.distanceHeuristic));
+                //while(this.frontier.size>0){
+                //    const { newNode, path, cost,poppedNode} = this.setNewCurrentPath();
+                //    newFrontier.push(new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }]), newcost));
+                //}
+                this.frontier.setComparator((a, b) => (a.cost+a.distanceHeuristic) < (b.cost+b.distanceHeuristic));
             }
-        } else if ((newNode.visited)||(newNode.isObserved)) {
-            //console.log("ALREADY VISITED");
-            this.AstarAlgorithm();
+        }else{
+            const { newNode, path, cost,poppedNode} = this.setNewCurrentPath();
+            PrintCurrentPath(path);
+
+            // see if we hit the goal yet
+            if (newNode.isThisGoal()) {
+                this.found_path = true;
+                // sends the path to end game
+                
+                this.end_game(path);
+            } else if ((!(newNode.visited)&&!(newNode.isObserved))||(this.first_run)){
+
+                this.isGameOver(newNode,poppedNode);
+                for (let successor of newNode.getNeighbors()) {
+                    if (!(successor.visited)) {
+                        //console.log("push: ",this.frontier);
+                        successor.setWasComputed();
+                        var newcost = cost + newNode.getCost(successor);
+                        this.frontier.push(new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }]), newcost));
+                    }
+                }
+            } else if ((newNode.visited)||(newNode.isObserved)) {
+                //console.log("ALREADY VISITED");
+                this.AstarAlgorithm();
+            }
+            console.log("final: ", this.frontier);
         }
-        console.log("final: ", this.frontier);
     }
     
+
+
+
+
+
+    /**
+     * todo implment uniformcostsearch
+     */
+    this.UniformCostSearch = function () {
+        
+        
+    }
     /**
      * Checks to see if gameover, and if not, then sets new observer node
      * 
@@ -456,8 +515,99 @@ function current_Finite_Machine() {
     this.isDistanceScoreGetter = function(){
         return this.isDistanceScore;
     }
+
 }
 
+
+
+
+/**
+ * Runs through entire tree, from the goal node, meant for uniform cost search. 
+ * 
+ * It is used by Uniform cost search and Astar
+ * 
+ * @param {[nodeClass]} nodes 
+ * @param {nodeClass} startingNode 
+ * @param {nodeClass} goalNode 
+ * @param {number} NodeCanvasSizeMultipler This is the multipler that essentially makes all costs consistent and based on actual distance
+ * @param {bool} isRangeFindingDone if false, it means this tree will be called if passed over.
+ */
+this.minibreadthFirstSearch = function(nodes,startingNode,goalNode,NodeCanvasSizeMultipler,isRangeFindingDone=false){
+    this.isRangeFindingDone=isRangeFindingDone;
+    this.goalNode = goalNode;
+    this.firstRun = true;
+    this.visited= [this.goalNode];
+    this.thisobserved = startingNode;
+    this.frontier=[new pathClass(startingNode, [{ startnode: startingNode, endnode: startingNode}])];
+    this.nodes= nodes;
+    this.NodeCanvasSizeMultipler=NodeCanvasSizeMultipler;
+    this.curPath = [];
+
+    
+    
+    /**
+     * 
+     * @return {bool} did it end
+     */
+    this.bfsStep = function(){
+        if(this.frontier.length>0){
+            console.log("frontier: ",this.frontier);
+
+            const { newNode, path, cost,poppedNode} = this.setNewCurrentPath();
+
+            if ((!(newNode.USC_getisItVisited()))||(this.firstrun)) {
+                if(this.firstrun){
+                    this.firstrun=false;
+                }else{
+                    this.visited.push(newNode);
+                }
+                this.thisobserved.USC_setisItVisited(true);
+                this.thisobserved.USC_setIsObserved(false);
+                newNode.USC_setIsObserved(true);
+                this.thisobserved = newNode;
+                //var node_distance_cost = newNode.getConnectionDistanceCost(manhattanDistance(newNode,this.goalNode));
+                for (let successor of newNode.getNeighbors()) {
+                    if (!(successor.USC_getisItVisited())&&(successor!= this.goalNode)) {
+                        
+                        var distCost = newNode.UCS_setDistanceCostToNeighbor_Goal(successor);
+                        var newPath = new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }]),distCost);
+                        newPath.setDistanceHeruistic(distCost)
+                        this.frontier.unshift(newPath)
+                    }
+                }
+            }
+            return false;
+        }else{
+            this.isRangeFindingDone=true;
+            console.log("derps");
+            return true;
+        }
+    }
+
+    /**
+     * This functions pops next this.frontier and returns popped variables, along with
+     * the actual reference to the pathClass itself
+     * 
+     * This ones cost is 
+     * @returns {nodeClass, pathClass, int, nodeClass}
+     */
+    this.setNewCurrentPath  = function(){
+        const poppedNode = this.frontier.pop();
+        const { newNode, path, cost } = poppedNode;
+        // sets current path that is chosen
+        this.curPath = {curentPath:poppedNode,curCost:cost};
+        return { newNode, path, cost,poppedNode} ;
+    }
+}
+
+
+
+
+
+
+
+
+// * FREE FLOATING FUNCTIONS
 /**
  * prints current path to an html element
  * @param {Object} Path - This is the current path that is currently in mind by the algorithem. 
@@ -560,51 +710,75 @@ function manhattanDistance(node1, node2) {
 
 /**
  * Draw connections on canvas and puts the path cost on the line
+ * 
+ * This is my personal hell. Welcome on in.
+ * 
  * @param {[nodeClass]} nodes: List all all current nodes
  * @param {Object} curPath The current chosen path and assosiated cost
  * @param {pathClass} curPath.currentpath this is the current path
  * @param {number} curPath.cost given paths cost
+ * @param {bool} drawUCSConnections Are we visualizing Uniform Cost Search costs phase.
  */
-function drawConnections(nodes, curPath = current_screen.curPath) {
+function drawConnections(nodes, curPath = current_screen.curPath,drawConnections_UCS={isRangeFindingDone:true}) {
     var dune;
     current_screen.ctx.clearRect(0, 0, canvas.width, canvas.height);
     current_screen.ctx.font = "20px Arial";
+    
     for (var i = 0; i < nodes.length; i++) {
         var connection = nodes[i].getNeighbors(true);
         var startNode = nodes[i];
+
         
-            // This itterates through all the connections of the current node
-            for (var a = 0; a < connection.length; a++) {
-                var endNode = connection[a].node;
-                if(curPath.length != 0){
-                    if (!(isItPathed(curPath, startNode, endNode))) {
-                        drawConnectionLine(startNode, endNode, "rgba(0,0,0)");
-                    } else {
-                        drawConnectionLine(startNode, endNode, "rgba(255,0,0)");
-                    }
-                }else{
+
+        
+    
+        // This itterates through all the connections of the current node
+        for (var a = 0; a < connection.length; a++) {
+            var endNode = connection[a].node;
+            if(curPath.length != 0){
+
+                if (!(isItPathed(curPath, startNode, endNode))) {
                     drawConnectionLine(startNode, endNode, "rgba(0,0,0)");
+                } else {
+                    drawConnectionLine(startNode, endNode, "rgba(255,0,0)");
                 }
+            }else{
+                drawConnectionLine(startNode, endNode, "rgba(0,0,0)");
             }
+        }
         
     }
+    if((drawConnections_UCS.isRangeFindingDone!=true)){
+        drawConnectionLine(drawConnections_UCS.thisobserved, startNode.USC_GetGoalNode(), "rgb(255, 238, 0)");
+        draw_cost(drawConnections_UCS.thisobserved, startNode.USC_GetGoalNode(), 0,{distanceOnly:true},drawConnections_UCS);
+        
+    }
+
+    
 
     if (current_screen.shouldItDrawCosts) {
         for (var i = 0; i < nodes.length; i++) {
             var connection = nodes[i].getNeighbors(true);
-            var startNode = nodes[i].getCords();
+            var startNode = nodes[i];
             // This itterates through all the connections of the current node
             for (var a = 0; a < connection.length; a++) {
-                var endNode = connection[a].node.getCords();
+                var endNode = connection[a].node;
                 var cost = connection[a].cost;
                 if(connection[a].node.wasComputed){
-                    draw_cost(startNode, endNode, cost,[nodes[i],connection[a].node],true);
+                    draw_cost(startNode, endNode, cost,startNode.returnScoreFactors(),drawConnections_UCS);
+                }else if(drawConnections_UCS.goalNode!=connection[a].node){
+                    // this draws the stuff at the start upon loading
+                    draw_cost(startNode, endNode, cost,startNode.returnScoreFactors(),drawConnections_UCS);
                 }else{
-                    draw_cost(startNode, endNode, cost,curPath);
+                    console.log("nope");
                 }
             }
+            console.log("test ");
         }
+        console.log("test ");
     }
+    
+
 }
 
 
@@ -693,38 +867,86 @@ function drawConnectionLine(startNode, endNode, color = 'rgba(0,0,0)') {
 /**
  * Draws the little nice cost box between nodes
  * 
- * @param {object} startNode this is an X Y coords for one node
- * @param {number} startNode.x 
- * @param {number} startNode.y 
- * @param {object} endNode this is an X Y coords for one node
- * @param {number} endNode.x 
- * @param {number} endNode.y 
+ * @param {nodeClass} startNode this is an X Y coords for one node
+ * @param {nodeClass} endNode this is an X Y coords for one node
  * @param {number} cost - cost
- * @param {nodeClass} NodeEnd (optional) - defaults null
- * @param {bool} drawHuerisitc - defaults false, determines if heuristic cost is drawn
+ * @param {object} drawHuerisitc defaults false, determines if heuristic cost is drawn
+ * @param {bool} drawHuerisitc.heuristic if we should print out heuristic cost
+ * @param {bool} drawHuerisitc.distanceOnly this is for the yellow line that goes from observed node to goal. 
+ * @param {minibreadthFirstSearch} drawdistance_heuristic
  */
-function draw_cost(startNode, endNode, cost,NodeEnd=null,drawHuerisitc=false) {
+function draw_cost(startNode, endNode, cost,drawHuerisitc={isHueristicFactor :false,isDistanceFactor:false,distanceOnly:false},drawdistance_heuristic={isRangeFindingDone:true}) {
     let rect_width = 50;
     let rect_height = 60;
 
+    if(drawdistance_heuristic!=false){
+        rect_height = 90;
+    }
+
+
     //Uses slope intercept to get the center of the line.
-    var b = find_centerpoint(startNode, endNode);
+    var b = find_centerpoint(startNode.getCords(), endNode.getCords());
     var b_1 = { x: (b.x - (rect_width / 2)), y: (b.y - (rect_height / 2)) };
 
 
-    current_screen.ctx.fillStyle = 'rgba(255,255,255, 0.5)';
-    current_screen.ctx.fillRect(b_1.x + 3, b_1.y, rect_width * .86, rect_height * .86);
-    // Add cost label to the middle of the line
-    current_screen.ctx.fillStyle = "#000";
+    
 
-    //cost
-    current_screen.ctx.fillText(cost, b.x - 10, b.y - 10);
+    // this top if statement only triggers if there is an inital distance show phase
+    if(!(drawdistance_heuristic.isRangeFindingDone)&&(drawHuerisitc.distanceOnly)){
+        // todo add function getting distance heuristic
+        current_screen.ctx.fillStyle = 'rgba(255,255,255, 0.5)';
+        current_screen.ctx.fillRect(b_1.x + 3, b_1.y, rect_width * .86, rect_height * .86);
+        // Add cost label to the middle of the line
+        current_screen.ctx.fillStyle = "#000";
+        drawDistanceCost(startNode,endNode, b.x - 10, b.y-10);
 
-    // this is the hueristic according to the nodes
-    if((drawHuerisitc)&&(NodeEnd[0].wasComputed)&&(NodeEnd[0].getDijkstra_heuristic(NodeEnd[1])!=0)){
+        //console.log("costts: ",cost);
+    }else{
 
-        current_screen.ctx.fillText(NodeEnd[0].getDijkstra_heuristic(NodeEnd[1]), b.x - 10, b.y + 10);
-    }
+        current_screen.ctx.fillStyle = 'rgba(255,255,255, 0.5)';
+        current_screen.ctx.fillRect(b_1.x + 3, b_1.y, rect_width * .86, rect_height * .86);
+        // Add cost label to the middle of the line
+        current_screen.ctx.fillStyle = "#000";
+
+        //cost
+        drawSingleCost(cost,b.x - 10, b.y - 10)
+
+        // this is the hueristic according to the nodes
+        if(((drawHuerisitc.isHueristicFactor)&&(!(drawHuerisitc.isDistanceFactor)))&&(startNode.wasComputed)&&(startNode.getDijkstra_heuristic(endNode)!=0)){
+            drawHeuristic(startNode,endNode, b.x - 10, b.y + 10);
+        }else if((!(drawHuerisitc.isHueristicFactor)&&((drawHuerisitc.isDistanceFactor)))&&(startNode.wasComputed)){
+            drawDistanceCost(startNode,endNode, b.x - 10, b.y+10);
+        }
+    }   
+    
+    
+}
+
+
+/**
+ * Prints out the cost, the coordiantes are in relation to the center of where the box is
+ * @param {number} cost 
+ * @param {number} Coordx 
+ * @param {number} Coordy 
+ */
+function drawSingleCost(cost,Coordx,Coordy){
+    current_screen.ctx.fillText(cost, Coordx, Coordy );
+}
+
+/**
+ * Prints out the heuristic, the coordiantes are in relation to the center of where the box is
+ * @param {nodeClass} startNode
+ * @param {nodeClass} endNode 
+ * @param {number} Coordx 
+ * @param {number} Coordy 
+ */
+function drawHeuristic(startNode,endNode, Coordx,Coordy){
+    current_screen.ctx.fillText(startNode.getDijkstra_heuristic(endNode), Coordx, Coordy);
+}
+
+
+function drawDistanceCost(startnode,endNode,Coordx,Coordy){
+    current_screen.ctx.fillText(startnode.UCS_getUSC_Huerisitic(endNode), Coordx, Coordy);
 }
 
 
@@ -761,5 +983,4 @@ function wipeCanvas() {
         elements[i].parentNode.removeChild(elements[i]);
     }
 }
-
 
