@@ -30,8 +30,8 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
 
     // * part of uniform distance cost
     this.goalNode;
-    this.USC_isItObserved=false;
-    this.USC_isItVisited=false;
+    this.Astar_isItObserved=false;
+    this.Astar_isItVisited=false;
     this.NodeCanvasSizeMultipler=NodeCanvasSizeMultipler;
     this.FinalDistanceToGoalScore=0;
 
@@ -90,15 +90,26 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
     /**
      * send in the node object that you want to get the cost, if they are connected
      * returns -1 if the 2 nodes are not connected
+     * 
+     * {isDistanceFactor:false,isHueristicFactor:false,distanceOnly:false}
      * @param {nodeClass} theNodeOfDesire 
      * @returns {number} total cost (with hueristic) between the 2 nodes connection
      */
     this.getCost = function (theNodeOfDesire) {
-        if (this.nodeConnectionLength() > 0) {
-            var areConnected = this.areTheyConnected(theNodeOfDesire, true);
-            if (areConnected[0]) {
-                var desiredConnection = this.NodeConnection[areConnected[1]];
-                return desiredConnection.cost + desiredConnection.heuristic;
+        if(this.scorefactors.isDistanceFactor){
+            if (this.nodeConnectionLength() > 0) {
+                var areConnected = this.areTheyConnected(theNodeOfDesire, true);
+                if (areConnected[0]) {
+                    var desiredConnection = this.NodeConnection[areConnected[1]];
+                    return desiredConnection.cost + desiredConnection.heuristic;
+                }
+            }
+        }else if(this.scorefactors.isHueristicFactor){
+            if (this.nodeConnectionLength() > 0) {
+                var areConnected = this.areTheyConnected(theNodeOfDesire, true);
+                if (areConnected[0]) {
+                    return this.Astar_getAstar_Huerisitic(theNodeOfDesire);
+                }
             }
         }
         return -1
@@ -308,33 +319,33 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
      * Sets node class
      * @param {nodeClass} goalNode 
      */
-    this.UCS_setGoalNode = function (goalNode) {
+    this.Astar_setGoalNode = function (goalNode) {
         this.goalNode = goalNode;
         this.scorefactors.isDistanceFactor = true;
     }
-    this.USC_GetGoalNode = function () {
+    this.Astar_GetGoalNode = function () {
         return this.goalNode;
     }
-    this.USC_setIsObserved= function(isItObserved){
-        this.USC_isItObserved = isItObserved;
+    this.Astar_setIsObserved= function(isItObserved){
+        this.Astar_isItObserved = isItObserved;
     }
-    this.USC_getIsObserved= function(){
-        return this.USC_isItObserved;
+    this.Astar_getIsObserved= function(){
+        return this.Astar_isItObserved;
     }
-    this.USC_setisItVisited= function(USC_isItVisited){
-        this.USC_isItVisited = USC_isItVisited;
+    this.Astar_setisItVisited= function(Astar_isItVisited){
+        this.Astar_isItVisited = Astar_isItVisited;
     }
-    this.USC_getisItVisited= function(){
-        return this.USC_isItVisited;
+    this.Astar_getisItVisited= function(){
+        return this.Astar_isItVisited;
     }
     /**
      * This updates all connections costs, based on distance
      * This does not get triggered if 
      */
-    this.UCS_setAllDistanceCosts = function(){
+    this.Astar_setAllDistanceCosts = function(){
         if(!this.hasRunStarted){
             for (var i = 0; i < this.nodeConnectionLength(); i++) {
-                this.UCS_setDistanceCostToNeighbor_Goal(this.NodeConnection[i].node);
+                this.Astar_setDistanceCostToNeighbor_Goal(this.NodeConnection[i].node);
             }
         }
     }
@@ -345,7 +356,7 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
      * @param {nodeClass} theNodeOfDesire distance between this node and the other node
      * @param {bool} secondarycall do not use, for internal use
      */
-    this.UCS_setDistanceCostToNeighbor_Goal = function(theNodeOfDesire,secondarycall=true,currentDistance=0){
+    this.Astar_setDistanceCostToNeighbor_Goal = function(theNodeOfDesire,secondarycall=true,currentDistance=0){
         var connection=this.areTheyConnected(theNodeOfDesire,true);
         if((this=="7")||(theNodeOfDesire=="7")){
             console.log("t");
@@ -358,7 +369,7 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
             }
             
             
-            var returnedDistance =theNodeOfDesire.UCS_setDistanceCostToNeighbor_Goal(this,false,currentDist);
+            var returnedDistance =theNodeOfDesire.Astar_setDistanceCostToNeighbor_Goal(this,false,currentDist);
             if(returnedDistance>currentDistance){
                 this.NodeConnection[connection[1]].distanceHeuristic = returnedDistance
             }else{
@@ -386,12 +397,16 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
      * @param {nodeClass} theNodeOfDesire distance between this node and the other node
      * @param {bool} secondarycall do not use, for internal use
      */
-    this.UCS_getDistanceCostToGoal = function(){
-        if(this.hasRunStarted){
-            return this.FinalDistanceToGoalScore;
+    this.Astar_getAstar_Huerisitic = function(theNodeOfDesire){
+        var connection =this.areTheyConnected(theNodeOfDesire,true);
+        if(connection[0]){
+            return this.NodeConnection[connection[1]].distanceHeuristic+this.NodeConnection[connection[1]].cost;
+        }else{
+            return this.getConnectionDistanceCost(manhattanDistance(this,this.goalNode));
         }
-        return this.getConnectionDistanceCost(manhattanDistance(this,this.goalNode));
+        //
     }
+
     
 
 

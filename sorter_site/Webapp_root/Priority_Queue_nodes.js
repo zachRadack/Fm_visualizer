@@ -4,66 +4,78 @@ const left = i => (i << 1) + 1;
 const right = i => (i + 1) << 1;
 
 class PriorityQueue {
-  constructor(comparator = (a, b) => a > b) {
+    constructor(comparator = (a, b) => a > b) {
     this._heap = [];
     this._comparator = comparator;
-  }
-  size() {
+    }
+    size() {
     return this._heap.length;
-  }
-  isEmpty() {
+    }
+    isEmpty() {
     return this.size() == 0;
-  }
-  peek() {
+    }
+    peek() {
     return this._heap[topp];
-  }
-  push(...values) {
+    }
+    push(...values) {
     values.forEach(value => {
-      this._heap.push(value);
-      this._siftUp();
+        this._heap.push(value);
+        this._siftUp();
     });
     return this.size();
-  }
-  pop() {
+    }
+    pop() {
     const poppedValue = this.peek();
     const bottom = this.size() - 1;
     if (bottom > topp) {
-      this._swap(topp, bottom);
+        this._swap(topp, bottom);
     }
     this._heap.pop();
     this._siftDown();
     return poppedValue;
-  }
-  replace(value) {
+    }
+    replace(value) {
     const replacedValue = this.peek();
     this._heap[topp] = value;
     this._siftDown();
     return replacedValue;
-  }
-  _greater(i, j) {
+    }
+    _greater(i, j) {
     return this._comparator(this._heap[i], this._heap[j]);
-  }
-  _swap(i, j) {
+    }
+    _swap(i, j) {
     [this._heap[i], this._heap[j]] = [this._heap[j], this._heap[i]];
-  }
-  _siftUp() {
+    }
+    _siftUp() {
     let node = this.size() - 1;
     while (node > topp && this._greater(node, parent(node))) {
-      this._swap(node, parent(node));
-      node = parent(node);
+        this._swap(node, parent(node));
+        node = parent(node);
     }
-  }
-  _siftDown() {
+    }
+    _siftDown() {
     let node = topp;
     while (
-      (left(node) < this.size() && this._greater(left(node), node)) ||
-      (right(node) < this.size() && this._greater(right(node), node))
+        (left(node) < this.size() && this._greater(left(node), node)) ||
+        (right(node) < this.size() && this._greater(right(node), node))
     ) {
-      let maxChild = (right(node) < this.size() && this._greater(right(node), left(node))) ? right(node) : left(node);
-      this._swap(node, maxChild);
-      node = maxChild;
+        let maxChild = (right(node) < this.size() && this._greater(right(node), left(node))) ? right(node) : left(node);
+        this._swap(node, maxChild);
+        node = maxChild;
     }
-  }
+    }
+    setComparator(comparator) {
+    this._comparator = comparator;
+    this._rebuildHeap();
+    }
+
+    _rebuildHeap() {
+    const oldHeap = this._heap;
+    this._heap = [];
+    oldHeap.forEach(value => {
+        this.push(value);
+    });
+    }
 }
 
 
