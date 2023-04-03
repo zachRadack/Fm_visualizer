@@ -280,6 +280,10 @@ function current_Finite_Machine() {
         if ((this.algorithm == "dfs") || (this.algorithm == "bfs")) {
             this.frontier.push(new pathClass(this.observedNode, [{ startnode: this.observedNode, endnode: this.observedNode }]));
         } else if(this.algorithm == "Dijkstra"){
+
+            for(const node in this.nodes){
+                this.nodes[node].setHeruticOn();
+            }
             this.frontier = new PriorityQueue((a, b) => (a.cost+a.heuristic) < (b.cost+b.heuristic));
             this.frontier.push(new pathClass(this.observedNode, [{ startnode: this.observedNode, endnode: this.observedNode }]));
         }  else if (this.algorithm == "UniformCostSearch"){
@@ -293,16 +297,15 @@ function current_Finite_Machine() {
         
         
         // If the algorithem uses physical distance in calculation, then add it here
-        if((this.algorithm == "UniformCostSearch")||this.algorithm == "Astar"){
+        if(this.algorithm == "Astar"){
             this.hasAlgoDistanceVisualizerFinished= new minibreadthFirstSearch(this.nodes,this.nodes[this.startNode],this.nodes[this.endNode],this.NodeCanvasSizeMultipler,false);
             for(const node in this.nodes){
                 this.nodes[node].Astar_setGoalNode(this.nodes[this.endNode]);
             }
-            
-        }else{
+        }else {
+            // this is deactivated due to last variable which is set to true at the end
             this.hasAlgoDistanceVisualizerFinished= new minibreadthFirstSearch(this.nodes,this.nodes[this.startNode],this.nodes[this.endNode],this.NodeCanvasSizeMultipler,true);
             this.curPat = [{ startnode: this.observedNode, endnode: this.observedNode }];
-
         }
         document.getElementById((this.endNode).toString()).classList.add("the-goal");
 
@@ -414,7 +417,7 @@ function current_Finite_Machine() {
                 if (!(successor.visited)) {
                     //console.log("push: ",this.frontier);
                     successor.setWasComputed();
-                    var newcost = cost + newNode.getCost(successor);
+                    var newcost = cost+newNode.getCost(successor);
                     this.frontier.push(new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }]), newcost));
                     newNode.setDijkstra_heuristic(newcost,successor);
                 }
