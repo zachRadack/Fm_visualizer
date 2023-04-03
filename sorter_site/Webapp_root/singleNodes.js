@@ -106,7 +106,7 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
             }
         }else if(this.scorefactors.isHueristicFactor){
             if (this.nodeConnectionLength() > 0) {
-                var areConnected = this.areTheyConnected(theNodeOfDesire, true);
+                var areConnected = this.areTheyConnected(theNodeOfDesire);
                 if (areConnected[0]) {
                     return this.Astar_getAstar_Huerisitic(theNodeOfDesire);
                 }
@@ -358,25 +358,22 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
      */
     this.Astar_setDistanceCostToNeighbor_Goal = function(theNodeOfDesire,secondarycall=true,currentDistance=0){
         var connection=this.areTheyConnected(theNodeOfDesire,true);
-        if((this=="7")||(theNodeOfDesire=="7")){
-            console.log("t");
-        }
+
         
         if(secondarycall){
             currentDist = this.getConnectionDistanceCost(manhattanDistance(this,this.goalNode));
             if(currentDistance<this.NodeConnection[connection[1]].distanceHeuristic){
                 currentDistance = this.NodeConnection[connection[1]].distanceHeuristic;
             }
-            
-            
             var returnedDistance =theNodeOfDesire.Astar_setDistanceCostToNeighbor_Goal(this,false,currentDist);
             if(returnedDistance>currentDistance){
                 this.NodeConnection[connection[1]].distanceHeuristic = returnedDistance
             }else{
                 this.NodeConnection[connection[1]].distanceHeuristic = currentDistance
             }
-            
+            return [this.NodeConnection[connection[1]].cost,  this.NodeConnection[connection[1]].distanceHeuristic];
         }else{
+            // this is the secondary loop
             var returnedDistance =this.getConnectionDistanceCost(manhattanDistance(this,this.goalNode));
             if(returnedDistance<this.NodeConnection[connection[1]].distanceHeuristic){
                 returnedDistance = this.NodeConnection[connection[1]].distanceHeuristic;
@@ -386,9 +383,9 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
             }else{
                 this.NodeConnection[connection[1]].distanceHeuristic = currentDistance
             }
-            
+            return this.NodeConnection[connection[1]].distanceHeuristic;
         }
-        return this.NodeConnection[connection[1]].distanceHeuristic;
+        
     }
 
     /**
