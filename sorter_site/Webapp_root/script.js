@@ -61,12 +61,16 @@ $("#start-btn").click(function () {
     }else if (current_screen.algorithmGetter() == "Astar") {
         current_screen.AstarAlgorithm();
     }
+    for (var i = 0; i < current_screen.nodes.length; i++) {
+        current_screen.nodes[i].runHasStarted();
+    }
 });
 
 /** 
  * This pushes the algorithm through a single step.
  */
 $("#next-step-btn").click(function () {
+    
     if (current_screen.algorithmGetter() == "dfs") {
         current_screen.Depthfirstsearch();
     } else if (current_screen.algorithmGetter() == "bfs") {
@@ -96,6 +100,7 @@ function pathClass(newNode, path, cost = 0) {
     this.startnode = path.startnode;
     this.path = path;
     this.cost = cost;
+    this.DistCost = 0;
     this.Heuristic_cost=0;
 
     // Handles the werid interaction that happens when non dfs/bfs searchs
@@ -121,6 +126,10 @@ function pathClass(newNode, path, cost = 0) {
 
     this.setheuristic_Dijkstra = function(setCost){
         this.Heuristic_cost = setCost;
+    }
+
+    this.setDistanceHeruistic = function(distCost){
+        this.DistCost = distCost;
     }
 
 }
@@ -516,6 +525,8 @@ this.minibreadthFirstSearch = function(nodes,startingNode,goalNode,NodeCanvasSiz
     this.nodes= nodes;
     this.NodeCanvasSizeMultipler=NodeCanvasSizeMultipler;
     this.curPath = [];
+
+    
     
 
     this.bfsStep = function(){
@@ -534,13 +545,13 @@ this.minibreadthFirstSearch = function(nodes,startingNode,goalNode,NodeCanvasSiz
                 this.thisobserved.USC_setIsObserved(false);
                 newNode.USC_setIsObserved(true);
                 this.thisobserved = newNode;
-                var node_distance_cost = newNode.getConnectionDistanceCost(manhattanDistance(newNode,this.goalNode));
+                //var node_distance_cost = newNode.getConnectionDistanceCost(manhattanDistance(newNode,this.goalNode));
                 for (let successor of newNode.getNeighbors()) {
-                    if (!(successor.USC_getisItVisited())) {
+                    if (!(successor.USC_getisItVisited())&&(successor!= this.goalNode)) {
                         
-                        newNode.UCS_setDistanceCostToNeighbor_Goal(successor);
-                        var newPath = new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }]),node_distance_cost);
-                        
+                        var distCost = newNode.UCS_setDistanceCostToNeighbor_Goal(successor);
+                        var newPath = new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }]),distCost);
+                        newPath.setDistanceHeruistic(distCost)
                         this.frontier.unshift(newPath)
                     }
                 }
@@ -567,14 +578,6 @@ this.minibreadthFirstSearch = function(nodes,startingNode,goalNode,NodeCanvasSiz
     }
 }
 
-/**
- * {IsIt_USC_Phase:bool, curNodes:[nodeClass],goalNode:}
- * @param {*} curPaths 
- */
-function drawUCSConnections(curPaths){
-    
-    
-}
 
 
 
@@ -720,9 +723,9 @@ function drawConnections(nodes, curPath = current_screen.curPath,drawConnections
         }
         
     }
-    if(drawConnections_UCS.isRangeFindingDone!=true){
+    if((drawConnections_UCS.isRangeFindingDone!=true)){
         drawConnectionLine(drawConnections_UCS.thisobserved, startNode.USC_GetGoalNode(), "rgb(255, 238, 0)");
-        draw_cost(drawConnections_UCS.thisobserved.getCords(), startNode.USC_GetGoalNode().getCords(), 0,drawConnections_UCS.thisobserved,false,drawConnections_UCS);
+        draw_cost(drawConnections_UCS.thisobserved, startNode.USC_GetGoalNode(), 0,{distanceOnly:true},drawConnections_UCS);
         
     }
 
@@ -731,21 +734,25 @@ function drawConnections(nodes, curPath = current_screen.curPath,drawConnections
     if (current_screen.shouldItDrawCosts) {
         for (var i = 0; i < nodes.length; i++) {
             var connection = nodes[i].getNeighbors(true);
-            var startNode = nodes[i].getCords();
+            var startNode = nodes[i];
             // This itterates through all the connections of the current node
             for (var a = 0; a < connection.length; a++) {
-                var endNode = connection[a].node.getCords();
+                var endNode = connection[a].node;
                 var cost = connection[a].cost;
                 if(connection[a].node.wasComputed){
-                    draw_cost(startNode, endNode, cost,[nodes[i],connection[a].node]);
+                    draw_cost(startNode, endNode, cost,startNode.returnScoreFactors(),drawConnections_UCS);
                 }else if(drawConnections_UCS.goalNode!=connection[a].node){
                     // this draws the stuff at the start upon loading
-                    draw_cost(startNode, endNode, cost,curPath);
+                    draw_cost(startNode, endNode, cost,startNode.returnScoreFactors(),drawConnections_UCS);
+                }else{
+                    console.log("nope");
                 }
             }
+            console.log("test ");
         }
+        console.log("test ");
     }
-
+    
 
 }
 
@@ -835,18 +842,15 @@ function drawConnectionLine(startNode, endNode, color = 'rgba(0,0,0)') {
 /**
  * Draws the little nice cost box between nodes
  * 
- * @param {object} startNode this is an X Y coords for one node
- * @param {number} startNode.x 
- * @param {number} startNode.y 
- * @param {object} endNode this is an X Y coords for one node
- * @param {number} endNode.x 
- * @param {number} endNode.y 
+ * @param {nodeClass} startNode this is an X Y coords for one node
+ * @param {nodeClass} endNode this is an X Y coords for one node
  * @param {number} cost - cost
- * @param {nodeClass} NodeEnd (optional) - defaults null
- * @param {bool} drawHuerisitc - defaults false, determines if heuristic cost is drawn
+ * @param {object} drawHuerisitc defaults false, determines if heuristic cost is drawn
+ * @param {bool} drawHuerisitc.heuristic if we should print out heuristic cost
+ * @param {bool} drawHuerisitc.distanceOnly this is for the yellow line that goes from observed node to goal. 
  * @param {minibreadthFirstSearch} drawdistance_heuristic
  */
-function draw_cost(startNode, endNode, cost,NodeEnd=null,drawHuerisitc=false,drawdistance_heuristic={isRangeFindingDone:true}) {
+function draw_cost(startNode, endNode, cost,drawHuerisitc={isHueristicFactor :false,isDistanceFactor:false,distanceOnly:false},drawdistance_heuristic={isRangeFindingDone:true}) {
     let rect_width = 50;
     let rect_height = 60;
 
@@ -856,20 +860,22 @@ function draw_cost(startNode, endNode, cost,NodeEnd=null,drawHuerisitc=false,dra
 
 
     //Uses slope intercept to get the center of the line.
-    var b = find_centerpoint(startNode, endNode);
+    var b = find_centerpoint(startNode.getCords(), endNode.getCords());
     var b_1 = { x: (b.x - (rect_width / 2)), y: (b.y - (rect_height / 2)) };
 
 
     
 
     // this top if statement only triggers if there is an inital distance show phase
-    if(!(drawdistance_heuristic.isRangeFindingDone)){
+    if(!(drawdistance_heuristic.isRangeFindingDone)&&(drawHuerisitc.distanceOnly)){
         // todo add function getting distance heuristic
         current_screen.ctx.fillStyle = 'rgba(255,255,255, 0.5)';
         current_screen.ctx.fillRect(b_1.x + 3, b_1.y, rect_width * .86, rect_height * .86);
         // Add cost label to the middle of the line
         current_screen.ctx.fillStyle = "#000";
-        drawDistanceCost(NodeEnd, b.x - 10, b.y-10);
+        drawDistanceCost(startNode, b.x - 10, b.y-10);
+
+        //console.log("costts: ",cost);
     }else{
 
         current_screen.ctx.fillStyle = 'rgba(255,255,255, 0.5)';
@@ -881,8 +887,10 @@ function draw_cost(startNode, endNode, cost,NodeEnd=null,drawHuerisitc=false,dra
         drawSingleCost(cost,b.x - 10, b.y - 10)
 
         // this is the hueristic according to the nodes
-        if((drawHuerisitc)&&(NodeEnd[0].wasComputed)&&(NodeEnd[0].getDijkstra_heuristic(NodeEnd[1])!=0)){
-            drawHeuristic(NodeEnd, b.x - 10, b.y + 10);
+        if(((drawHuerisitc.isHueristicFactor)&&(!(drawHuerisitc.isDistanceFactor)))&&(startNode.wasComputed)&&(startNode.getDijkstra_heuristic(endNode)!=0)){
+            drawHeuristic(startNode,endNode, b.x - 10, b.y + 10);
+        }else if((!(drawHuerisitc.isHueristicFactor)&&((drawHuerisitc.isDistanceFactor)))&&(startNode.wasComputed)){
+            drawDistanceCost(startNode, b.x - 10, b.y+10);
         }
     }   
     
@@ -902,17 +910,18 @@ function drawSingleCost(cost,Coordx,Coordy){
 
 /**
  * Prints out the heuristic, the coordiantes are in relation to the center of where the box is
- * @param {nodeClass} NodeEnd 
+ * @param {nodeClass} startNode
+ * @param {nodeClass} endNode 
  * @param {number} Coordx 
  * @param {number} Coordy 
  */
-function drawHeuristic(NodeEnd, Coordx,Coordy){
-    current_screen.ctx.fillText(NodeEnd[0].getDijkstra_heuristic(NodeEnd[1]), Coordx, Coordy);
+function drawHeuristic(startNode,endNode, Coordx,Coordy){
+    current_screen.ctx.fillText(startNode.getDijkstra_heuristic(endNode), Coordx, Coordy);
 }
 
 
-function drawDistanceCost(NodeEnd,Coordx,Coordy){
-    current_screen.ctx.fillText(NodeEnd.UCS_getDistanceCostToGoal(), Coordx, Coordy);
+function drawDistanceCost(startnode,Coordx,Coordy){
+    current_screen.ctx.fillText(startnode.UCS_getDistanceCostToGoal(), Coordx, Coordy);
 }
 
 

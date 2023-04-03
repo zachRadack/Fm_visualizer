@@ -27,7 +27,6 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
     // if this is true it means that it was added to a list of choices somewhere
     this.wasComputed = false;
 
-    this.heuristic = 99999999999999;
 
     // * part of uniform distance cost
     this.goalNode;
@@ -36,6 +35,8 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
     this.NodeCanvasSizeMultipler=NodeCanvasSizeMultipler;
     this.FinalDistanceToGoalScore=0;
 
+    // controls if various factors influence the scoring system of a node
+    this.scorefactors = {isDistanceFactor:false,isHueristicFactor:false,distanceOnly:false}
     // Todo, implment check to signify that score is distnace
     this.isDistanceScore=isDistanceScore;
     // this signifies if run has started
@@ -277,6 +278,7 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
      * @returns {bool} If herusitic was changed
      */
     this.setDijkstra_heuristic = function (newHeuristicCost,endnode,secondarycall = true) {
+        // isItGood says if the function call worked
         var isItGood = true;
         if(secondarycall){
             isItGood =endnode.setDijkstra_heuristic(newHeuristicCost,this,false);
@@ -285,6 +287,7 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
         var curConnection = this.NodeConnection[current_end_Node[1]];
         if((isItGood)&&(current_end_Node[0])&&(curConnection.heuristic < newHeuristicCost)){
             curConnection.heuristic = newHeuristicCost;
+            this.scorefactors.isHueristicFactor=true;
             return true;
         }
 
@@ -307,6 +310,7 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
      */
     this.UCS_setGoalNode = function (goalNode) {
         this.goalNode = goalNode;
+        this.scorefactors.isDistanceFactor = true;
     }
     this.USC_GetGoalNode = function () {
         return this.goalNode;
@@ -341,15 +345,39 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
      * @param {nodeClass} theNodeOfDesire distance between this node and the other node
      * @param {bool} secondarycall do not use, for internal use
      */
-    this.UCS_setDistanceCostToNeighbor_Goal = function(theNodeOfDesire,secondarycall=true){
+    this.UCS_setDistanceCostToNeighbor_Goal = function(theNodeOfDesire,secondarycall=true,currentDistance=0){
         var connection=this.areTheyConnected(theNodeOfDesire,true);
-        if(secondarycall){
-            this.NodeConnection[connection[1]].distanceHeuristic = this.getConnectionDistanceCost(manhattanDistance(this,this.goalNode));
-            theNodeOfDesire.UCS_setDistanceCostToNeighbor_Goal(this,false);
-        }else{
-            this.NodeConnection[connection[1]].distanceHeuristic = this.getConnectionDistanceCost(manhattanDistance(theNodeOfDesire,this.goalNode));
+        if((this=="7")||(theNodeOfDesire=="7")){
+            console.log("t");
         }
         
+        if(secondarycall){
+            currentDist = this.getConnectionDistanceCost(manhattanDistance(this,this.goalNode));
+            if(currentDistance<this.NodeConnection[connection[1]].distanceHeuristic){
+                currentDistance = this.NodeConnection[connection[1]].distanceHeuristic;
+            }
+            
+            
+            var returnedDistance =theNodeOfDesire.UCS_setDistanceCostToNeighbor_Goal(this,false,currentDist);
+            if(returnedDistance>currentDistance){
+                this.NodeConnection[connection[1]].distanceHeuristic = returnedDistance
+            }else{
+                this.NodeConnection[connection[1]].distanceHeuristic = currentDistance
+            }
+            
+        }else{
+            var returnedDistance =this.getConnectionDistanceCost(manhattanDistance(this,this.goalNode));
+            if(returnedDistance<this.NodeConnection[connection[1]].distanceHeuristic){
+                returnedDistance = this.NodeConnection[connection[1]].distanceHeuristic;
+            }
+            if(returnedDistance>currentDistance){
+                this.NodeConnection[connection[1]].distanceHeuristic = returnedDistance
+            }else{
+                this.NodeConnection[connection[1]].distanceHeuristic = currentDistance
+            }
+            
+        }
+        return this.NodeConnection[connection[1]].distanceHeuristic;
     }
 
     /**
@@ -411,7 +439,9 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
         }
     
     
-    
+    this.returnScoreFactors = function(){
+        return this.scorefactors;
+    }
     
     
 
@@ -428,7 +458,9 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
      * This function is used to signify to stop changing all connection costs
      */
     this.runHasStarted = function(){
-        this.FinalDistanceToGoalScore = this.getConnectionDistanceCost(manhattanDistance(this,this.goalNode));
+        if(this.scorefactors.isDistanceFactor){
+            this.FinalDistanceToGoalScore = this.getConnectionDistanceCost(manhattanDistance(this,this.goalNode));
+        }
         this.hasRunStarted=true;
     }
 
