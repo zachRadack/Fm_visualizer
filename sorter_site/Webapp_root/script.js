@@ -16,8 +16,9 @@ $("#Create-canvas-btn").click(function () {
     document.getElementById("curPathId").textContent = "None";
 
     current_screen.cancelAnimation();
-    current_screen = new current_Finite_Machine();
     wipeCanvas();
+    current_screen = new current_Finite_Machine();
+    
     var randomSeed = document.getElementById("seedTextBox").value;
     if (randomSeed.length == 0) {
         randomSeed = (Math.random()).toString();
@@ -29,7 +30,7 @@ $("#Create-canvas-btn").click(function () {
     var totalNodes = parseInt(document.getElementById("totalNodes").value);
     var totalConnections = parseInt(document.getElementById("totalConnections").value);
     var isItSimulated = document.querySelector('#isItSimulated').checked;
-    current_screen.startup(totalNodes, totalConnections, isItSimulated);
+    current_screen.startup(totalNodes, totalConnections, isItSimulated,true,false);
 
 });
 
@@ -83,6 +84,33 @@ $("#next-step-btn").click(function () {
         current_screen.AstarAlgorithm();
     }
     current_screen.theSimulator.curPath_setter(current_screen.curPath,current_screen.hasAlgoDistanceVisualizerFinished);
+});
+
+/** 
+ * This imports a graph.
+ */
+$("#Import-Graph-btn").click(function () {
+    document.getElementById("curConenctionId").textContent = "None";
+    document.getElementById("curPathId").textContent = "None";
+
+    current_screen.cancelAnimation();
+    wipeCanvas();
+    current_screen = new current_Finite_Machine();
+    
+    var randomSeed = document.getElementById("seedTextBox").value;
+    if (randomSeed.length == 0) {
+        randomSeed = (Math.random()).toString();
+        console.log("The current random seed is: " + randomSeed);
+    }
+
+    document.getElementById("currentSeed").textContent = (randomSeed).toString();
+    Math.seedrandom(randomSeed);
+    var totalNodes = parseInt(document.getElementById("totalNodes").value);
+    var totalConnections = parseInt(document.getElementById("totalConnections").value);
+    var isItSimulated = document.querySelector('#isItSimulated').checked;
+    current_screen.startup(totalNodes, totalConnections, isItSimulated,true,true);
+
+    
 });
 
 });
@@ -186,20 +214,28 @@ function current_Finite_Machine() {
      * 
      * Also starts up the physics simulation, which is always on, however the repel/ attract forces are off by default.
      * 
+     * todo: Implement isDistanceScore button.
+     * 
      * @param {number} totalNodes - The total number of nodes that will be created.
      * @param {number} totalConnections - The total number of connections that will be created. (Not implmented yet/broken)
      * @param {boolean} isItSimulated - If the canvas is being simulated or not. Off by default.
+     * @param {boolean} isDistanceScore - If the distance score is being used or not. On by default. 
+     * @param {boolean} isimportGraph - If the graph is being imported or not. Off by default.
      */
-    this.startup = function (totalNodes, totalConnections, isItSimulated,isDistanceScore=true) {
+    this.startup = function (totalNodes, totalConnections, isItSimulated,isDistanceScore=true, isimportGraph=false) {
         this.shouldItDrawCosts = true;
         this.isDistanceScore=isDistanceScore;
         this.isItSimulated = isItSimulated;
         this.ctx = this.canvas.getContext("2d");
-        this.nodes = generateNodes(totalNodes,this.NodeCanvasSizeMultipler);
+        if(!isimportGraph){
+            this.nodes = generateNodes(totalNodes,this.NodeCanvasSizeMultipler);
+            connectNodes(this.nodes, totalConnections,this.isDistanceScore,this.canvas.offsetWidth, this.canvas.offsetHeight);
+        }else{
+            var {nodes,connections} = import_graph();
+            this.nodes = nodes;
+            this.connections = connections;
+        }
         console.log("this nodes startup: ", this.nodes)
-        
-        connectNodes(this.nodes, totalConnections,this.isDistanceScore,this.canvas.offsetWidth, this.canvas.offsetHeight);
-
 
 
         // Add nodes to the canvas
@@ -625,7 +661,6 @@ function PrintCurrentPath(Path) {
         document.getElementById("curPathId").textContent = document.getElementById("curPathId").textContent + String(item.endnode.nodeNumber + 1) + "==>";
     });
 }
-
     /**
      * this function handles making current node green and if there already is one
      * it will first remove that ones  observed-node class and add visited-node class, which makes it red
@@ -682,18 +717,22 @@ function startEnd_Node_Selector(nodes) {
  * creates the actual nodes by putting them into the html and puts them
  *  where ever the coordinates are setup to.
  * @param {number} count 
+ * @param {number} distanceMultipler - this is the used to calculate costs to keep cost numbers sane.
  * @returns {[nodeClass]} list of all generated nodes
  */
-function generateNodes(count,distanceMultipler) {
+function generateNodes(count,distanceMultipler,isItImported = false) {
+    
     var canvas = $("#canvas");
     var canvasWidth = canvas.width();
     var canvasHeight = canvas.height();
     var nodeObjectList = [];
-    const screenscore=manhattanDistance({x:canvasWidth,y:canvasHeight},{x:0,y:0})/50;
-    for (var i = 0; i < count; i++) {
-        var x = Math.floor(Math.random() * canvasWidth);
-        var y = Math.floor(Math.random() * canvasHeight);
-        nodeObjectList.push(new nodeClass(x, y, i,distanceMultipler));
+    if(!(isItImported)){
+        const screenscore=manhattanDistance({x:canvasWidth,y:canvasHeight},{x:0,y:0})/50;
+        for (var i = 0; i < count; i++) {
+            var x = Math.floor(Math.random() * canvasWidth);
+            var y = Math.floor(Math.random() * canvasHeight);
+            nodeObjectList.push(new nodeClass(x, y, i,distanceMultipler));
+        }
     }
     return nodeObjectList;
 }

@@ -146,7 +146,7 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
             if (secondarycall == true) {
                 letitrun =neighbors_Node.addConnection(this, cost, false);
                 if(letitrun){
-                    this.connectthem(neighbors_Node, cost);
+                    this.connectthem(neighbors_Node, cost,secondarycall);
                     return true;
                 }else{
                     // full none connect
@@ -154,7 +154,7 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
                 }
             }else if (!(this.areTheyConnected(neighbors_Node))) {
                 // this is the first connection attempt, and it worked
-                this.connectthem(neighbors_Node, cost);
+                this.connectthem(neighbors_Node, cost,secondarycall);
                 return true;
             } else {
                 // first connection attempt failed
@@ -171,9 +171,11 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
      * @param {nodeClass} neighbors_Node 
      * @param {number} cost  
      */
-    this.connectthem= function(neighbors_Node, cost){
+    this.connectthem= function(neighbors_Node, cost,secondarycall){
         this.NodeConnection.push({ node: neighbors_Node, cost: cost, heuristic: 0 , distanceHeuristic: 0});
-        this.connectionPrinter(neighbors_Node, cost);
+        if(secondarycall){
+            this.connectionPrinter(neighbors_Node, cost);
+        }
         this.connections += 1;
     }
 
@@ -192,12 +194,8 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
             curConenctionId = "";
         }
         // Append the new connection details to the existing content
-
-        const newConnection = `[${this.nodeNumber+1}] => [${neighbors_Node.nodeNumber+1}] XX `;
-        const updatedConenctionId = `${curConenctionId}${newConnection}`;
-
-        // Set the updated content to curConenctionId element
-        document.getElementById("curConenctionId").textContent = updatedConenctionId;
+        print_out_json_connection(this,neighbors_Node, cost);
+        
     }
 
     /**
