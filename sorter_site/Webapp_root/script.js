@@ -953,7 +953,11 @@ function drawParrel_line(node1, node2, screen_ctx, offset) {
     screen_ctx.stroke();
 }
 
-
+/**
+ * This makes a gradient around the desired node
+ * @param {nodeClass} node 
+ * @param {CanvasRenderingContext2D} screen_ctx 
+ */
 function goalGradient(node, screen_ctx) {
     var canvas = $("#canvas");
     var canvasWidth = canvas.width();
