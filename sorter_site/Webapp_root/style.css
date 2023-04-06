@@ -19,7 +19,10 @@ body{
     width: fit-content;
     padding: 25px;
     margin: 5px;
+}
 
+.instruction_box{
+    height: fit-content;
 }
 
 .control_buttons{
