@@ -38,14 +38,23 @@
     <br>
     <label for="seedTextBox">Seeding area:</label>
     <input type="text" id="seedTextBox" name="seedTextBox">
-    <button id="Create-canvas-btn">Load Canvas</button>
-    <button id="start-btn">Start/reset</button>
+    <button id="Create-canvas-btn">Load Random Graph</button>
+    <button id="start-btn">Start</button>
     <button id="next-step-btn">Next Step</button>
     <br>
     <label for="objectFilling">Seeding area:</label>
     <p>Your current seed is: <p id="currentSeed">No seed has been loaded</p></p>
+    <br>
+    <button id="Import-Graph-btn">Import Graph</button>
+    <label for="NodeBuilderTextBox">Graph Maker import:</label>
+    <br>
+    <textarea id="NodeBuilderTextBox" class="import_Text_area" name="NodeBuilderTextBox"></textarea>
+
+    <br>
+
+    
     <p id="PathContainerId">Current PATH: <br><p id="curPathId">None</p></p>
-    <p id="angleId">cur angle of node 1: <br><p id="curAngleId">None</p></p>
+    <p id="NodesContainerId">Current Nodes: <br><p id="curNodesId">None</p></p>
     <p id="ConnectionsContainerId">current connects are: <br><p id="curConenctionId">None</p></p>
     
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -55,6 +64,7 @@
     <script src="Force-Layout-script.js"></script>
     <script src="Kruskal_graphmaker.js"></script>
     <script src="singleNodes.js"></script>
+    <script src="importGraph.js"></script>
     <script src="script.js"></script>
 
     

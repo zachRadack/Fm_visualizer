@@ -36,7 +36,7 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
     this.FinalDistanceToGoalScore=0;
 
     // controls if various factors influence the scoring system of a node
-    this.scorefactors = {isDistanceFactor:false,isHueristicFactor:false,distanceOnly:false}
+    this.scorefactors = {isDistanceFactor:false,isHueristicFactor:false,distanceOnly:false,isDistanceUsedToMakeScore:false}
     // Todo, implment check to signify that score is distnace
     this.isDistanceScore=isDistanceScore;
     // this signifies if run has started
@@ -96,22 +96,28 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
      * @returns {number} total cost (with hueristic) between the 2 nodes connection
      */
     this.getCost = function (theNodeOfDesire) {
-        if(this.scorefactors.isDistanceFactor){
-            if (this.nodeConnectionLength() > 0) {
-                var areConnected = this.areTheyConnected(theNodeOfDesire, true);
-                if (areConnected[0]) {
-                    var desiredConnection = this.NodeConnection[areConnected[1]];
-                    return desiredConnection.cost + desiredConnection.heuristic;
-                }
-            }
-        }else if(this.scorefactors.isHueristicFactor){
-            if (this.nodeConnectionLength() > 0) {
-                var areConnected = this.areTheyConnected(theNodeOfDesire, true);
-                if (areConnected[0]) {
-                    return this.Astar_getAstar_Huerisitic(theNodeOfDesire);
-                }
+        if (this.nodeConnectionLength() > 0) {
+            var areConnected = this.areTheyConnected(theNodeOfDesire,true);
+            if(this.scorefactors.isHueristicFactor){
+                
+                    if (areConnected[0]) {
+                        var desiredConnection = this.NodeConnection[areConnected[1]];
+                        return desiredConnection.cost + desiredConnection.heuristic;
+                    }else{
+                        console.log("getCost- failed to find connection - ", this, " => ", theNodeOfDesire)
+                    }
+                
+            }else if(this.scorefactors.isDistanceFactor){
+                
+                    if (areConnected[0]) {
+                        return this.NodeConnection[areConnected[1]].cost+this.NodeConnection[areConnected[1]].distanceHeuristic;
+                    }else{
+                        console.log("getCost- failed to find connection - ", this, " => ", theNodeOfDesire)
+                    }
+                
             }
         }
+        console.log("getCost- failed no reason - ", this, "=>", theNodeOfDesire)
         return -1
     }
 
@@ -140,7 +146,7 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
             if (secondarycall == true) {
                 letitrun =neighbors_Node.addConnection(this, cost, false);
                 if(letitrun){
-                    this.connectthem(neighbors_Node, cost);
+                    this.connectthem(neighbors_Node, cost,secondarycall);
                     return true;
                 }else{
                     // full none connect
@@ -148,7 +154,7 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
                 }
             }else if (!(this.areTheyConnected(neighbors_Node))) {
                 // this is the first connection attempt, and it worked
-                this.connectthem(neighbors_Node, cost);
+                this.connectthem(neighbors_Node, cost,secondarycall);
                 return true;
             } else {
                 // first connection attempt failed
@@ -165,9 +171,11 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
      * @param {nodeClass} neighbors_Node 
      * @param {number} cost  
      */
-    this.connectthem= function(neighbors_Node, cost){
+    this.connectthem= function(neighbors_Node, cost,secondarycall){
         this.NodeConnection.push({ node: neighbors_Node, cost: cost, heuristic: 0 , distanceHeuristic: 0});
-        this.connectionPrinter(neighbors_Node, cost);
+        if(secondarycall){
+            this.connectionPrinter(neighbors_Node, cost);
+        }
         this.connections += 1;
     }
 
@@ -186,12 +194,8 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
             curConenctionId = "";
         }
         // Append the new connection details to the existing content
-
-        const newConnection = `[${this.nodeNumber+1}] => [${neighbors_Node.nodeNumber+1}] XX `;
-        const updatedConenctionId = `${curConenctionId}${newConnection}`;
-
-        // Set the updated content to curConenctionId element
-        document.getElementById("curConenctionId").textContent = updatedConenctionId;
+        print_out_json_connection(this,neighbors_Node, cost);
+        
     }
 
     /**
@@ -279,6 +283,10 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
         }
     }
 
+    this.setHeruticOn=function(){
+        this.scorefactors.isHueristicFactor=true;
+    }
+
     /**
      * This functions checks the heuristic cost with new one,
      * if it is less than the old one, then it replaces it.
@@ -358,25 +366,22 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
      */
     this.Astar_setDistanceCostToNeighbor_Goal = function(theNodeOfDesire,secondarycall=true,currentDistance=0){
         var connection=this.areTheyConnected(theNodeOfDesire,true);
-        if((this=="7")||(theNodeOfDesire=="7")){
-            console.log("t");
-        }
+
         
         if(secondarycall){
             currentDist = this.getConnectionDistanceCost(manhattanDistance(this,this.goalNode));
             if(currentDistance<this.NodeConnection[connection[1]].distanceHeuristic){
                 currentDistance = this.NodeConnection[connection[1]].distanceHeuristic;
             }
-            
-            
             var returnedDistance =theNodeOfDesire.Astar_setDistanceCostToNeighbor_Goal(this,false,currentDist);
             if(returnedDistance>currentDistance){
                 this.NodeConnection[connection[1]].distanceHeuristic = returnedDistance
             }else{
                 this.NodeConnection[connection[1]].distanceHeuristic = currentDistance
             }
-            
+            return [this.NodeConnection[connection[1]].cost,this.NodeConnection[connection[1]].distanceHeuristic];
         }else{
+            // this is the secondary loop
             var returnedDistance =this.getConnectionDistanceCost(manhattanDistance(this,this.goalNode));
             if(returnedDistance<this.NodeConnection[connection[1]].distanceHeuristic){
                 returnedDistance = this.NodeConnection[connection[1]].distanceHeuristic;
@@ -386,9 +391,9 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
             }else{
                 this.NodeConnection[connection[1]].distanceHeuristic = currentDistance
             }
-            
+            return this.NodeConnection[connection[1]].distanceHeuristic;
         }
-        return this.NodeConnection[connection[1]].distanceHeuristic;
+        
     }
 
     /**
@@ -402,6 +407,7 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
         if(connection[0]){
             return this.NodeConnection[connection[1]].distanceHeuristic+this.NodeConnection[connection[1]].cost;
         }else{
+            console.log("Astar- failed to find connection", this, "=>", theNodeOfDesire)
             return this.getConnectionDistanceCost(manhattanDistance(this,this.goalNode));
         }
         //
@@ -418,7 +424,7 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
     
     /**
      * This updates all connections costs, based on distance
-     * This does not get triggered if 
+     * This does not get triggered if hasRunStarted is true
      */
         this.setAllConnectionDistanceCosts = function(){
             if(!this.hasRunStarted){
@@ -473,9 +479,6 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore=true)
      * This function is used to signify to stop changing all connection costs
      */
     this.runHasStarted = function(){
-        if(this.scorefactors.isDistanceFactor){
-            this.FinalDistanceToGoalScore = this.getConnectionDistanceCost(manhattanDistance(this,this.goalNode));
-        }
         this.hasRunStarted=true;
     }
 

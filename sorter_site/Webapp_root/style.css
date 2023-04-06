@@ -19,7 +19,12 @@ font-weight: bold;
 cursor: pointer;
 
 }
+.import_Text_area{
+    height: 300px;
+    width: 500px;
+    overflow: auto;
 
+}
 .node {
     position: absolute;
     width: 30px;
