@@ -2,19 +2,31 @@
 
 This is a step by step search visualizer. It is currently under development. 
 
+Capable of producing its own random graphs, making your own custom json graphs, or even just editing a random produced json!
+
 I did this by breaking the typically searches so they only do a single itteration (with some technical expections).
 
 This will only every do the next step when you hit **"next step"**
 
-Shows even the distance finding of Astar
+Shows even the distance finding aspect of Astar.
 
 It will go step by step to show how each search algorithem works
 
 Here is depth first search
-![image](https://user-images.githubusercontent.com/104032269/227746005-1c608ac0-056a-4f57-9fb9-2a6452b68261.png)
+![image](https://user-images.githubusercontent.com/104032269/230284071-b4b60060-e300-4c09-86c9-93e5b73ee49d.png)
 
 Here is Dijkstra
-![image](https://user-images.githubusercontent.com/104032269/228747774-138e5850-ac7e-46e4-8b31-158163255a22.png)
+![image](https://user-images.githubusercontent.com/104032269/230284156-5da13b3d-9e6d-4fe5-a3b6-42b4f3fd204c.png)
+
+Astar has 2 phases, one where it goes through showing distances of every node to the goal 
+
+![image](https://user-images.githubusercontent.com/104032269/230284559-9972dca3-c375-442a-ae7e-4f7e4a1f896a.png)
+
+
+Then it has the normal phase
+
+![image](https://user-images.githubusercontent.com/104032269/230284640-249aefb7-82d3-4029-b2b9-f9717c6944fb.png)
+
 
 # the colors are
 **white** = generic unnoticed node
