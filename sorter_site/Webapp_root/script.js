@@ -738,7 +738,7 @@ function generateNodes(count,distanceMultipler,isItImported = null) {
     var canvasWidth = canvas.width();
     var canvasHeight = canvas.height();
     var nodeObjectList = [];
-    if(isItImported==dune){
+    if(isItImported==false){
         for (var i = 0; i < count; i++) {
             var x = Math.floor(Math.random() * canvasWidth);
             var y = Math.floor(Math.random() * canvasHeight);
