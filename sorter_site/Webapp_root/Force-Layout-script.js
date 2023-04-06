@@ -113,6 +113,29 @@ class simulation {
     }
 
     /**
+     * This forces nodes back into the canvas, if they go out of bounds.
+     * TODO: Minor issue, if the node is dragged out, it seems to still not return back to the canvas
+     * 
+     * @param {nodeClass} node 
+     */
+    nonSimulationBoundry(node) {
+        var nodeWidth= $('.node').width();
+        var nodeHeight= $('.node').height();
+        if(node.x<nodeWidth){
+            node.x = nodeWidth;
+        }else if(node.x>(this.width-nodeWidth)){
+            node.x=this.width-nodeWidth;
+        }
+
+        if(node.y<nodeHeight){
+            node.y = nodeHeight;
+        }else if(node.y>(this.height-nodeHeight)){
+            node.y=this.height-nodeHeight;
+        }
+
+    }
+
+    /**
      * This updates nodes vx and xy based on their masss and distance from each other
      * and pulls them away from each other
      * @param {nodeClass} node1 
@@ -253,10 +276,15 @@ class simulation {
                     const angle = Math.atan2(dy, dx);
                     const node1Bounce = nodes[i].mass / (nodes[i].mass + nodes[j].mass);
                     const node2Bounce = nodes[j].mass / (nodes[i].mass + nodes[j].mass);
+
                     nodes[i].x -= overlap * node2Bounce * Math.cos(angle);
                     nodes[i].y -= overlap * node2Bounce * Math.sin(angle);
                     nodes[j].x += overlap * node1Bounce * Math.cos(angle);
                     nodes[j].y += overlap * node1Bounce * Math.sin(angle);
+                    if (!(this.isSimulated)) {
+                        this.nonSimulationBoundry(nodes[i]);
+                        this.nonSimulationBoundry(nodes[j])
+                    }
                     this.updateCSSmovement(nodes[i]);
                     this.updateCSSmovement(nodes[j]);
                 }
@@ -290,11 +318,12 @@ class simulation {
      * @param {[nodeClass]} nodes
      */
     updatePositions(nodes) {
-        if (this.isSimulated) {
+        if (!(this.isSimulated)) {
             //this.speedNormalizer(nodes);
         }
         for (const node of nodes) {
             if ((node.beingDragged == false)) {
+                //this.boundaryForce(node);
                 //dampen the velocity to avoid infinite oscillation
                 // do not put after or they nodes will party
                 // also kills off lots of speed.
@@ -304,6 +333,7 @@ class simulation {
                 // transfer velocities into speeds
                 node.x += node.vx;
                 node.y += node.vy;
+
                 node.setAllConnectionDistanceCosts();
                 this.updateCSSmovement(node);
             }

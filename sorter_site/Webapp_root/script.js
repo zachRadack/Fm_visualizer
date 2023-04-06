@@ -71,19 +71,20 @@ $(document).ready(function () {
      * This pushes the algorithm through a single step.
      */
     $("#next-step-btn").click(function () {
-
-        if (current_screen.algorithmGetter() == "dfs") {
-            current_screen.Depthfirstsearch();
-        } else if (current_screen.algorithmGetter() == "bfs") {
-            current_screen.breadthfirstsearch();
-        } else if (current_screen.algorithmGetter() == "Dijkstra") {
-            current_screen.Dijkstra();
-        } else if (current_screen.algorithmGetter() == "UniformCostSearch") {
-            current_screen.UniformCostSearch();
-        } else if (current_screen.algorithmGetter() == "Astar") {
-            current_screen.AstarAlgorithm();
-        }
-        current_screen.theSimulator.curPath_setter(current_screen.curPath, current_screen.hasAlgoDistanceVisualizerFinished);
+        if ((current_screen.gameOverGetter())) {
+            if (current_screen.algorithmGetter() == "dfs") {
+                current_screen.Depthfirstsearch();
+            } else if (current_screen.algorithmGetter() == "bfs") {
+                current_screen.breadthfirstsearch();
+            } else if (current_screen.algorithmGetter() == "Dijkstra") {
+                current_screen.Dijkstra();
+            } else if (current_screen.algorithmGetter() == "UniformCostSearch") {
+                current_screen.UniformCostSearch();
+            } else if (current_screen.algorithmGetter() == "Astar") {
+                current_screen.AstarAlgorithm();
+            }
+            current_screen.theSimulator.curPath_setter(current_screen.curPath, current_screen.hasAlgoDistanceVisualizerFinished)
+        };
     });
 
     /** 
@@ -200,6 +201,7 @@ function current_Finite_Machine() {
     this.isItSimulated = false;
     this.shouldItDrawCosts = true;
 
+    this.isGameOver = false;
     this.isDistanceScore;
     this.NodeCanvasSizeMultipler = manhattanDistance({ x: this.canvas.offsetWidth, y: this.canvas.offsetHeight }, { x: 0, y: 0 }) / 50;
     // used in astar to represent if ready to start actual search algorithem
@@ -360,6 +362,7 @@ function current_Finite_Machine() {
         // node color (as of time of writing this, it is pink.)
         // then it goes through with the current path and makes it set to the observed node color
         // which is green.
+        this.isGameOver = true;
         console.log("Goal Found");
         this.observedNode.setObserver();
 
@@ -371,6 +374,10 @@ function current_Finite_Machine() {
         // it is going
         document.getElementById((this.startNode).toString()).classList.add("start-node");
         document.getElementById((this.endNode).toString()).classList.add("the-goal");
+    }
+
+    this.gameOverGetter= function (){
+        return this.isGameOver;
     }
 
     /** 
@@ -660,11 +667,11 @@ this.minibreadthFirstSearch = function (nodes, startingNode, goalNode, NodeCanva
  */
 function PrintCurrentPath(Path) {
     document.getElementById("curPathId").textContent = "";
-    var currentpath= "";
+    var currentpath = "";
     Path.forEach(function (item, key) {
         currentpath += String(item.endnode.nodeNumber + 1) + "==>";
     });
-    document.getElementById("curPathId").textContent = currentpath.substring(0,currentpath.length-3);;
+    document.getElementById("curPathId").textContent = currentpath.substring(0, currentpath.length - 3);;
 }
 /**
  * this function handles making current node green and if there already is one
@@ -792,7 +799,9 @@ function drawConnections(nodes, curPath = current_screen.curPath, drawConnection
     for (var i = 0; i < nodes.length; i++) {
         var connection = nodes[i].getNeighbors(true);
         var startNode = nodes[i];
-
+        if (startNode.isGoal) {
+            goalGradient(startNode, current_screen.ctx)
+        }
         // This itterates through all the connections of the current node
         for (var a = 0; a < connection.length; a++) {
             var endNode = connection[a].node;
@@ -917,7 +926,7 @@ function drawConnectionLine_middleman(startNode, endNode) {
  * @param {string} color -strokeStyle color style, defaults to black (i.e. "rgba(0,0,0)")
  * @param {bool} isItPathed - if true, it will double up the line as to make it easier to see it
  */
-function drawConnectionLine(startNode, endNode, color = 'rgba(0,0,0)', isItPathed=false) {
+function drawConnectionLine(startNode, endNode, color = 'rgba(0,0,0)', isItPathed = false) {
     const screen_ctx = current_screen.ctx;
     screen_ctx.strokeStyle = color;
     // Draw line between nodes
@@ -925,43 +934,14 @@ function drawConnectionLine(startNode, endNode, color = 'rgba(0,0,0)', isItPathe
     screen_ctx.moveTo(startNode.x, startNode.y);
     screen_ctx.lineTo(endNode.x, endNode.y);
     screen_ctx.stroke();
-    if(isItPathed){
-        drawParrel_line2(startNode,endNode,screen_ctx,10);
+    if (isItPathed) {
+        drawParrel_line(startNode, endNode, screen_ctx, 10);
     }
-    
+
+
 }
 
-function drawParrel_line(node1,node2,screen_ctx){
-    // Calculate the slope of the original line
-    const m = (node2.y - node1.y) / (node2.x - node1.x);
-
-    // Define the distance between the two parallel lines
-    const distance = 10;
-
-    // Calculate the y-intercept of the new lines
-    const b1 = node1.y - m * node1.x + distance;
-    const b2 = node2.y - m * node2.x - distance;
-
-    // Draw the original line
-    screen_ctx.beginPath();
-    screen_ctx.moveTo(node1.x, node1.y);
-    screen_ctx.lineTo(node2.x, node2.y);
-    screen_ctx.stroke();
-
-    // Draw the new lines 
-    screen_ctx.beginPath();
-    screen_ctx.moveTo(node1.x, m * node1.x + b1);
-    screen_ctx.lineTo(node2.x, m * node2.x + b1);
-    screen_ctx.stroke();
-
-    screen_ctx.beginPath();
-    screen_ctx.moveTo(node1.x, m * node1.x + b2);
-    screen_ctx.lineTo(node2.x, m * node2.x + b2);
-    screen_ctx.stroke();
-}
-
-
-function drawParrel_line2(node1,node2,screen_ctx,offset){
+function drawParrel_line(node1, node2, screen_ctx, offset) {
     const dx = node2.x - node1.x;
     const dy = node2.y - node1.y;
     const len = Math.sqrt(dx * dx + dy * dy);
@@ -971,9 +951,26 @@ function drawParrel_line2(node1,node2,screen_ctx,offset){
     screen_ctx.moveTo(node1.x + ox, node1.y + oy);
     screen_ctx.lineTo(node2.x + ox, node2.y + oy);
     screen_ctx.stroke();
-    }
+}
 
 
+function goalGradient(node, screen_ctx) {
+    var canvas = $("#canvas");
+    var canvasWidth = canvas.width();
+    var canvasHeight = canvas.height();
+    const gradient = screen_ctx.createRadialGradient(node.x, node.y, 20, node.x, node.y, 90);
+
+    // Add three color stops
+    gradient.addColorStop(0, "white");
+    gradient.addColorStop(0.2, "lightgrey");
+    gradient.addColorStop(1, "#5f5f5f");
+
+    // Set the fill style and draw a rectangle
+    screen_ctx.fillStyle = gradient;
+
+    screen_ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+}
 
 /**
  * Draws the little nice cost box between nodes
