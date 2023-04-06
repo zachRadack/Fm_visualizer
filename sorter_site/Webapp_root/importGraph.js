@@ -4,9 +4,7 @@
  * @return {array} - The nodes object and connections object
  */
 function import_graph(){
-    console.log(document.getElementById("NodeBuilderTextBox").value);
     let nodes_Str = document.getElementById("NodeBuilderTextBox").value.split("|");
-    console.log(nodes_Str);
     var nodes_list = nodes_Str[0].split(";");
     var nodes_json = jsonConverter(nodes_list);
     
@@ -24,7 +22,10 @@ function import_graph(){
 function jsonConverter(json_str_array){
     let returnJSON = [];
     for (let i = 0; i < json_str_array.length; i++) {
-        returnJSON.push(JSON.parse(json_str_array[i]));
+        var json = JSON.parse(json_str_array[i]);
+        json.node1 = json.node1 -1;
+        json.node2 = json.node2 -1;
+        returnJSON.push(json);
     }
     return returnJSON;
 }
@@ -64,7 +65,21 @@ function print_out_json_connection(node1,node2,cost){
 function produce_Nodes(graph){
     let nodes = [];
     for (let i = 0; i < graph.length; i++) {
-        nodes.push(new nodeClass(graph[i].x,graph[i].y,graph[i].nodeNumber,graph[i].color));
+        var node = new nodeClass(graph[i].x,graph[i].y,graph[i].nodeNumber);
+        print_out_json_node(node);
+        nodes.push(node);
     }
     return nodes;
+}
+
+function connectNodes_JSON(nodes,connections_json){
+    for(var index in connections_json){
+        var connection = connections_json[index];
+        
+        var node1 = nodes.find(item => item.nodeNumber === connection.node1);
+        var node2 = nodes.find(item => item.nodeNumber === connection.node2);
+        node1.addConnection(node2, connection.cost);
+        drawConnectionLine_middleman(node1, node2);
+    }
+
 }

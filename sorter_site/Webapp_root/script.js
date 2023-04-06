@@ -14,9 +14,10 @@ $(document).ready(function() {
 $("#Create-canvas-btn").click(function () {
     document.getElementById("curConenctionId").textContent = "None";
     document.getElementById("curPathId").textContent = "None";
-
+    document.getElementById("NodeBuilderTextBox").value = "";
     current_screen.cancelAnimation();
     wipeCanvas();
+    
     current_screen = new current_Finite_Machine();
     
     var randomSeed = document.getElementById("seedTextBox").value;
@@ -223,21 +224,23 @@ function current_Finite_Machine() {
      * @param {bool} isimportGraph - If the graph is being imported or not. Off by default.
      */
     this.startup = function (totalNodes, totalConnections, isItSimulated,isDistanceScore=true, isimportGraph=false) {
+        
         this.shouldItDrawCosts = true;
         this.isDistanceScore=isDistanceScore;
         this.isItSimulated = isItSimulated;
         this.ctx = this.canvas.getContext("2d");
+        
         if(isimportGraph){
             isimportGraph = import_graph();
-            
         }
+        document.getElementById("NodeBuilderTextBox").value = "";
         this.nodes = generateNodes(totalNodes,this.NodeCanvasSizeMultipler,isimportGraph);
         if(!isimportGraph){
             connectNodes_nonImport(this.nodes, totalConnections,this.isDistanceScore,this.canvas.offsetWidth, this.canvas.offsetHeight);
         }else{
-
-            //this.connections = connections;
+            connectNodes_JSON(this.nodes,isimportGraph.connections_json)
         }
+        
         console.log("this nodes startup: ", this.nodes)
 
 
@@ -611,8 +614,7 @@ this.minibreadthFirstSearch = function(nodes,startingNode,goalNode,NodeCanvasSiz
                 for (let successor of newNode.getNeighbors()) {
                     if (!(successor.Astar_getisItVisited())&&(successor!= this.goalNode)) {
                         
-                        var distCost = newNode.Astar_setDistanceCostToNeighbor_Goal(successor);
-                        var newPath = new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }]),distCost[1]);
+                        var newPath = new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }]));
                         newPath.setDistanceHeruistic(distCost)
                         this.frontier.unshift(newPath)
                     }
@@ -751,6 +753,7 @@ function generateNodes(count,distanceMultipler,isItImported = null) {
             var x = isItImported.nodes_json[i].x;
             var y = isItImported.nodes_json[i].y;
             var NewNode = new nodeClass(x, y, i,distanceMultipler);
+            print_out_json_node(NewNode)
             nodeObjectList.push(NewNode);
         }
     }
@@ -779,7 +782,7 @@ function manhattanDistance(node1, node2) {
  * @param {Object} curPath The current chosen path and assosiated cost
  * @param {pathClass} curPath.currentpath this is the current path
  * @param {number} curPath.cost given paths cost
- * @param {bool} drawAstarConnections Are we visualizing Uniform Cost Search costs phase.
+ * @param {bool} drawConnections_Astar Are we visualizing Uniform Cost Search costs phase.
  */
 function drawConnections(nodes, curPath = current_screen.curPath,drawConnections_Astar={isRangeFindingDone:true}) {
     var dune;
@@ -790,10 +793,6 @@ function drawConnections(nodes, curPath = current_screen.curPath,drawConnections
         var connection = nodes[i].getNeighbors(true);
         var startNode = nodes[i];
 
-        
-
-        
-    
         // This itterates through all the connections of the current node
         for (var a = 0; a < connection.length; a++) {
             var endNode = connection[a].node;
