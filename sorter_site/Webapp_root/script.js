@@ -29,7 +29,7 @@ $("#Create-canvas-btn").click(function () {
     document.getElementById("currentSeed").textContent = (randomSeed).toString();
     Math.seedrandom(randomSeed);
     var totalNodes = parseInt(document.getElementById("totalNodes").value);
-    var totalConnections = parseInt(document.getElementById("totalConnections").value);
+    var totalConnections = parseFloat(document.getElementById("totalConnections").value);
     var isItSimulated = document.querySelector('#isItSimulated').checked;
     current_screen.startup(totalNodes, totalConnections, isItSimulated,true,false);
 
