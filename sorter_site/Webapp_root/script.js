@@ -236,6 +236,7 @@ function current_Finite_Machine() {
         document.getElementById("NodeBuilderTextBox").value = "";
         this.nodes = generateNodes(totalNodes,this.NodeCanvasSizeMultipler,isimportGraph);
         if(!isimportGraph){
+            //defunct_connectNodes(this.nodes,totalConnections);
             connectNodes_nonImport(this.nodes, totalConnections,this.isDistanceScore,this.canvas.offsetWidth, this.canvas.offsetHeight);
         }else{
             connectNodes_JSON(this.nodes,isimportGraph.connections_json)
@@ -825,14 +826,18 @@ function drawConnections(nodes, curPath = current_screen.curPath,drawConnections
             for (var a = 0; a < connection.length; a++) {
                 var endNode = connection[a].node;
                 var cost = connection[a].cost;
-                if(connection[a].node.wasComputed){
-                    draw_cost(startNode, endNode, cost,startNode.returnScoreFactors(),drawConnections_Astar);
-                }else if(drawConnections_Astar.goalNode!=connection[a].node){
-                    // this draws the stuff at the start upon loading
-                    draw_cost(startNode, endNode, cost,startNode.returnScoreFactors(),drawConnections_Astar);
-                }else{
-                    draw_cost(startNode, endNode, cost,startNode.returnScoreFactors(),drawConnections_Astar);
-                    console.log("nope");
+
+                // This if statement seems useless, but its actually to assist in showing the fun jsons because its fun to watch the lines go crazy
+                if(!(document.querySelector('#displayCosts').checked)){
+                    if(connection[a].node.wasComputed){
+                        draw_cost(startNode, endNode, cost,startNode.returnScoreFactors(),drawConnections_Astar);
+                    }else if(drawConnections_Astar.goalNode!=connection[a].node){
+                        // this draws the stuff at the start upon loading
+                        draw_cost(startNode, endNode, cost,startNode.returnScoreFactors(),drawConnections_Astar);
+                    }else{
+                        draw_cost(startNode, endNode, cost,startNode.returnScoreFactors(),drawConnections_Astar);
+                        console.log("nope");
+                    }
                 }
             }
         }
