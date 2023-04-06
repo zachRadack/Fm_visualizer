@@ -660,10 +660,11 @@ this.minibreadthFirstSearch = function (nodes, startingNode, goalNode, NodeCanva
  */
 function PrintCurrentPath(Path) {
     document.getElementById("curPathId").textContent = "";
-
+    var currentpath= "";
     Path.forEach(function (item, key) {
-        document.getElementById("curPathId").textContent = document.getElementById("curPathId").textContent + String(item.endnode.nodeNumber + 1) + "==>";
+        currentpath += String(item.endnode.nodeNumber + 1) + "==>";
     });
+    document.getElementById("curPathId").textContent = currentpath.substring(0,currentpath.length-3);;
 }
 /**
  * this function handles making current node green and if there already is one
@@ -800,7 +801,7 @@ function drawConnections(nodes, curPath = current_screen.curPath, drawConnection
                 if (!(isItPathed(curPath, startNode, endNode))) {
                     drawConnectionLine(startNode, endNode, "rgba(0,0,0)");
                 } else {
-                    drawConnectionLine(startNode, endNode, "rgba(255,0,0)");
+                    drawConnectionLine(startNode, endNode, "rgba(255,0,0)", true);
                 }
             } else {
                 drawConnectionLine(startNode, endNode, "rgba(0,0,0)");
@@ -914,16 +915,63 @@ function drawConnectionLine_middleman(startNode, endNode) {
  * @param {nodeClass} startNode 
  * @param {nodeClass} endNode 
  * @param {string} color -strokeStyle color style, defaults to black (i.e. "rgba(0,0,0)")
+ * @param {bool} isItPathed - if true, it will double up the line as to make it easier to see it
  */
-function drawConnectionLine(startNode, endNode, color = 'rgba(0,0,0)') {
-
-    current_screen.ctx.strokeStyle = color;
+function drawConnectionLine(startNode, endNode, color = 'rgba(0,0,0)', isItPathed=false) {
+    const screen_ctx = current_screen.ctx;
+    screen_ctx.strokeStyle = color;
     // Draw line between nodes
-    current_screen.ctx.beginPath();
-    current_screen.ctx.moveTo(startNode.x, startNode.y);
-    current_screen.ctx.lineTo(endNode.x, endNode.y);
-    current_screen.ctx.stroke();
+    screen_ctx.beginPath();
+    screen_ctx.moveTo(startNode.x, startNode.y);
+    screen_ctx.lineTo(endNode.x, endNode.y);
+    screen_ctx.stroke();
+    if(isItPathed){
+        drawParrel_line2(startNode,endNode,screen_ctx,10);
+    }
+    
 }
+
+function drawParrel_line(node1,node2,screen_ctx){
+    // Calculate the slope of the original line
+    const m = (node2.y - node1.y) / (node2.x - node1.x);
+
+    // Define the distance between the two parallel lines
+    const distance = 10;
+
+    // Calculate the y-intercept of the new lines
+    const b1 = node1.y - m * node1.x + distance;
+    const b2 = node2.y - m * node2.x - distance;
+
+    // Draw the original line
+    screen_ctx.beginPath();
+    screen_ctx.moveTo(node1.x, node1.y);
+    screen_ctx.lineTo(node2.x, node2.y);
+    screen_ctx.stroke();
+
+    // Draw the new lines 
+    screen_ctx.beginPath();
+    screen_ctx.moveTo(node1.x, m * node1.x + b1);
+    screen_ctx.lineTo(node2.x, m * node2.x + b1);
+    screen_ctx.stroke();
+
+    screen_ctx.beginPath();
+    screen_ctx.moveTo(node1.x, m * node1.x + b2);
+    screen_ctx.lineTo(node2.x, m * node2.x + b2);
+    screen_ctx.stroke();
+}
+
+
+function drawParrel_line2(node1,node2,screen_ctx,offset){
+    const dx = node2.x - node1.x;
+    const dy = node2.y - node1.y;
+    const len = Math.sqrt(dx * dx + dy * dy);
+    const ox = (dy / len) * offset;
+    const oy = (-dx / len) * offset;
+    screen_ctx.beginPath();
+    screen_ctx.moveTo(node1.x + ox, node1.y + oy);
+    screen_ctx.lineTo(node2.x + ox, node2.y + oy);
+    screen_ctx.stroke();
+    }
 
 
 

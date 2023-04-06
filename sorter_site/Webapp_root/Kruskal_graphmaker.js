@@ -40,7 +40,7 @@ function connectNodes_nonImport(nodes, count, distanceCost = false, screen_width
             }
             if (element[0].addConnection(element[1], cost)) {
                 uf.union(element[0].nodeNumber, element[1].nodeNumber);
-
+                print_out_json_connection(element[0], element[1],cost)
                 drawConnectionLine_middleman(element[0], element[1]);
                 currentConnections += 1;
             }
