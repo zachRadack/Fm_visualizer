@@ -6,18 +6,18 @@ class simulation {
      * @param {[nodeClass]} nodes - The nodes that are being checked
      * @param {boolean} isSimulated - If the simulation is being run, off by default
      */
-    constructor(width, height, nodes,isSimulated=false) {
+    constructor(width, height, nodes, isSimulated = false) {
         // canvas sizes
         this.width = width;
         this.height = height;
-        
+
         // if nodes float around
         this.isSimulated = isSimulated;
         // accceleration min/maxs. This is for speed normalization
-        this.vx_list=new Array();
-        this.vy_list=new Array();
-        this.vx_list_neg=new Array();
-        this.vy_list_neg=new Array();
+        this.vx_list = new Array();
+        this.vy_list = new Array();
+        this.vx_list_neg = new Array();
+        this.vy_list_neg = new Array();
         this.simulationLoop(nodes);
 
         // this allows for cancelling animation later
@@ -25,8 +25,8 @@ class simulation {
 
         // this is the curpath according to currentscreen
         // should be updated whenever possible.
-        this.globalcurPath=[];
-        this.hasAlgoDistanceVisualizerFinished={isRangeFindingDone:true};
+        this.globalcurPath = [];
+        this.hasAlgoDistanceVisualizerFinished = { isRangeFindingDone: true };
     }
 
     /**
@@ -37,14 +37,14 @@ class simulation {
      * @param {number} curPath.curCost - The current cost of the algorithm
      * @param {bool} hasAlgoDistanceVisualizerFinished Are we in the distance visualizer phase.
      */
-    curPath_setter(curPath,hasAlgoDistanceVisualizerFinished){
-        if(hasAlgoDistanceVisualizerFinished.isRangeFindingDone){
-            this.globalcurPath=curPath;
-        }else{
-            this.hasAlgoDistanceVisualizerFinished=hasAlgoDistanceVisualizerFinished;
+    curPath_setter(curPath, hasAlgoDistanceVisualizerFinished) {
+        if (hasAlgoDistanceVisualizerFinished.isRangeFindingDone) {
+            this.globalcurPath = curPath;
+        } else {
+            this.hasAlgoDistanceVisualizerFinished = hasAlgoDistanceVisualizerFinished;
             this.globalcurPath = this.hasAlgoDistanceVisualizerFinished.curPath;
         }
-        
+
     }
 
     /** 
@@ -53,23 +53,23 @@ class simulation {
      * @param {[nodeClass]} nodes - The nodes that are being checked
      */
     simulationLoop(nodes) {
-        if(this.isSimulated){
+        if (this.isSimulated) {
             this.simulateForces(nodes);
         }
-        
+
         this.checkCollisions(nodes);
 
         this.updatePositions(nodes);
-        
-        this.vx_list=new Array();
-        this.vy_list=new Array();
-        this.vx_list_neg=new Array();
-        this.vy_list_neg=new Array();
+
+        this.vx_list = new Array();
+        this.vy_list = new Array();
+        this.vx_list_neg = new Array();
+        this.vy_list_neg = new Array();
 
         // Schedule the next loop iteration
         this.animationId = requestAnimationFrame(() => {
             this.simulationLoop(nodes);
-            drawConnections(nodes,this.globalcurPath,this.hasAlgoDistanceVisualizerFinished);
+            drawConnections(nodes, this.globalcurPath, this.hasAlgoDistanceVisualizerFinished);
 
         });
     };
@@ -77,7 +77,7 @@ class simulation {
     stopAnimation() {
         cancelAnimationFrame(this.animationId);
     }
-    
+
 
     /** 
      * Define the boundary force, which is canvas not perfect
@@ -96,20 +96,20 @@ class simulation {
         let fy = 0;
 
         if (x - radius < padding) {
-            fx += (padding - (x - radius))** 2;
+            fx += (padding - (x - radius)) ** 2;
         } else if (x + radius > this.width - padding) {
-            fx -= (x + radius - this.width + padding)** 2;
+            fx -= (x + radius - this.width + padding) ** 2;
         }
 
         if (y - radius < padding) {
-            fy += (padding - (y - radius))** 2;
+            fy += (padding - (y - radius)) ** 2;
         } else if (y + radius > this.height - padding) {
-            fy -= (y + radius - this.height + padding)** 2;
+            fy -= (y + radius - this.height + padding) ** 2;
         }
-        
+
         node.vx += fx;
         node.vy += fy;
-        
+
     }
 
     /**
@@ -167,7 +167,7 @@ class simulation {
         const dx = centerX - node.x;
         const dy = centerY - node.y;
         const distance = Math.sqrt(dx ** 2 + dy ** 2);
-        const force = 6* distance;
+        const force = 6 * distance;
         node.vx += force * dx / distance;
         node.vy += force * dy / distance;
     };
@@ -183,9 +183,9 @@ class simulation {
         for (const node of nodes) {
             if ((node.beingDragged == false)) {
                 let neighbors = node.getNeighbors();
-                
+
                 for (const link of neighbors) {
-                    
+
                     this.attractionForce(node, link);
                 }
                 for (const otherNode of nodes.filter((n) => n.nodeNumber !== node.nodeNumber)) {
@@ -193,8 +193,8 @@ class simulation {
                         this.repulsionForce(node, otherNode);
                     }
                 }
-                
-                
+
+
             }
         }
         for (const node of nodes) {
@@ -220,7 +220,7 @@ class simulation {
             }
         }
     }
-    
+
 
 
     /**
@@ -271,41 +271,41 @@ class simulation {
      *  is and that is the pos and neg speed limit they will go this is the speed limit 
      * @param {[nodeClass]} nodes 
      */
-    speedNormalizer(nodes){
+    speedNormalizer(nodes) {
         var normalizeVal = 6;
         const min_vx = Math.min(...this.vx_list);
         const max_vx = Math.max(...this.vx_list);
         const min_vy = Math.min(...this.vy_list);
         const max_vy = Math.max(...this.vy_list);
-        for (const node of nodes){
-            node.vx = (node.vx - min_vx) / (max_vx - min_vx) * normalizeVal - (normalizeVal/2);
-            node.vy = (node.vy - min_vy) / (max_vy - min_vy) * normalizeVal - (normalizeVal/2);
+        for (const node of nodes) {
+            node.vx = (node.vx - min_vx) / (max_vx - min_vx) * normalizeVal - (normalizeVal / 2);
+            node.vy = (node.vy - min_vy) / (max_vy - min_vy) * normalizeVal - (normalizeVal / 2);
         }
     }
 
-    
+
 
     /**
      * Update the positions of the nodes based on the forces
      * @param {[nodeClass]} nodes
      */
     updatePositions(nodes) {
-        if(this.isSimulated){
+        if (this.isSimulated) {
             //this.speedNormalizer(nodes);
         }
         for (const node of nodes) {
             if ((node.beingDragged == false)) {
-            //dampen the velocity to avoid infinite oscillation
-            // do not put after or they nodes will party
-            // also kills off lots of speed.
-            node.vx *= 0.1;   
-            node.vy *= 0.1; 
+                //dampen the velocity to avoid infinite oscillation
+                // do not put after or they nodes will party
+                // also kills off lots of speed.
+                node.vx *= 0.1;
+                node.vy *= 0.1;
 
-            // transfer velocities into speeds
-            node.x += node.vx;
-            node.y += node.vy;
-            node.setAllConnectionDistanceCosts();
-            this.updateCSSmovement(node);
+                // transfer velocities into speeds
+                node.x += node.vx;
+                node.y += node.vy;
+                node.setAllConnectionDistanceCosts();
+                this.updateCSSmovement(node);
             }
         }
     };

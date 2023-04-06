@@ -1,41 +1,32 @@
+body{
+    background-color: lightslategrey;
+}
+
+
 #canvas {
     background-color: #5f5f5f;
     border: 1px solid #d9d9d9;
-  }
-
-.flex_control_box{
-    flex: auto;
 }
-.controls_box{
-    border: 1px solid rgb(0,0,0);
+
+.flex_control_box {
+    display: flex;
+    flex-flow: nowrap;
+}
+
+.controls_box {
+    border: 1px solid rgb(0, 0, 0);
     background-color: lightgrey;
     width: fit-content;
     padding: 25px;
     margin: 5px;
-    
-}
-.node {
-position: absolute;
-width: 30px;
-height: 30px;
-border-radius: 50%;
-background-color: #fff;
-border: 2px solid #000;
-
-text-align: center;
-vertical-align: middle;
-line-height: 20px;
-font-size: 12px;
-font-weight: bold;
-cursor: pointer;
 
 }
-.import_Text_area{
-    height: 300px;
-    width: 500px;
-    overflow: auto;
 
+.control_buttons{
+    height:90%;
+    flex: 1 1 0px;
 }
+
 .node {
     position: absolute;
     width: 30px;
@@ -43,70 +34,96 @@ cursor: pointer;
     border-radius: 50%;
     background-color: #fff;
     border: 2px solid #000;
-    
+
     text-align: center;
     vertical-align: middle;
     line-height: 20px;
     font-size: 12px;
     font-weight: bold;
     cursor: pointer;
-    
-    }
 
-.connection_info {
-        position: absolute;
-        width: 40px;
-        height: 20px;
-        background-color: #fff;
-        border: 2px solid #000;
-        
-        text-align: center;
-        vertical-align: middle;
-        line-height: 20px;
-        font-size: 12px;
-        font-weight: bold;
-        cursor: pointer;
-        
-        }
-    
-
-    
-.line {
-position: absolute;
-border: 1px solid #000;
-text-align: center;
-font-size: 12px;
-font-weight: bold;
-pointer-events: none;
 }
 
-.was-computer{
+.import_Text_area {
+    height: 300px;
+    width: 500px;
+    overflow: auto;
+
+}
+
+.node {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #fff;
+    border: 2px solid #000;
+
+    text-align: center;
+    vertical-align: middle;
+    line-height: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+
+}
+
+.connection_info {
+    position: absolute;
+    width: 40px;
+    height: 20px;
+    background-color: #fff;
+    border: 2px solid #000;
+
+    text-align: center;
+    vertical-align: middle;
+    line-height: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+
+}
+
+
+
+.line {
+    position: absolute;
+    border: 1px solid #000;
+    text-align: center;
+    font-size: 12px;
+    font-weight: bold;
+    pointer-events: none;
+}
+
+.was-computer {
     background-color: #6567fd;
 }
 
-.was_travesered{
+.was_travesered {
     background-color: #b54ae7;
 }
-.observed-node{
-background-color: #13d613;
-} 
+
+.observed-node {
+    background-color: #13d613;
+}
 
 /*keep this below observed node so its background color takes priority*/
-.visited-node{
+.visited-node {
     background-color: #ff0b0b;
 }
 
-.end-game-path{
+.end-game-path {
     background-color: #13d613;
 }
-.start-node{
+
+.start-node {
     background-color: #13cfd6;
 }
 
-.the-goal{
+.the-goal {
     background-color: #ff00ff;
 }
 
-.flash{
+.flash {
     background-color: #ffee00;
 }

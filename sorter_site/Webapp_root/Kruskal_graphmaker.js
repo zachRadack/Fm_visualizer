@@ -10,56 +10,56 @@
  * @param {number} screen_width 
  * @param {number} screen_height 
  */
-function connectNodes_nonImport(nodes, count,distanceCost=false,screen_width=1,screen_height=1) {
+function connectNodes_nonImport(nodes, count, distanceCost = false, screen_width = 1, screen_height = 1) {
     console.log("connectNodes ", nodes);
     var edges = new PriorityQueue_graphmaker((a, b) => a[1] < b[1]);
-    
+
     for (let start = 0; start < nodes.length; start++) {
-        
-        
-        findClosestedNeighbor(edges,nodes[start], nodes, nodes.length-1);
-        
+
+
+        findClosestedNeighbor(edges, nodes[start], nodes, nodes.length - 1);
+
     }
-    
-    if((distanceCost)){
-        var screenscore=manhattanDistance({x:screen_width,y:screen_height},{x:0,y:0})/50;
+
+    if ((distanceCost)) {
+        var screenscore = manhattanDistance({ x: screen_width, y: screen_height }, { x: 0, y: 0 }) / 50;
     }
     var currentConnections = 0;
     let uf = new UnionFind(nodes.length);
-    const edgeSize=edges.size()
+    const edgeSize = edges.size()
     for (let i = 0; i < edgeSize; i++) {
-        let {element,priority} = edges.pop();
+        let { element, priority } = edges.pop();
         if (!uf.connected(element[0].nodeNumber, element[1].nodeNumber)) {
 
             // todo move cost finders fully into node class or anywhere else.
-            if(distanceCost){
+            if (distanceCost) {
                 //var cost = element[0].getConnectionDistanceCost(priority);
-                var cost = Math.round((Math.abs(priority/screenscore)));
-            }else{
+                var cost = Math.round((Math.abs(priority / screenscore)));
+            } else {
                 var cost = Math.floor(Math.random() * 10) + 1;
             }
-            if(element[0].addConnection(element[1], cost)){
+            if (element[0].addConnection(element[1], cost)) {
                 uf.union(element[0].nodeNumber, element[1].nodeNumber);
 
                 drawConnectionLine_middleman(element[0], element[1]);
-                currentConnections+=1;
+                currentConnections += 1;
             }
         }
     }
-    var avg_node_connections = (currentConnections/nodes.length);
-    var max_possible_connections = (nodes.length * (nodes.length-1)) / 2;
-    if((avg_node_connections<count) && (currentConnections <max_possible_connections)){
+    var avg_node_connections = (currentConnections / nodes.length);
+    var max_possible_connections = (nodes.length * (nodes.length - 1)) / 2;
+    if ((avg_node_connections < count) && (currentConnections < max_possible_connections)) {
         var moreConnections = new PriorityQueue_graphmaker((a, b) => a[1] < b[1]);
         for (let start = 0; start < nodes.length; start++) {
-            findClosestedNeighbor(moreConnections,nodes[start], nodes, nodes.length-1);
+            findClosestedNeighbor(moreConnections, nodes[start], nodes, nodes.length - 1);
         }
-        
-        while((avg_node_connections<count) &&(currentConnections < max_possible_connections) && (moreConnections.size()-1 >0)){
-            let {element,priority} = moreConnections.pop();
-            if(element[0].addConnection(element[1], cost)){
+
+        while ((avg_node_connections < count) && (currentConnections < max_possible_connections) && (moreConnections.size() - 1 > 0)) {
+            let { element, priority } = moreConnections.pop();
+            if (element[0].addConnection(element[1], cost)) {
                 drawConnectionLine_middleman(element[0], element[1]);
-                currentConnections+=1;
-                avg_node_connections = (currentConnections/nodes.length);
+                currentConnections += 1;
+                avg_node_connections = (currentConnections / nodes.length);
             }
         }
     };
@@ -135,13 +135,13 @@ function UnionFind(size) {
  * 
  * Returns nothings, but it will add the closest neighbors to the edges array
  */
-function findClosestedNeighbor(edges,node, nodes, numberOfNeighbors) {
+function findClosestedNeighbor(edges, node, nodes, numberOfNeighbors) {
     curNumb = 0;
 
-    for (var i = 0; i < nodes.length-1; i++) {
+    for (var i = 0; i < nodes.length - 1; i++) {
         if (node !== nodes[i]) {
-            if(!(node.areTheyConnected(nodes[i]))){
-                edges.push([node,nodes[i]],manhattanDistance(node, nodes[i]));
+            if (!(node.areTheyConnected(nodes[i]))) {
+                edges.push([node, nodes[i]], manhattanDistance(node, nodes[i]));
             }
         }
     }

@@ -1,69 +1,77 @@
 <!DOCTYPE html>
 <html>
-  
+
 <head>
     <title>Finite State Machine Visualizer</title>
     <link rel="stylesheet" type="text/css" href="style.css">
-</head> 
+</head>
 
 <body>
     <canvas id="canvas" height="800" width="1200"></canvas>
     <br>
     <div>
         <div class="flex_control_box">
-    <div class="controls_box">
-    <button id="Create-canvas-btn">Load Random Graph</button>
-    <button id="start-btn">Start</button>
-    <button id="next-step-btn">Next Step</button>
-    </div>
-    <div class="controls_box"><p id="PathContainerId">Current PATH: </p><div id="curPathId">None</div></div>
-    </div>
-    <div class="controls_box">
-    <br>
-    <label for="start">Start node:</label>
-    <select id="start">
-        <option value="0">Node 1</option>
-        <option value="1">Node 2</option>
-    </select>
-    <br>
-    <label for="end" >End node:</label>
-    <select id="end">
-        <option value="0">Node 1</option>
-        <option value="1" selected="selected">Node 2</option>
-    </select>
-    <br>
-    <label for="algorithm">Algorithm:</label>
-    <select id="algorithm">
-        <option value="dfs">Depth First Search</option>
-        <option value="bfs">Breadth First Search</option>
-        <option value="Dijkstra">Dijkstra</option>
-        <option value="UniformCostSearch">Uniform Cost Search</option>
-        <option value="Astar">A*</option>
-    </select>
-    <input type="checkbox" id= "isItSimulated" value="yes"> Node Simulation (off by default)
-    <input type="checkbox" id= "displayCosts" value="yes"> Visualize costs between nodes
-    <br>
-    <label for="totalNodes">Total Nodes: N = </label>
-    <input type="text" id="totalNodes" name="totalNodes" value="10">
-    <label for="totalConnections">AVG connections per node (C>=0.9): C = </label>
-    <input type="text" id="totalConnections" name="totalConnections" value="1.5">
-    <br>
-    <label for="seedTextBox">Seeding area:</label>
-    <input type="text" id="seedTextBox" name="seedTextBox">
-    </div>
-    </div>
-    <br>
-    <p>Your current seed is: <p id="currentSeed">No seed has been loaded</p></p>
+            <div class="controls_box" style="display:flex;">
+                <button id="Create-canvas-btn" class="control_buttons" style="background-color: rgb(2, 168, 245);">Load
+                    Random Graph</button>
+                <button id="start-btn" class="control_buttons">Start</button>
+                <button id="next-step-btn" class="control_buttons" style="background-color: rgb(2, 245, 2);">Next
+                    Step</button>
+            </div>
+            <div class="controls_box">
+                <p>Your current seed is:
+                <p id="currentSeed">No seed has been loaded</p>
+                </p>
+            </div>
+            <div class="controls_box">
+                <p id="PathContainerId">Current PATH: </p>
+                <div id="curPathId" style="font-size:30px">None</div>
+            </div>
+        </div>
+        <div class="controls_box">
+            <br>
+            <label for="start">Start node:</label>
+            <select id="start">
+                <option value="0">Node 1</option>
+                <option value="1">Node 2</option>
+            </select>
 
-    
-    <p id="ConnectionsContainerId">current connects are: <br><p id="curConenctionId">None</p></p>
+            <label for="end">End node:</label>
+            <select id="end">
+                <option value="0">Node 1</option>
+                <option value="1" selected="selected">Node 2</option>
+            </select>
+            <br>
+            <label for="algorithm">Algorithm:</label>
+            <select id="algorithm">
+                <option value="dfs">Depth First Search</option>
+                <option value="bfs">Breadth First Search</option>
+                <option value="Dijkstra">Dijkstra</option>
+                <option value="UniformCostSearch">Uniform Cost Search</option>
+                <option value="Astar">A*</option>
+            </select>
+            <input type="checkbox" id="isItSimulated" value="yes"> Node Simulation (off by default)
+            <input type="checkbox" id="displayCosts" value="yes"> Visualize costs between nodes
+            <br>
+            <label for="totalNodes">Total Nodes: N = </label>
+            <input type="text" id="totalNodes" name="totalNodes" value="10">
+            <label for="totalConnections">AVG connections per node (C>=0.9): C = </label>
+            <input type="text" id="totalConnections" name="totalConnections" value="1.5">
+            <br>
+            <label for="seedTextBox">Seeding area:</label>
+            <input type="text" id="seedTextBox" name="seedTextBox">
+        </div>
+    </div>
     <br>
-    <button id="Import-Graph-btn">Import Graph</button>
-    <label for="NodeBuilderTextBox">Graph Maker import:</label>
-    <br>
-    <textarea id="NodeBuilderTextBox" class="import_Text_area" name="NodeBuilderTextBox"></textarea>
+    <div class="flex_control_box">
+        <div class="controls_box">
+            <button id="Import-Graph-btn">Import Graph</button>
+            <label for="NodeBuilderTextBox">Graph Maker import:</label>
+            <br>
+            <textarea id="NodeBuilderTextBox" class="import_Text_area" name="NodeBuilderTextBox"></textarea>
 
-
+        </div>
+    </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/ui/1.13.1/jquery-ui.min.js"></script>
@@ -76,7 +84,7 @@
     <script src="FunConnectionMaker.js"></script>
     <script src="script.js"></script>
 
-    
+
 </body>
 
 </html>

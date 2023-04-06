@@ -2,117 +2,115 @@
 var canvas = document.getElementById("canvas");
 
 var current_screen = new current_Finite_Machine();
-var totalnodechange ={totalnodes:0};
+var totalnodechange = { totalnodes: 0 };
 var animationFrame = -1;
 
-$(document).ready(function() {
-/**
- * Creates/wipes the canvas. Then loads up a new current_screen object.
- * This handles full wiping of everything.
- * 
- */
-$("#Create-canvas-btn").click(function () {
-    document.getElementById("curConenctionId").textContent = "None";
-    document.getElementById("curPathId").textContent = "None";
-    document.getElementById("NodeBuilderTextBox").value = "";
-    current_screen.cancelAnimation();
-    wipeCanvas();
-    
-    current_screen = new current_Finite_Machine();
-    
-    var randomSeed = document.getElementById("seedTextBox").value;
-    if (randomSeed.length == 0) {
-        randomSeed = (Math.random()).toString();
-        console.log("The current random seed is: " + randomSeed);
-    }
+$(document).ready(function () {
+    /**
+     * Creates/wipes the canvas. Then loads up a new current_screen object.
+     * This handles full wiping of everything.
+     * 
+     */
+    $("#Create-canvas-btn").click(function () {
+        document.getElementById("curPathId").textContent = "None";
+        document.getElementById("NodeBuilderTextBox").value = "";
+        current_screen.cancelAnimation();
+        wipeCanvas();
 
-    document.getElementById("currentSeed").textContent = (randomSeed).toString();
-    Math.seedrandom(randomSeed);
-    var totalNodes = parseInt(document.getElementById("totalNodes").value);
-    var totalConnections = parseFloat(document.getElementById("totalConnections").value);
-    var isItSimulated = document.querySelector('#isItSimulated').checked;
-    current_screen.startup(totalNodes, totalConnections, isItSimulated,true,false);
+        current_screen = new current_Finite_Machine();
 
-});
+        var randomSeed = document.getElementById("seedTextBox").value;
+        if (randomSeed.length == 0) {
+            randomSeed = (Math.random()).toString();
+            console.log("The current random seed is: " + randomSeed);
+        }
 
-/**
- * Handles the starting of the algorithm, and sets everything in motion.
- */
-$("#start-btn").click(function () {
+        document.getElementById("currentSeed").textContent = (randomSeed).toString();
+        Math.seedrandom(randomSeed);
+        var totalNodes = parseInt(document.getElementById("totalNodes").value);
+        var totalConnections = parseFloat(document.getElementById("totalConnections").value);
+        var isItSimulated = document.querySelector('#isItSimulated').checked;
+        current_screen.startup(totalNodes, totalConnections, isItSimulated, true, false);
 
-    var startNode = parseInt($("#start").val());
-    var endNode = parseInt($("#end").val());
-    var algorithm = $("#algorithm").val();
+    });
 
-    console.log("Start node: " + startNode);
-    console.log("End node: " + endNode);
-    console.log("Algorithm: " + algorithm);
+    /**
+     * Handles the starting of the algorithm, and sets everything in motion.
+     */
+    $("#start-btn").click(function () {
 
-    current_screen.initializer(startNode, endNode, algorithm);
+        var startNode = parseInt($("#start").val());
+        var endNode = parseInt($("#end").val());
+        var algorithm = $("#algorithm").val();
 
-    if (algorithm == "dfs") {
-        current_screen.shouldItDrawCosts = false;
-        current_screen.Depthfirstsearch();
-    } else if (algorithm == "bfs") {
-        current_screen.shouldItDrawCosts = false;
-        current_screen.breadthfirstsearch();
-    } else if (current_screen.algorithmGetter() == "Dijkstra") {
-        current_screen.Dijkstra();
-    } else if(current_screen.algorithmGetter() == "UniformCostSearch"){
-        current_screen.UniformCostSearch();
-    }else if (current_screen.algorithmGetter() == "Astar") {
-        current_screen.AstarAlgorithm();
-    }
-    for (var i = 0; i < current_screen.nodes.length; i++) {
-        current_screen.nodes[i].runHasStarted();
-    }
-});
+        console.log("Start node: " + startNode);
+        console.log("End node: " + endNode);
+        console.log("Algorithm: " + algorithm);
 
-/** 
- * This pushes the algorithm through a single step.
- */
-$("#next-step-btn").click(function () {
-    
-    if (current_screen.algorithmGetter() == "dfs") {
-        current_screen.Depthfirstsearch();
-    } else if (current_screen.algorithmGetter() == "bfs") {
-        current_screen.breadthfirstsearch();
-    } else if (current_screen.algorithmGetter() == "Dijkstra") {
-        current_screen.Dijkstra();
-    }else if(current_screen.algorithmGetter() == "UniformCostSearch"){
-        current_screen.UniformCostSearch();
-    } else if (current_screen.algorithmGetter() == "Astar") {
-        current_screen.AstarAlgorithm();
-    }
-    current_screen.theSimulator.curPath_setter(current_screen.curPath,current_screen.hasAlgoDistanceVisualizerFinished);
-});
+        current_screen.initializer(startNode, endNode, algorithm);
 
-/** 
- * This imports a graph.
- */
-$("#Import-Graph-btn").click(function () {
-    document.getElementById("curConenctionId").textContent = "None";
-    document.getElementById("curPathId").textContent = "None";
+        if (algorithm == "dfs") {
+            current_screen.shouldItDrawCosts = false;
+            current_screen.Depthfirstsearch();
+        } else if (algorithm == "bfs") {
+            current_screen.shouldItDrawCosts = false;
+            current_screen.breadthfirstsearch();
+        } else if (current_screen.algorithmGetter() == "Dijkstra") {
+            current_screen.Dijkstra();
+        } else if (current_screen.algorithmGetter() == "UniformCostSearch") {
+            current_screen.UniformCostSearch();
+        } else if (current_screen.algorithmGetter() == "Astar") {
+            current_screen.AstarAlgorithm();
+        }
+        for (var i = 0; i < current_screen.nodes.length; i++) {
+            current_screen.nodes[i].runHasStarted();
+        }
+    });
 
-    current_screen.cancelAnimation();
-    wipeCanvas();
-    current_screen = new current_Finite_Machine();
-    
-    var randomSeed = document.getElementById("seedTextBox").value;
-    if (randomSeed.length == 0) {
-        randomSeed = (Math.random()).toString();
-        console.log("The current random seed is: " + randomSeed);
-    }
+    /** 
+     * This pushes the algorithm through a single step.
+     */
+    $("#next-step-btn").click(function () {
 
-    document.getElementById("currentSeed").textContent = (randomSeed).toString();
-    Math.seedrandom(randomSeed);
-    var totalNodes = parseInt(document.getElementById("totalNodes").value);
-    var totalConnections = parseInt(document.getElementById("totalConnections").value);
-    var isItSimulated = document.querySelector('#isItSimulated').checked;
-    current_screen.startup(totalNodes, totalConnections, isItSimulated,true,true);
+        if (current_screen.algorithmGetter() == "dfs") {
+            current_screen.Depthfirstsearch();
+        } else if (current_screen.algorithmGetter() == "bfs") {
+            current_screen.breadthfirstsearch();
+        } else if (current_screen.algorithmGetter() == "Dijkstra") {
+            current_screen.Dijkstra();
+        } else if (current_screen.algorithmGetter() == "UniformCostSearch") {
+            current_screen.UniformCostSearch();
+        } else if (current_screen.algorithmGetter() == "Astar") {
+            current_screen.AstarAlgorithm();
+        }
+        current_screen.theSimulator.curPath_setter(current_screen.curPath, current_screen.hasAlgoDistanceVisualizerFinished);
+    });
 
-    
-});
+    /** 
+     * This imports a graph.
+     */
+    $("#Import-Graph-btn").click(function () {
+        document.getElementById("curPathId").textContent = "None";
+
+        current_screen.cancelAnimation();
+        wipeCanvas();
+        current_screen = new current_Finite_Machine();
+
+        var randomSeed = document.getElementById("seedTextBox").value;
+        if (randomSeed.length == 0) {
+            randomSeed = (Math.random()).toString();
+            console.log("The current random seed is: " + randomSeed);
+        }
+
+        document.getElementById("currentSeed").textContent = (randomSeed).toString();
+        Math.seedrandom(randomSeed);
+        var totalNodes = parseInt(document.getElementById("totalNodes").value);
+        var totalConnections = parseInt(document.getElementById("totalConnections").value);
+        var isItSimulated = document.querySelector('#isItSimulated').checked;
+        current_screen.startup(totalNodes, totalConnections, isItSimulated, true, true);
+
+
+    });
 
 });
 
@@ -124,14 +122,14 @@ $("#Import-Graph-btn").click(function () {
  * @param {pathClass} path - The path that is being added to the frontier.
  * @param {number} cost - The cost of the path.
  */
-function pathClass(newNode, path, cost = 0,distanceHeuristic=0) {
+function pathClass(newNode, path, cost = 0, distanceHeuristic = 0) {
     this.newNode = newNode;
     this.startnode = path.startnode;
     this.path = path;
     this.cost = cost;
     this.distanceHeuristic = distanceHeuristic;
-    this.Heuristic_cost=0;
-    
+    this.Heuristic_cost = 0;
+
     // Handles the werid interaction that happens when non dfs/bfs searchs
     // try to swap over to a diffrent path. This is called every time.
     // not efficent but hopefully the just in time optimizies it.
@@ -140,7 +138,7 @@ function pathClass(newNode, path, cost = 0,distanceHeuristic=0) {
             var curNode = nodes[i];
             if (curNode.visited && !(this.path.some(obj => obj.endnode == curNode))) {
                 curNode.setVisited();
-                
+
             } else if (!(curNode.visited) && (this.path.some(obj => obj.endnode == curNode))) {
                 curNode.setVisited();
             }
@@ -153,16 +151,16 @@ function pathClass(newNode, path, cost = 0,distanceHeuristic=0) {
         return this.path
     }
 
-    this.setheuristic_Dijkstra = function(setCost){
+    this.setheuristic_Dijkstra = function (setCost) {
         this.Heuristic_cost = setCost;
     }
 
-    this.setDistanceHeruistic = function(distCost){
+    this.setDistanceHeruistic = function (distCost) {
         this.DistCost = distCost;
     }
 
-    this.readData = function(){
-        return {newNode:this.newNode,startnode:this.startnode,path:this.path,cost:this.cost,distanceHeuristic:this.distanceHeuristic,Heuristic_cost:this.Heuristic_cost};
+    this.readData = function () {
+        return { newNode: this.newNode, startnode: this.startnode, path: this.path, cost: this.cost, distanceHeuristic: this.distanceHeuristic, Heuristic_cost: this.Heuristic_cost };
     }
 
 }
@@ -188,7 +186,7 @@ function current_Finite_Machine() {
 
     this.theSimulator = false;
 
-    this.curPath = {curentPath:[],curCost:0};
+    this.curPath = { curentPath: [], curCost: 0 };
 
     // these are initiator values
     this.first_run = true;
@@ -203,11 +201,11 @@ function current_Finite_Machine() {
     this.shouldItDrawCosts = true;
 
     this.isDistanceScore;
-    this.NodeCanvasSizeMultipler=manhattanDistance({x:this.canvas.offsetWidth,y:this.canvas.offsetHeight},{x:0,y:0})/50;
+    this.NodeCanvasSizeMultipler = manhattanDistance({ x: this.canvas.offsetWidth, y: this.canvas.offsetHeight }, { x: 0, y: 0 }) / 50;
     // used in astar to represent if ready to start actual search algorithem
-    this.hasAlgoDistanceVisualizerFinished = {isRangeFindingDone:true};
-    
-    
+    this.hasAlgoDistanceVisualizerFinished = { isRangeFindingDone: true };
+
+
     /** 
      * Setups the canvas and stuff. Handles the creation of the nodes and connections.
      * 
@@ -223,25 +221,25 @@ function current_Finite_Machine() {
      * @param {boolean} isDistanceScore - If the distance score is being used or not. On by default. 
      * @param {bool} isimportGraph - If the graph is being imported or not. Off by default.
      */
-    this.startup = function (totalNodes, totalConnections, isItSimulated,isDistanceScore=true, isimportGraph=false) {
-        
+    this.startup = function (totalNodes, totalConnections, isItSimulated, isDistanceScore = true, isimportGraph = false) {
+
         this.shouldItDrawCosts = true;
-        this.isDistanceScore=isDistanceScore;
+        this.isDistanceScore = isDistanceScore;
         this.isItSimulated = isItSimulated;
         this.ctx = this.canvas.getContext("2d");
-        
-        if(isimportGraph){
+
+        if (isimportGraph) {
             isimportGraph = import_graph();
         }
         document.getElementById("NodeBuilderTextBox").value = "";
-        this.nodes = generateNodes(totalNodes,this.NodeCanvasSizeMultipler,isimportGraph);
-        if(!isimportGraph){
+        this.nodes = generateNodes(totalNodes, this.NodeCanvasSizeMultipler, isimportGraph);
+        if (!isimportGraph) {
             //defunct_connectNodes(this.nodes,totalConnections);
-            connectNodes_nonImport(this.nodes, totalConnections,this.isDistanceScore,this.canvas.offsetWidth, this.canvas.offsetHeight);
-        }else{
-            connectNodes_JSON(this.nodes,isimportGraph.connections_json)
+            connectNodes_nonImport(this.nodes, totalConnections, this.isDistanceScore, this.canvas.offsetWidth, this.canvas.offsetHeight);
+        } else {
+            connectNodes_JSON(this.nodes, isimportGraph.connections_json)
         }
-        
+
         console.log("this nodes startup: ", this.nodes)
 
 
@@ -267,7 +265,7 @@ function current_Finite_Machine() {
                     curNode.beingDragged = true;
                     curNode.x = ui.position.left + 10;
                     curNode.y = ui.position.top + 10;
-                    
+
                 },
                 stop: function (event, ui) {
                     var index = $(this).text() - 1;
@@ -322,38 +320,38 @@ function current_Finite_Machine() {
         // weither or not the selected search is a uninformed search algorithm
         if ((this.algorithm == "dfs") || (this.algorithm == "bfs")) {
             this.frontier.push(new pathClass(this.observedNode, [{ startnode: this.observedNode, endnode: this.observedNode }]));
-        } else if(this.algorithm == "Dijkstra"){
+        } else if (this.algorithm == "Dijkstra") {
 
-            for(const node in this.nodes){
+            for (const node in this.nodes) {
                 this.nodes[node].setHeruticOn();
             }
-            this.frontier = new PriorityQueue((a, b) => (a.cost+a.heuristic) < (b.cost+b.heuristic));
+            this.frontier = new PriorityQueue((a, b) => (a.cost + a.heuristic) < (b.cost + b.heuristic));
             this.frontier.push(new pathClass(this.observedNode, [{ startnode: this.observedNode, endnode: this.observedNode }]));
-        }  else if (this.algorithm == "UniformCostSearch"){
-            this.frontier = new PriorityQueue((a, b) => (a.cost+a.distanceHeuristic) < (b.cost+b.distanceHeuristic));
+        } else if (this.algorithm == "UniformCostSearch") {
+            this.frontier = new PriorityQueue((a, b) => (a.cost + a.distanceHeuristic) < (b.cost + b.distanceHeuristic));
             this.frontier.push(new pathClass(this.observedNode, [{ startnode: this.observedNode, endnode: this.observedNode }]));
-        } else if (this.algorithm == "Astar"){
-            this.frontier = new PriorityQueue((a, b) => (a.cost+a.distanceHeuristic) < (b.cost+b.distanceHeuristic));
+        } else if (this.algorithm == "Astar") {
+            this.frontier = new PriorityQueue((a, b) => (a.cost + a.distanceHeuristic) < (b.cost + b.distanceHeuristic));
             this.frontier.push(new pathClass(this.observedNode, [{ startnode: this.observedNode, endnode: this.observedNode }]));
         }
 
-        
-        
+
+
         // If the algorithem uses physical distance in calculation, then add it here
-        if(this.algorithm == "Astar"){
-            this.hasAlgoDistanceVisualizerFinished= new minibreadthFirstSearch(this.nodes,this.nodes[this.startNode],this.nodes[this.endNode],this.NodeCanvasSizeMultipler,false);
-            for(const node in this.nodes){
+        if (this.algorithm == "Astar") {
+            this.hasAlgoDistanceVisualizerFinished = new minibreadthFirstSearch(this.nodes, this.nodes[this.startNode], this.nodes[this.endNode], this.NodeCanvasSizeMultipler, false);
+            for (const node in this.nodes) {
                 this.nodes[node].Astar_setGoalNode(this.nodes[this.endNode]);
             }
-        }else {
+        } else {
             // this is deactivated due to last variable which is set to true at the end
-            this.hasAlgoDistanceVisualizerFinished= new minibreadthFirstSearch(this.nodes,this.nodes[this.startNode],this.nodes[this.endNode],this.NodeCanvasSizeMultipler,true);
+            this.hasAlgoDistanceVisualizerFinished = new minibreadthFirstSearch(this.nodes, this.nodes[this.startNode], this.nodes[this.endNode], this.NodeCanvasSizeMultipler, true);
             this.curPat = [{ startnode: this.observedNode, endnode: this.observedNode }];
         }
         document.getElementById((this.endNode).toString()).classList.add("the-goal");
 
-        this.theSimulator.curPath_setter(this.curPath,this.hasAlgoDistanceVisualizerFinished);
-        
+        this.theSimulator.curPath_setter(this.curPath, this.hasAlgoDistanceVisualizerFinished);
+
     }
 
     // handles when the search algos find the goal node
@@ -364,7 +362,7 @@ function current_Finite_Machine() {
         // which is green.
         console.log("Goal Found");
         this.observedNode.setObserver();
-        
+
         path.forEach(function (aNode, i) {
             document.getElementById((aNode.endnode.nodeNumber).toString()).classList.add("end-game-path");
 
@@ -379,7 +377,7 @@ function current_Finite_Machine() {
      * this does a single step of depthfirst search
     */
     this.Depthfirstsearch = function () {
-        const { newNode, path, cost,poppedNode} = this.setNewCurrentPath();
+        const { newNode, path, cost, poppedNode } = this.setNewCurrentPath();
         PrintCurrentPath(path);
         //console.log("hayy: " , this.nodes[2].visited, " here is number ", this.nodes[2].nodeNumber);
         // see if we hit the goal yet
@@ -388,8 +386,8 @@ function current_Finite_Machine() {
             // sends the path to end game
 
             this.end_game(path);
-        } else if ((!(newNode.visited)&&!(newNode.isObserved))||(this.first_run)) {
-            this.isGameOver(newNode,poppedNode);
+        } else if ((!(newNode.visited) && !(newNode.isObserved)) || (this.first_run)) {
+            this.isGameOver(newNode, poppedNode);
             for (let successor of newNode.getNeighbors()) {
                 this.frontier.push(new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }])));
                 if (successor.isThisGoal()) {
@@ -400,7 +398,7 @@ function current_Finite_Machine() {
                     successor.setWasComputed();
                 }
             }
-        } else if ((newNode.visited)||(newNode.isObserved)) {
+        } else if ((newNode.visited) || (newNode.isObserved)) {
             console.log("ALREADY VISITED");
             this.Depthfirstsearch();
         }
@@ -411,15 +409,15 @@ function current_Finite_Machine() {
     */
     this.breadthfirstsearch = function () {
         console.log("Bfs");
-        const { newNode, path, cost,poppedNode} = this.setNewCurrentPath();
+        const { newNode, path, cost, poppedNode } = this.setNewCurrentPath();
         PrintCurrentPath(path);
         // see if we hit the goal yet
         if (newNode.isThisGoal()) {
             this.found_path = true;
             // sends the path to end game
             this.end_game(path);
-        } else if ((!(newNode.visited)&&!(newNode.isObserved))||(this.first_run)) {
-            this.isGameOver(newNode,poppedNode);
+        } else if ((!(newNode.visited) && !(newNode.isObserved)) || (this.first_run)) {
+            this.isGameOver(newNode, poppedNode);
             for (let successor of newNode.getNeighbors()) {
                 var newPath = new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }]));
                 if (successor.isThisGoal()) {
@@ -432,7 +430,7 @@ function current_Finite_Machine() {
                     this.frontier.unshift(newPath)
                 }
             }
-        } else if ((newNode.visited)||(newNode.isObserved)) {
+        } else if ((newNode.visited) || (newNode.isObserved)) {
             console.log("ALREADY VISITED");
             this.breadthfirstsearch();
         }
@@ -444,71 +442,71 @@ function current_Finite_Machine() {
     this.Dijkstra = function () {
         console.log("Dijkstra");
 
-        const { newNode, path, cost,poppedNode} = this.setNewCurrentPath();
+        const { newNode, path, cost, poppedNode } = this.setNewCurrentPath();
         PrintCurrentPath(path);
 
         // see if we hit the goal yet
         if (newNode.isThisGoal()) {
             this.found_path = true;
             // sends the path to end game
-            
-            this.end_game(path);
-        } else if ((!(newNode.visited)&&!(newNode.isObserved))||(this.first_run)){
 
-            this.isGameOver(newNode,poppedNode);
+            this.end_game(path);
+        } else if ((!(newNode.visited) && !(newNode.isObserved)) || (this.first_run)) {
+
+            this.isGameOver(newNode, poppedNode);
             for (let successor of newNode.getNeighbors()) {
                 if (!(successor.visited)) {
                     //console.log("push: ",this.frontier);
                     successor.setWasComputed();
-                    var newcost = cost+newNode.getCost(successor);
+                    var newcost = cost + newNode.getCost(successor);
                     this.frontier.push(new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }]), newcost));
-                    newNode.setDijkstra_heuristic(newcost,successor);
+                    newNode.setDijkstra_heuristic(newcost, successor);
                 }
             }
-        } else if ((newNode.visited)||(newNode.isObserved)) {
+        } else if ((newNode.visited) || (newNode.isObserved)) {
             //console.log("ALREADY VISITED");
             this.Dijkstra();
         }
         console.log("final: ", this.frontier);
     }
 
-    this.AstarAlgorithm = function (){
+    this.AstarAlgorithm = function () {
         console.log("AstarAlgorithm");
-        if(this.hasAlgoDistanceVisualizerFinished.isRangeFindingDone==false){
+        if (this.hasAlgoDistanceVisualizerFinished.isRangeFindingDone == false) {
             //visualizer step
             this.hasAlgoDistanceVisualizerFinished.bfsStep();
-        }else{
-            console.log("logged: ",(this.frontier.peek()));
-            var { newNode, path, cost,poppedNode} = this.setNewCurrentPath();
+        } else {
+            console.log("logged: ", (this.frontier.peek()));
+            var { newNode, path, cost, poppedNode } = this.setNewCurrentPath();
             PrintCurrentPath(path);
-            console.log(" now logged: ",(this.frontier.peek()));
+            console.log(" now logged: ", (this.frontier.peek()));
             console.log(cost);
             // see if we hit the goal yet
             if (newNode.isThisGoal()) {
                 this.found_path = true;
                 // sends the path to end game
-                
-                this.end_game(path);
-            } else if ((!(newNode.visited)&&!(newNode.isObserved))||(this.first_run)){
 
-                this.isGameOver(newNode,poppedNode);
+                this.end_game(path);
+            } else if ((!(newNode.visited) && !(newNode.isObserved)) || (this.first_run)) {
+
+                this.isGameOver(newNode, poppedNode);
                 for (let successor of newNode.getNeighbors()) {
                     if (!(successor.visited)) {
                         //console.log("push: ",this.frontier);
                         successor.setWasComputed();
                         var distCost = newNode.Astar_setDistanceCostToNeighbor_Goal(successor);
-                        var newPath = new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }]),distCost[0],distCost[1]);
+                        var newPath = new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }]), distCost[0], distCost[1]);
                         this.frontier.push(newPath);
                     }
                 }
-            } else if ((newNode.visited)||(newNode.isObserved)) {
+            } else if ((newNode.visited) || (newNode.isObserved)) {
                 //console.log("ALREADY VISITED");
                 this.AstarAlgorithm();
             }
             console.log("final: ", this.frontier);
         }
     }
-    
+
 
 
 
@@ -518,8 +516,8 @@ function current_Finite_Machine() {
      * todo implment uniformcostsearch
      */
     this.UniformCostSearch = function () {
-        
-        
+
+
     }
     /**
      * Checks to see if gameover, and if not, then sets new observer node
@@ -527,7 +525,7 @@ function current_Finite_Machine() {
      * @param {nodeClass} newNode 
      * @param {nodeClass} poppedNode 
      */
-    this.isGameOver = function(newNode,poppedNode){
+    this.isGameOver = function (newNode, poppedNode) {
         if (this.first_run) {
             // first run is special, we do not want to push out of first node yet
             this.first_run = false;
@@ -544,21 +542,21 @@ function current_Finite_Machine() {
      * the actual reference to the pathClass itself
      * @returns {nodeClass, pathClass, int, nodeClass}
      */
-    this.setNewCurrentPath  = function(){
+    this.setNewCurrentPath = function () {
         var poppedNode = this.frontier.pop();
         const { newNode, path, cost } = poppedNode.readData();
         // sets current path that is chosen
-        this.curPath = {curentPath:poppedNode,curCost:cost};
-        return { newNode, path, cost,poppedNode} ;
+        this.curPath = { curentPath: poppedNode, curCost: cost };
+        return { newNode, path, cost, poppedNode };
     }
 
-    
+
 
     this.algorithmGetter = function () {
         return this.algorithm;
     }
-    
-    this.isDistanceScoreGetter = function(){
+
+    this.isDistanceScoreGetter = function () {
         return this.isDistanceScore;
     }
 
@@ -578,33 +576,33 @@ function current_Finite_Machine() {
  * @param {number} NodeCanvasSizeMultipler This is the multipler that essentially makes all costs consistent and based on actual distance
  * @param {bool} isRangeFindingDone if false, it means this tree will be called if passed over.
  */
-this.minibreadthFirstSearch = function(nodes,startingNode,goalNode,NodeCanvasSizeMultipler,isRangeFindingDone=false){
-    this.isRangeFindingDone=isRangeFindingDone;
+this.minibreadthFirstSearch = function (nodes, startingNode, goalNode, NodeCanvasSizeMultipler, isRangeFindingDone = false) {
+    this.isRangeFindingDone = isRangeFindingDone;
     this.goalNode = goalNode;
     this.firstRun = true;
-    this.visited= [this.goalNode];
+    this.visited = [this.goalNode];
     this.thisobserved = startingNode;
-    this.frontier=[new pathClass(startingNode, [{ startnode: startingNode, endnode: startingNode}])];
-    this.nodes= nodes;
-    this.NodeCanvasSizeMultipler=NodeCanvasSizeMultipler;
+    this.frontier = [new pathClass(startingNode, [{ startnode: startingNode, endnode: startingNode }])];
+    this.nodes = nodes;
+    this.NodeCanvasSizeMultipler = NodeCanvasSizeMultipler;
     this.curPath = [];
 
-    
-    
+
+
     /**
      * 
      * @return {bool} did it end
      */
-    this.bfsStep = function(){
-        if(this.frontier.length>0){
-            console.log("frontier: ",this.frontier);
+    this.bfsStep = function () {
+        if (this.frontier.length > 0) {
+            console.log("frontier: ", this.frontier);
 
-            const { newNode, path, cost,poppedNode} = this.setNewCurrentPath();
+            const { newNode, path, cost, poppedNode } = this.setNewCurrentPath();
 
-            if ((!(newNode.Astar_getisItVisited()))||(this.firstrun)) {
-                if(this.firstrun){
-                    this.firstrun=false;
-                }else{
+            if ((!(newNode.Astar_getisItVisited())) || (this.firstrun)) {
+                if (this.firstrun) {
+                    this.firstrun = false;
+                } else {
                     this.visited.push(newNode);
                 }
                 this.thisobserved.Astar_setisItVisited(true);
@@ -613,7 +611,7 @@ this.minibreadthFirstSearch = function(nodes,startingNode,goalNode,NodeCanvasSiz
                 this.thisobserved = newNode;
                 //var node_distance_cost = newNode.getConnectionDistanceCost(manhattanDistance(newNode,this.goalNode));
                 for (let successor of newNode.getNeighbors()) {
-                    if (!(successor.Astar_getisItVisited())&&(successor!= this.goalNode)) {
+                    if (!(successor.Astar_getisItVisited()) && (successor != this.goalNode)) {
                         var distCost = newNode.Astar_setDistanceCostToNeighbor_Goal(successor);
                         var newPath = new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }]));
                         newPath.setDistanceHeruistic(distCost)
@@ -622,8 +620,8 @@ this.minibreadthFirstSearch = function(nodes,startingNode,goalNode,NodeCanvasSiz
                 }
             }
             return false;
-        }else{
-            this.isRangeFindingDone=true;
+        } else {
+            this.isRangeFindingDone = true;
             console.log("derps");
             return true;
         }
@@ -636,12 +634,12 @@ this.minibreadthFirstSearch = function(nodes,startingNode,goalNode,NodeCanvasSiz
      * This ones cost is 
      * @returns {nodeClass, pathClass, int, nodeClass}
      */
-    this.setNewCurrentPath  = function(){
+    this.setNewCurrentPath = function () {
         const poppedNode = this.frontier.pop();
         const { newNode, path, cost } = poppedNode;
         // sets current path that is chosen
-        this.curPath = {curentPath:poppedNode,curCost:cost};
-        return { newNode, path, cost,poppedNode} ;
+        this.curPath = { curentPath: poppedNode, curCost: cost };
+        return { newNode, path, cost, poppedNode };
     }
 }
 
@@ -667,16 +665,16 @@ function PrintCurrentPath(Path) {
         document.getElementById("curPathId").textContent = document.getElementById("curPathId").textContent + String(item.endnode.nodeNumber + 1) + "==>";
     });
 }
-    /**
-     * this function handles making current node green and if there already is one
-     * it will first remove that ones  observed-node class and add visited-node class, which makes it red
-     * @param {nodeClass} newNode - This is the New observed node
-     * @param {nodeClass} observedNode - Old observered Node
-     * @param {bool} first_run - true means it is first
-     * @param {pathClass} path - Current selected path, for algorithems
-     * @param {[nodeClass]} nodes - All current Nodes
-     * @returns {nodeClass} The new observed 
-     */
+/**
+ * this function handles making current node green and if there already is one
+ * it will first remove that ones  observed-node class and add visited-node class, which makes it red
+ * @param {nodeClass} newNode - This is the New observed node
+ * @param {nodeClass} observedNode - Old observered Node
+ * @param {bool} first_run - true means it is first
+ * @param {pathClass} path - Current selected path, for algorithems
+ * @param {[nodeClass]} nodes - All current Nodes
+ * @returns {nodeClass} The new observed 
+ */
 function new_ObservedNode(newNode, observedNode, first_run, path = null, nodes = null) {
     // Sets classes of nodes, by changing background colors of them, to visualize where the search is
     let dune;
@@ -735,25 +733,25 @@ function startEnd_Node_Selector(nodes) {
  * @param {Number} isItImported.connections_json.cost
  * @returns {[nodeClass]} array of all nodeclass refrences 
  */
-function generateNodes(count,distanceMultipler,isItImported = null) {
+function generateNodes(count, distanceMultipler, isItImported = null) {
     var dune;
     var canvas = $("#canvas");
     var canvasWidth = canvas.width();
     var canvasHeight = canvas.height();
     var nodeObjectList = [];
-    if(isItImported==false){
+    if (isItImported == false) {
         for (var i = 0; i < count; i++) {
             var x = Math.floor(Math.random() * canvasWidth);
             var y = Math.floor(Math.random() * canvasHeight);
-            var NewNode = new nodeClass(x, y, i,distanceMultipler);
+            var NewNode = new nodeClass(x, y, i, distanceMultipler);
             print_out_json_node(NewNode);
             nodeObjectList.push(NewNode);
         }
-    }else{
+    } else {
         for (var i = 0; i < isItImported.nodes_json.length; i++) {
             var x = isItImported.nodes_json[i].x;
             var y = isItImported.nodes_json[i].y;
-            var NewNode = new nodeClass(x, y, i,distanceMultipler);
+            var NewNode = new nodeClass(x, y, i, distanceMultipler);
             print_out_json_node(NewNode)
             nodeObjectList.push(NewNode);
         }
@@ -785,11 +783,11 @@ function manhattanDistance(node1, node2) {
  * @param {number} curPath.cost given paths cost
  * @param {bool} drawConnections_Astar Are we visualizing Uniform Cost Search costs phase.
  */
-function drawConnections(nodes, curPath = current_screen.curPath,drawConnections_Astar={isRangeFindingDone:true}) {
+function drawConnections(nodes, curPath = current_screen.curPath, drawConnections_Astar = { isRangeFindingDone: true }) {
     var dune;
     current_screen.ctx.clearRect(0, 0, canvas.width, canvas.height);
     current_screen.ctx.font = "20px Arial";
-    
+
     for (var i = 0; i < nodes.length; i++) {
         var connection = nodes[i].getNeighbors(true);
         var startNode = nodes[i];
@@ -797,26 +795,26 @@ function drawConnections(nodes, curPath = current_screen.curPath,drawConnections
         // This itterates through all the connections of the current node
         for (var a = 0; a < connection.length; a++) {
             var endNode = connection[a].node;
-            if(curPath.length != 0){
+            if (curPath.length != 0) {
 
                 if (!(isItPathed(curPath, startNode, endNode))) {
                     drawConnectionLine(startNode, endNode, "rgba(0,0,0)");
                 } else {
                     drawConnectionLine(startNode, endNode, "rgba(255,0,0)");
                 }
-            }else{
+            } else {
                 drawConnectionLine(startNode, endNode, "rgba(0,0,0)");
             }
         }
-        
+
     }
-    if((drawConnections_Astar.isRangeFindingDone!=true)){
+    if ((drawConnections_Astar.isRangeFindingDone != true)) {
         drawConnectionLine(drawConnections_Astar.thisobserved, startNode.Astar_GetGoalNode(), "rgb(255, 238, 0)");
-        draw_cost(drawConnections_Astar.thisobserved, startNode.Astar_GetGoalNode(), 0,{distanceOnly:true},drawConnections_Astar);
-        
+        draw_cost(drawConnections_Astar.thisobserved, startNode.Astar_GetGoalNode(), 0, { distanceOnly: true }, drawConnections_Astar);
+
     }
 
-    
+
 
     if (current_screen.shouldItDrawCosts) {
         for (var i = 0; i < nodes.length; i++) {
@@ -828,21 +826,21 @@ function drawConnections(nodes, curPath = current_screen.curPath,drawConnections
                 var cost = connection[a].cost;
 
                 // This if statement seems useless, but its actually to assist in showing the fun jsons because its fun to watch the lines go crazy
-                if(!(document.querySelector('#displayCosts').checked)){
-                    if(connection[a].node.wasComputed){
-                        draw_cost(startNode, endNode, cost,startNode.returnScoreFactors(),drawConnections_Astar);
-                    }else if(drawConnections_Astar.goalNode!=connection[a].node){
+                if (!(document.querySelector('#displayCosts').checked)) {
+                    if (connection[a].node.wasComputed) {
+                        draw_cost(startNode, endNode, cost, startNode.returnScoreFactors(), drawConnections_Astar);
+                    } else if (drawConnections_Astar.goalNode != connection[a].node) {
                         // this draws the stuff at the start upon loading
-                        draw_cost(startNode, endNode, cost,startNode.returnScoreFactors(),drawConnections_Astar);
-                    }else{
-                        draw_cost(startNode, endNode, cost,startNode.returnScoreFactors(),drawConnections_Astar);
+                        draw_cost(startNode, endNode, cost, startNode.returnScoreFactors(), drawConnections_Astar);
+                    } else {
+                        draw_cost(startNode, endNode, cost, startNode.returnScoreFactors(), drawConnections_Astar);
                         console.log("nope");
                     }
                 }
             }
         }
     }
-    
+
 
 }
 
@@ -858,11 +856,11 @@ function drawConnections(nodes, curPath = current_screen.curPath,drawConnections
  * @returns 
  */
 function isItPathed(curPath, startnode, endnode) {
-    if(curPath.curentPath.length!=0){
+    if (curPath.curentPath.length != 0) {
         for (var i = 0; i < curPath.curentPath.path.length; i++) {
             var curStep = curPath.curentPath.path[i];
             if ((curStep.endnode != current_screen.startNode)) {
-                if ((areTheyEqual_AsymFlipped(curStep, {startnode:startnode, endnode:endnode}))) {
+                if ((areTheyEqual_AsymFlipped(curStep, { startnode: startnode, endnode: endnode }))) {
                     return true
                 }
             }
@@ -940,11 +938,11 @@ function drawConnectionLine(startNode, endNode, color = 'rgba(0,0,0)') {
  * @param {bool} drawHuerisitc.distanceOnly this is for the yellow line that goes from observed node to goal. 
  * @param {minibreadthFirstSearch} drawdistance_heuristic
  */
-function draw_cost(startNode, endNode, cost,drawHuerisitc={isHueristicFactor :false,isDistanceFactor:false,distanceOnly:false},drawdistance_heuristic={isRangeFindingDone:true}) {
+function draw_cost(startNode, endNode, cost, drawHuerisitc = { isHueristicFactor: false, isDistanceFactor: false, distanceOnly: false }, drawdistance_heuristic = { isRangeFindingDone: true }) {
     let rect_width = 50;
     let rect_height = 60;
 
-    if(drawdistance_heuristic!=false){
+    if (drawdistance_heuristic != false) {
         rect_height = 90;
     }
 
@@ -954,19 +952,19 @@ function draw_cost(startNode, endNode, cost,drawHuerisitc={isHueristicFactor :fa
     var b_1 = { x: (b.x - (rect_width / 2)), y: (b.y - (rect_height / 2)) };
 
 
-    
+
 
     // this top if statement only triggers if there is an inital distance show phase
-    if(!(drawdistance_heuristic.isRangeFindingDone)&&(drawHuerisitc.distanceOnly)){
+    if (!(drawdistance_heuristic.isRangeFindingDone) && (drawHuerisitc.distanceOnly)) {
         // todo add function getting distance heuristic
         current_screen.ctx.fillStyle = 'rgba(255,255,255, 0.5)';
         current_screen.ctx.fillRect(b_1.x + 3, b_1.y, rect_width * .86, rect_height * .86);
         // Add cost label to the middle of the line
         current_screen.ctx.fillStyle = "#000";
-        drawDistanceCost(startNode,endNode, b.x - 10, b.y-10);
+        drawDistanceCost(startNode, endNode, b.x - 10, b.y - 10);
 
         //console.log("costts: ",cost);
-    }else{
+    } else {
 
         current_screen.ctx.fillStyle = 'rgba(255,255,255, 0.5)';
         current_screen.ctx.fillRect(b_1.x + 3, b_1.y, rect_width * .86, rect_height * .86);
@@ -974,18 +972,18 @@ function draw_cost(startNode, endNode, cost,drawHuerisitc={isHueristicFactor :fa
         current_screen.ctx.fillStyle = "#000";
 
         //cost
-        drawSingleCost(cost,b.x - 10, b.y - 10)
+        drawSingleCost(cost, b.x - 10, b.y - 10)
 
         // this is the hueristic according to the nodes
-        if(((drawHuerisitc.isHueristicFactor)&&(!(drawHuerisitc.isDistanceFactor)))&&(startNode.wasComputed)&&(startNode.getDijkstra_heuristic(endNode)!=0)){
-            drawHeuristic(startNode,endNode, b.x - 10, b.y + 10);
+        if (((drawHuerisitc.isHueristicFactor) && (!(drawHuerisitc.isDistanceFactor))) && (startNode.wasComputed) && (startNode.getDijkstra_heuristic(endNode) != 0)) {
+            drawHeuristic(startNode, endNode, b.x - 10, b.y + 10);
         }
-        if((((drawHuerisitc.isDistanceFactor)))&&(startNode.wasComputed)){
-            drawDistanceCost(startNode,endNode, b.x - 10, b.y+20);
+        if ((((drawHuerisitc.isDistanceFactor))) && (startNode.wasComputed)) {
+            drawDistanceCost(startNode, endNode, b.x - 10, b.y + 20);
         }
-    }   
-    
-    
+    }
+
+
 }
 
 
@@ -995,8 +993,8 @@ function draw_cost(startNode, endNode, cost,drawHuerisitc={isHueristicFactor :fa
  * @param {number} Coordx 
  * @param {number} Coordy 
  */
-function drawSingleCost(cost,Coordx,Coordy){
-    current_screen.ctx.fillText(cost, Coordx, Coordy );
+function drawSingleCost(cost, Coordx, Coordy) {
+    current_screen.ctx.fillText(cost, Coordx, Coordy);
 }
 
 /**
@@ -1006,12 +1004,12 @@ function drawSingleCost(cost,Coordx,Coordy){
  * @param {number} Coordx 
  * @param {number} Coordy 
  */
-function drawHeuristic(startNode,endNode, Coordx,Coordy){
+function drawHeuristic(startNode, endNode, Coordx, Coordy) {
     current_screen.ctx.fillText(startNode.getDijkstra_heuristic(endNode), Coordx, Coordy);
 }
 
 
-function drawDistanceCost(startnode,endNode,Coordx,Coordy){
+function drawDistanceCost(startnode, endNode, Coordx, Coordy) {
     current_screen.ctx.fillText(startnode.Astar_getAstar_Huerisitic(endNode), Coordx, Coordy);
 }
 
