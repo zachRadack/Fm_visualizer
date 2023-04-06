@@ -613,7 +613,7 @@ this.minibreadthFirstSearch = function(nodes,startingNode,goalNode,NodeCanvasSiz
                 //var node_distance_cost = newNode.getConnectionDistanceCost(manhattanDistance(newNode,this.goalNode));
                 for (let successor of newNode.getNeighbors()) {
                     if (!(successor.Astar_getisItVisited())&&(successor!= this.goalNode)) {
-                        
+                        var distCost = newNode.Astar_setDistanceCostToNeighbor_Goal(successor);
                         var newPath = new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }]));
                         newPath.setDistanceHeruistic(distCost)
                         this.frontier.unshift(newPath)
