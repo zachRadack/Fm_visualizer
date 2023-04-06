@@ -24,13 +24,11 @@ function connectNodes_nonImport(nodes, count,distanceCost=false,screen_width=1,s
     if((distanceCost)){
         var screenscore=manhattanDistance({x:screen_width,y:screen_height},{x:0,y:0})/50;
     }
+    var currentConnections = 0;
     let uf = new UnionFind(nodes.length);
     const edgeSize=edges.size()
     for (let i = 0; i < edgeSize; i++) {
         let {element,priority} = edges.pop();
-        if((element[0]==0||element[1]==0)||(element[0]==2||element[1]==2)){
-            console.log("T");
-        }
         if (!uf.connected(element[0].nodeNumber, element[1].nodeNumber)) {
 
             // todo move cost finders fully into node class or anywhere else.
@@ -42,12 +40,29 @@ function connectNodes_nonImport(nodes, count,distanceCost=false,screen_width=1,s
             }
             if(element[0].addConnection(element[1], cost)){
                 uf.union(element[0].nodeNumber, element[1].nodeNumber);
-                
-                
+
                 drawConnectionLine_middleman(element[0], element[1]);
+                currentConnections+=1;
             }
         }
     }
+    var avg_node_connections = (currentConnections/nodes.length);
+    var max_possible_connections = (nodes.length * (nodes.length-1)) / 2;
+    if((avg_node_connections<count) && (currentConnections <max_possible_connections)){
+        var moreConnections = new PriorityQueue_graphmaker((a, b) => a[1] < b[1]);
+        for (let start = 0; start < nodes.length; start++) {
+            findClosestedNeighbor(moreConnections,nodes[start], nodes, nodes.length-1);
+        }
+        
+        while((avg_node_connections<count) &&(currentConnections < max_possible_connections) && (moreConnections.size()-1 >0)){
+            let {element,priority} = moreConnections.pop();
+            if(element[0].addConnection(element[1], cost)){
+                drawConnectionLine_middleman(element[0], element[1]);
+                currentConnections+=1;
+                avg_node_connections = (currentConnections/nodes.length);
+            }
+        }
+    };
 
     console.log("Reconnected the nodes");
 }
@@ -125,11 +140,9 @@ function findClosestedNeighbor(edges,node, nodes, numberOfNeighbors) {
 
     for (var i = 0; i < nodes.length-1; i++) {
         if (node !== nodes[i]) {
-
-            if(nodes[i]==1){
-                console.log("te");
+            if(!(node.areTheyConnected(nodes[i]))){
+                edges.push([node,nodes[i]],manhattanDistance(node, nodes[i]));
             }
-            edges.push([node,nodes[i]],manhattanDistance(node, nodes[i]));
         }
     }
 
