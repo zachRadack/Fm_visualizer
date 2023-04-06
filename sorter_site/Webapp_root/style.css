@@ -20,7 +20,8 @@ cursor: pointer;
 
 }
 .import_Text_area{
-    max-height: 200px;
+    height: 300px;
+    width: 500px;
     overflow: auto;
 
 }

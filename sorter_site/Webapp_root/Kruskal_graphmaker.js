@@ -10,7 +10,7 @@
  * @param {number} screen_width 
  * @param {number} screen_height 
  */
-function connectNodes(nodes, count,distanceCost=false,screen_width=1,screen_height=1) {
+function connectNodes_nonImport(nodes, count,distanceCost=false,screen_width=1,screen_height=1) {
     console.log("connectNodes ", nodes);
     var edges = new PriorityQueue_graphmaker((a, b) => a[1] < b[1]);
     

@@ -220,20 +220,23 @@ function current_Finite_Machine() {
      * @param {number} totalConnections - The total number of connections that will be created. (Not implmented yet/broken)
      * @param {boolean} isItSimulated - If the canvas is being simulated or not. Off by default.
      * @param {boolean} isDistanceScore - If the distance score is being used or not. On by default. 
-     * @param {boolean} isimportGraph - If the graph is being imported or not. Off by default.
+     * @param {bool} isimportGraph - If the graph is being imported or not. Off by default.
      */
     this.startup = function (totalNodes, totalConnections, isItSimulated,isDistanceScore=true, isimportGraph=false) {
         this.shouldItDrawCosts = true;
         this.isDistanceScore=isDistanceScore;
         this.isItSimulated = isItSimulated;
         this.ctx = this.canvas.getContext("2d");
+        if(isimportGraph){
+            isimportGraph = import_graph();
+            
+        }
+        this.nodes = generateNodes(totalNodes,this.NodeCanvasSizeMultipler,isimportGraph);
         if(!isimportGraph){
-            this.nodes = generateNodes(totalNodes,this.NodeCanvasSizeMultipler);
-            connectNodes(this.nodes, totalConnections,this.isDistanceScore,this.canvas.offsetWidth, this.canvas.offsetHeight);
+            connectNodes_nonImport(this.nodes, totalConnections,this.isDistanceScore,this.canvas.offsetWidth, this.canvas.offsetHeight);
         }else{
-            var {nodes,connections} = import_graph();
-            this.nodes = nodes;
-            this.connections = connections;
+
+            //this.connections = connections;
         }
         console.log("this nodes startup: ", this.nodes)
 
@@ -718,20 +721,37 @@ function startEnd_Node_Selector(nodes) {
  *  where ever the coordinates are setup to.
  * @param {number} count 
  * @param {number} distanceMultipler - this is the used to calculate costs to keep cost numbers sane.
- * @returns {[nodeClass]} list of all generated nodes
+ * @param {Object} isItImported - Optional, if it is imported it will use the imported nodes coordinates
+ * @param {[Object]} isItImported.nodes_json - this contains all nodes along with coords for said nodes
+ * @param {[Object]} isItImported.connections_json - this contains all the connections between nodes and their costs
+ * @param {Number} isItImported.nodes_json.x
+ * @param {Number} isItImported.nodes_json.y
+ * @param {Number} isItImported.nodes_json.nodeNumber
+ * @param {Number} isItImported.connections_json.node1 - order should not matter
+ * @param {Number} isItImported.connections_json.node2 - order should not matter
+ * @param {Number} isItImported.connections_json.cost
+ * @returns {[nodeClass]} array of all nodeclass refrences 
  */
-function generateNodes(count,distanceMultipler,isItImported = false) {
-    
+function generateNodes(count,distanceMultipler,isItImported = null) {
+    var dune;
     var canvas = $("#canvas");
     var canvasWidth = canvas.width();
     var canvasHeight = canvas.height();
     var nodeObjectList = [];
-    if(!(isItImported)){
-        const screenscore=manhattanDistance({x:canvasWidth,y:canvasHeight},{x:0,y:0})/50;
+    if(isItImported==dune){
         for (var i = 0; i < count; i++) {
             var x = Math.floor(Math.random() * canvasWidth);
             var y = Math.floor(Math.random() * canvasHeight);
-            nodeObjectList.push(new nodeClass(x, y, i,distanceMultipler));
+            var NewNode = new nodeClass(x, y, i,distanceMultipler);
+            print_out_json_node(NewNode);
+            nodeObjectList.push(NewNode);
+        }
+    }else{
+        for (var i = 0; i < isItImported.nodes_json.length; i++) {
+            var x = isItImported.nodes_json[i].x;
+            var y = isItImported.nodes_json[i].y;
+            var NewNode = new nodeClass(x, y, i,distanceMultipler);
+            nodeObjectList.push(NewNode);
         }
     }
     return nodeObjectList;
