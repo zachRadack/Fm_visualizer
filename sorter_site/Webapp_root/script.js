@@ -793,6 +793,7 @@ function manhattanDistance(node1, node2) {
  */
 function drawConnections(nodes, curPath = current_screen.curPath, drawConnections_Astar = { isRangeFindingDone: true }) {
     var dune;
+    console.log(current_screen.ctx);
     current_screen.ctx.clearRect(0, 0, canvas.width, canvas.height);
     current_screen.ctx.font = "20px Arial";
 
@@ -807,10 +808,10 @@ function drawConnections(nodes, curPath = current_screen.curPath, drawConnection
             var endNode = connection[a].node;
             if (curPath.length != 0) {
 
-                if (!(isItPathed(curPath, startNode, endNode))) {
-                    drawConnectionLine(startNode, endNode, "rgba(0,0,0)");
+                if ((isItPathed(curPath, startNode, endNode))) {
+                    drawConnectionLine(startNode, endNode, "rgba(255,0,0)",true);
                 } else {
-                    drawConnectionLine(startNode, endNode, "rgba(255,0,0)", true);
+                    drawConnectionLine(startNode, endNode, "rgba(0,0,0)");
                 }
             } else {
                 drawConnectionLine(startNode, endNode, "rgba(0,0,0)");
