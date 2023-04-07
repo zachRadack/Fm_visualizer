@@ -793,16 +793,19 @@ function manhattanDistance(node1, node2) {
  */
 function drawConnections(nodes, curPath = current_screen.curPath, drawConnections_Astar = { isRangeFindingDone: true }) {
     var dune;
-    console.log(current_screen.ctx);
+    //console.log(current_screen.ctx);
     current_screen.ctx.clearRect(0, 0, canvas.width, canvas.height);
     current_screen.ctx.font = "20px Arial";
 
     for (var i = 0; i < nodes.length; i++) {
+        if (nodes[i].isGoal) {
+            goalGradient(nodes[i]);
+        }
+    }
+    for (var i = 0; i < nodes.length; i++) {
         var connection = nodes[i].getNeighbors(true);
         var startNode = nodes[i];
-        if (startNode.isGoal) {
-            goalGradient(startNode, current_screen.ctx)
-        }
+        
         // This itterates through all the connections of the current node
         for (var a = 0; a < connection.length; a++) {
             var endNode = connection[a].node;
@@ -934,10 +937,11 @@ function drawConnectionLine(startNode, endNode, color = 'rgba(0,0,0)', isItPathe
     screen_ctx.beginPath();
     screen_ctx.moveTo(startNode.x, startNode.y);
     screen_ctx.lineTo(endNode.x, endNode.y);
-    screen_ctx.stroke();
+    
     if (isItPathed) {
         drawParrel_line(startNode, endNode, screen_ctx, 10);
     }
+    screen_ctx.stroke();
 
 
 }
@@ -948,10 +952,12 @@ function drawParrel_line(node1, node2, screen_ctx, offset) {
     const len = Math.sqrt(dx * dx + dy * dy);
     const ox = (dy / len) * offset;
     const oy = (-dx / len) * offset;
-    screen_ctx.beginPath();
-    screen_ctx.moveTo(node1.x + ox, node1.y + oy);
     screen_ctx.lineTo(node2.x + ox, node2.y + oy);
-    screen_ctx.stroke();
+    screen_ctx.lineTo(node1.x + ox, node1.y + oy);
+    if (screen_ctx.isContextLost()) {
+        console.log("Context is lost");
+    }
+
 }
 
 /**
@@ -959,10 +965,12 @@ function drawParrel_line(node1, node2, screen_ctx, offset) {
  * @param {nodeClass} node 
  * @param {CanvasRenderingContext2D} screen_ctx 
  */
-function goalGradient(node, screen_ctx) {
+function goalGradient(node) {
     var canvas = $("#canvas");
     var canvasWidth = canvas.width();
     var canvasHeight = canvas.height();
+    const screen_ctx = current_screen.ctx;
+    
     const gradient = screen_ctx.createRadialGradient(node.x, node.y, 20, node.x, node.y, 90);
 
     // Add three color stops
@@ -974,7 +982,7 @@ function goalGradient(node, screen_ctx) {
     screen_ctx.fillStyle = gradient;
 
     screen_ctx.fillRect(0, 0, canvasWidth, canvasHeight);
-
+    screen_ctx.stroke();
 }
 
 /**
