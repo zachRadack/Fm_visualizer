@@ -80,6 +80,7 @@ function connectNodes_JSON(nodes, connections_json) {
         var node2 = nodes.find(item => item.nodeNumber === connection.node2);
         node1.addConnection(node2, connection.cost);
         drawConnectionLine_middleman(node1, node2);
+        print_out_json_connection(node1, node2, connection.cost);
     }
 
 }

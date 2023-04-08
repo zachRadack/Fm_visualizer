@@ -172,7 +172,7 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore = tru
      * @param {number} cost  
      */
     this.connectthem = function (neighbors_Node, cost, secondarycall) {
-        this.NodeConnection.push({ node: neighbors_Node, cost: cost, heuristic: 0, distanceHeuristic: 0 });
+        this.NodeConnection.push({ node: neighbors_Node, cost: cost, heuristic: null, distanceHeuristic: 0 });
 
         this.connections += 1;
     }
@@ -284,9 +284,10 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore = tru
         }
         var current_end_Node = this.areTheyConnected(endnode, true);
         var curConnection = this.NodeConnection[current_end_Node[1]];
-        if ((isItGood) && (current_end_Node[0]) && (curConnection.heuristic < newHeuristicCost)) {
+        if ((curConnection.heuristic==null)|((isItGood) && (current_end_Node[0]) && (curConnection.heuristic > newHeuristicCost))) {
             curConnection.heuristic = newHeuristicCost;
             this.scorefactors.isHueristicFactor = true;
+            curConnection.heuristic
             return true;
         }
 
@@ -299,7 +300,13 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore = tru
      * @returns {number} Paths Heuristic
      */
     this.getDijkstra_heuristic = function (endnode) {
-        return this.NodeConnection[this.areTheyConnected(endnode, true)[1]].heuristic;
+        var connection = this.NodeConnection[this.areTheyConnected(endnode, true)[1]];
+        if(connection.heuristic==null){
+            return 0;
+        }else{
+            return connection.heuristic;
+        }
+        
     }
 
     // * PHYSICAL DISTANCE COST

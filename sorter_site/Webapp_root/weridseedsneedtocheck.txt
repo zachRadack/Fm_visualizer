@@ -6,4 +6,3 @@
 
 
 
-{x:813,y:112,nodeNumber:0},{x:94,y:720,nodeNumber:1},{x:743,y:47,nodeNumber:2},{x:690,y:650,nodeNumber:3},{x:320,y:481,nodeNumber:4},{x:1127,y:229,nodeNumber:5},{x:1050,y:592,nodeNumber:6},{x:382,y:449,nodeNumber:7},{x:984,y:30,nodeNumber:8},{x:803,y:671,nodeNumber:9};{node1:5,node2:8,cost:2},{node1:10,node2:4,cost:3},{node1:1,node2:3,cost:3},{node1:1,node2:9,cost:6},{node1:10,node2:7,cost:8},{node1:6,node2:9,cost:9},{node1:6,node2:7,cost:11},{node1:2,node2:5,cost:12},{node1:4,node2:8,cost:13}

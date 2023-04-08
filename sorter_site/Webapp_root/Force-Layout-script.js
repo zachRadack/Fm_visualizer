@@ -123,14 +123,18 @@ class simulation {
         var nodeHeight= $('.node').height();
         if(node.x<nodeWidth){
             node.x = nodeWidth;
+            node.vx=0;
         }else if(node.x>(this.width-nodeWidth)){
             node.x=this.width-nodeWidth;
+            node.vx=0;
         }
 
         if(node.y<nodeHeight){
             node.y = nodeHeight;
+            node.vy=0;
         }else if(node.y>(this.height-nodeHeight)){
             node.y=this.height-nodeHeight;
+            node.vy=0;
         }
 
     }
@@ -318,9 +322,7 @@ class simulation {
      * @param {[nodeClass]} nodes
      */
     updatePositions(nodes) {
-        if (!(this.isSimulated)) {
-            //this.speedNormalizer(nodes);
-        }
+
         for (const node of nodes) {
             if ((node.beingDragged == false)) {
                 //this.boundaryForce(node);
@@ -335,8 +337,9 @@ class simulation {
                 node.y += node.vy;
 
                 node.setAllConnectionDistanceCosts();
-                this.updateCSSmovement(node);
+                
             }
+            this.updateCSSmovement(node);
         }
     };
 

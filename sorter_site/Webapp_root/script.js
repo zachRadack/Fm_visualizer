@@ -327,7 +327,7 @@ function current_Finite_Machine() {
             for (const node in this.nodes) {
                 this.nodes[node].setHeruticOn();
             }
-            this.frontier = new PriorityQueue((a, b) => (a.cost + a.heuristic) < (b.cost + b.heuristic));
+            this.frontier = new PriorityQueue((a, b) => (a.cost) < (b.cost));
             this.frontier.push(new pathClass(this.observedNode, [{ startnode: this.observedNode, endnode: this.observedNode }]));
         } else if (this.algorithm == "UniformCostSearch") {
             this.frontier = new PriorityQueue((a, b) => (a.cost + a.distanceHeuristic) < (b.cost + b.distanceHeuristic));
@@ -466,8 +466,10 @@ function current_Finite_Machine() {
                     //console.log("push: ",this.frontier);
                     successor.setWasComputed();
                     var newcost = cost + newNode.getCost(successor);
-                    this.frontier.push(new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }]), newcost));
                     newNode.setDijkstra_heuristic(newcost, successor);
+                    console.log("peek frontier: ", this.frontier.peek());
+                    this.frontier.push(new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor}]), newcost));
+                    console.log("peek frontier2: ", this.frontier.peek());
                 }
             }
         } else if ((newNode.visited) || (newNode.isObserved)) {
@@ -799,7 +801,9 @@ function drawConnections(nodes, curPath = current_screen.curPath, drawConnection
 
     for (var i = 0; i < nodes.length; i++) {
         if (nodes[i].isGoal) {
+            // this highlights the current goal node
             goalGradient(nodes[i]);
+            break;
         }
     }
     for (var i = 0; i < nodes.length; i++) {
@@ -910,9 +914,12 @@ function areTheyEqual_AsymFlipped(singlenode, Node2) {
 }
 
 /**
- * This is a werid holdover functions only called in from the graph maker
- *
- * TODO: delete this later.
+ * This is a werid holdover function, that is utilized by the graph makers
+ * 
+ * This requires alot less stress than its bigger brother drawConnectionLine. 
+ * Also makes debugging easier for graphmakers cause you can see their step by step
+ * 
+ * Only triggers when a Create-canvas-btn is pressed.
  * 
  * @param {nodeClass} startNode 
  * @param {nodeClass} endNode 
@@ -962,8 +969,8 @@ function drawParrel_line(node1, node2, screen_ctx, offset) {
 
 /**
  * This makes a gradient around the desired node
+ * 
  * @param {nodeClass} node 
- * @param {CanvasRenderingContext2D} screen_ctx 
  */
 function goalGradient(node) {
     var canvas = $("#canvas");
