@@ -59,6 +59,7 @@ function connectNodes_nonImport(nodes, count, distanceCost = false, screen_width
             if (element[0].addConnection(element[1], cost)) {
                 drawConnectionLine_middleman(element[0], element[1]);
                 currentConnections += 1;
+                print_out_json_connection(element[0], element[1],cost)
                 avg_node_connections = (currentConnections / nodes.length);
             }
         }

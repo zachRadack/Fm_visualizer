@@ -8,6 +8,12 @@ class PriorityQueue {
         this._heap = [];
         this._comparator = comparator;
     }
+    printEntireTreePriority() {
+        for (let i = 0; i < this._heap.length; i++) {
+            document.getElementById("currentChoices").value += this._heap[i].priority;
+            ;
+        }
+    }
     size() {
         return this._heap.length;
     }
@@ -76,6 +82,8 @@ class PriorityQueue {
             this.push(value);
         });
     }
+
+    
 }
 
 
@@ -104,6 +112,12 @@ class PriorityQueue_graphmaker {
         }
 
 
+    }
+    printEntireTreePriority() {
+        for (let i = 0; i < this._heap.length; i++) {
+            document.getElementById("currentChoices").value += this._heap[i].priority;
+            ;
+        }
     }
 
     pop() {

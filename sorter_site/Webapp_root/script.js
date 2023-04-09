@@ -42,7 +42,7 @@ $(document).ready(function () {
         var startNode = parseInt($("#start").val());
         var endNode = parseInt($("#end").val());
         var algorithm = $("#algorithm").val();
-
+        document.getElementById("currentChoices").value = "";
         console.log("Start node: " + startNode);
         console.log("End node: " + endNode);
         console.log("Algorithm: " + algorithm);
@@ -71,6 +71,7 @@ $(document).ready(function () {
      * This pushes the algorithm through a single step.
      */
     $("#next-step-btn").click(function () {
+        document.getElementById("currentChoices").value = "";
         if ((current_screen.gameOverGetter())) {
             if (current_screen.algorithmGetter() == "dfs") {
                 current_screen.Depthfirstsearch();
@@ -85,6 +86,7 @@ $(document).ready(function () {
             }
             current_screen.theSimulator.curPath_setter(current_screen.curPath, current_screen.hasAlgoDistanceVisualizerFinished)
         };
+        current_screen.printFrontier();
     });
 
     /** 
@@ -224,7 +226,7 @@ function current_Finite_Machine() {
      * @param {bool} isimportGraph - If the graph is being imported or not. Off by default.
      */
     this.startup = function (totalNodes, totalConnections, isItSimulated, isDistanceScore = true, isimportGraph = false) {
-
+        
         this.shouldItDrawCosts = true;
         this.isDistanceScore = isDistanceScore;
         this.isItSimulated = isItSimulated;
@@ -279,6 +281,7 @@ function current_Finite_Machine() {
 
         // Draw initial connections on canvas
         startEnd_Node_Selector(totalNodes);
+        document.getElementById("currentChoices").value = "";
 
         // starts the force layout Simulation
         this.theSimulator = new simulation(this.canvas.offsetWidth, this.canvas.offsetHeight, this.nodes, isItSimulated);
@@ -467,9 +470,9 @@ function current_Finite_Machine() {
                     successor.setWasComputed();
                     var newcost = cost + newNode.getCost(successor);
                     newNode.setDijkstra_heuristic(newcost, successor);
-                    console.log("peek frontier: ", this.frontier.peek());
+                    //console.log("peek frontier: ", this.frontier.peek());
                     this.frontier.push(new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor}]), newcost));
-                    console.log("peek frontier2: ", this.frontier.peek());
+                    //console.log("peek frontier2: ", this.frontier.peek());
                 }
             }
         } else if ((newNode.visited) || (newNode.isObserved)) {
@@ -569,6 +572,10 @@ function current_Finite_Machine() {
         return this.isDistanceScore;
     }
 
+    this.printFrontier = function () {
+        console.log(typeof this.frontier);
+        this.frontier.printEntireTreePriority();
+    }
 }
 
 
