@@ -91,7 +91,7 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore = tru
         return this.isGoal;
     }
     /**
-     * send in the node object that you want to get the cost, if they are connected
+     * send in the node object that you want to get the cost, if they are connected.
      * returns -1 if the 2 nodes are not connected
      * 
      * {isDistanceFactor:false,isHueristicFactor:false,distanceOnly:false}
@@ -99,7 +99,7 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore = tru
      * @returns {number} total cost (with hueristic) between the 2 nodes connection
      */
     this.getCost = function (theNodeOfDesire) {
-        if (this.nodeConnectionLength() > 0) {
+        if ((theNodeOfDesire!=this)||(this.nodeConnectionLength() > 0)) {
             var areConnected = this.areTheyConnected(theNodeOfDesire, true);
             if (this.scorefactors.isHueristicFactor) {
 

@@ -73,20 +73,26 @@ $(document).ready(function () {
     $("#next-step-btn").click(function () {
         document.getElementById("currentChoices").value = "";
         if (!(current_screen.gameOverGetter())) {
-            if (current_screen.algorithmGetter() == "dfs") {
+            var algo = current_screen.algorithmGetter()
+            if (algo == "dfs") {
                 current_screen.Depthfirstsearch();
-            } else if (current_screen.algorithmGetter() == "bfs") {
+            } else if (algo == "bfs") {
                 current_screen.breadthfirstsearch();
-            } else if (current_screen.algorithmGetter() == "Dijkstra") {
+            } else if (algo == "Dijkstra") {
                 current_screen.Dijkstra();
-            } else if (current_screen.algorithmGetter() == "UniformCostSearch") {
+            } else if (algo == "UniformCostSearch") {
                 current_screen.UniformCostSearch();
-            } else if (current_screen.algorithmGetter() == "Astar") {
+            } else if (algo == "Astar") {
                 current_screen.AstarAlgorithm();
             }
-            current_screen.theSimulator.curPath_setter(current_screen.curPath, current_screen.hasAlgoDistanceVisualizerFinished)
+            current_screen.theSimulator.curPath_setter(current_screen.curPath, current_screen.hasAlgoDistanceVisualizerFinished);
+            var doesItHeap = true;
+            if (algo == "bfs"|| algo == "dfs" ) {
+                doesItHeap=false;
+            }
+            printToPotentialPaths(current_screen.getFroniter_Heap(doesItHeap));
         };
-        printToPotentialPaths(current_screen.getFroniter_Heap());
+        
     });
 
     /** 
@@ -585,8 +591,11 @@ function current_Finite_Machine() {
         return this.isDistanceScore;
     }
 
-    this.getFroniter_Heap = function () {
+    this.getFroniter_Heap = function (doesItHeap) {
         console.log("heap:", this.frontier);
+        if(doesItHeap){
+            return this.frontier.heap;
+        }
         return this.frontier;
     }
 
@@ -704,19 +713,29 @@ function printToPotentialPaths(froniter){
 function PrintCurrentPath(Path, desiredIdPrint="curPathId",shouldWeWipe=true) {
     
     if (!(current_screen.gameOverGetter())) {
+        var theDoc = document.getElementById(desiredIdPrint);
         if(shouldWeWipe){
-            document.getElementById(desiredIdPrint).innerHTML = "";
+            theDoc.innerHTML = "";
+        }
+        var isBfsDfs = false;
+        if(["bfs","dfs"].indexOf(current_screen.algorithmGetter())  > -1){
+        isBfsDfs = true;
         }
         var currentpath = "";
         Path.forEach(function (item, key) {
-            currentpath += String(item.endnode.nodeNumber + 1) + " ==>";
+            currentpath += "<mark>"+String(item.endnode.nodeNumber + 1) + "</mark> =";
+            if(isBfsDfs){
+                currentpath += "=> ";
+            }else{
+                // for anything that should show value, this should display costs
+                currentpath += "("+item.startnode.getCost(item.endnode)+")=> ";
+            }
         });
 
-
-        if(shouldWeWipe){
-            document.getElementById(desiredIdPrint).innerHTML = currentpath.substring(0, currentpath.length - 3);
+        if(isBfsDfs){
+            theDoc.innerHTML += currentpath.substring(0, currentpath.length - 4)+'<br />';
         }else{
-            document.getElementById(desiredIdPrint).innerHTML += currentpath.substring(0, currentpath.length - 3)+'<br />';
+            theDoc.innerHTML += currentpath.substring(0, currentpath.length - 3)+'<br />';
         }
         
     }
