@@ -72,7 +72,7 @@ $(document).ready(function () {
      */
     $("#next-step-btn").click(function () {
         document.getElementById("currentChoices").value = "";
-        if ((current_screen.gameOverGetter())) {
+        if (!(current_screen.gameOverGetter())) {
             if (current_screen.algorithmGetter() == "dfs") {
                 current_screen.Depthfirstsearch();
             } else if (current_screen.algorithmGetter() == "bfs") {
@@ -86,7 +86,7 @@ $(document).ready(function () {
             }
             current_screen.theSimulator.curPath_setter(current_screen.curPath, current_screen.hasAlgoDistanceVisualizerFinished)
         };
-        current_screen.printFrontier();
+        printToPotentialPaths(current_screen.getFroniter_Heap());
     });
 
     /** 
@@ -203,7 +203,7 @@ function current_Finite_Machine() {
     this.isItSimulated = false;
     this.shouldItDrawCosts = true;
 
-    this.isGameOver = false;
+    this.GameOverCheck = false;
     this.isDistanceScore;
     this.NodeCanvasSizeMultipler = manhattanDistance({ x: this.canvas.offsetWidth, y: this.canvas.offsetHeight }, { x: 0, y: 0 }) / 50;
     // used in astar to represent if ready to start actual search algorithem
@@ -226,7 +226,7 @@ function current_Finite_Machine() {
      * @param {bool} isimportGraph - If the graph is being imported or not. Off by default.
      */
     this.startup = function (totalNodes, totalConnections, isItSimulated, isDistanceScore = true, isimportGraph = false) {
-        
+
         this.shouldItDrawCosts = true;
         this.isDistanceScore = isDistanceScore;
         this.isItSimulated = isItSimulated;
@@ -365,7 +365,7 @@ function current_Finite_Machine() {
         // node color (as of time of writing this, it is pink.)
         // then it goes through with the current path and makes it set to the observed node color
         // which is green.
-        this.isGameOver = true;
+        this.GameOverCheck = true;
         console.log("Goal Found");
         this.observedNode.setObserver();
 
@@ -379,8 +379,8 @@ function current_Finite_Machine() {
         document.getElementById((this.endNode).toString()).classList.add("the-goal");
     }
 
-    this.gameOverGetter= function (){
-        return this.isGameOver;
+    this.gameOverGetter = function () {
+        return this.GameOverCheck;
     }
 
     /** 
@@ -388,6 +388,7 @@ function current_Finite_Machine() {
     */
     this.Depthfirstsearch = function () {
         const { newNode, path, cost, poppedNode } = this.setNewCurrentPath();
+        
         PrintCurrentPath(path);
         //console.log("hayy: " , this.nodes[2].visited, " here is number ", this.nodes[2].nodeNumber);
         // see if we hit the goal yet
@@ -399,14 +400,15 @@ function current_Finite_Machine() {
         } else if ((!(newNode.visited) && !(newNode.isObserved)) || (this.first_run)) {
             this.isGameOver(newNode, poppedNode);
             for (let successor of newNode.getNeighbors()) {
-                this.frontier.push(new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }])));
+                if (!(successor.visited)) {
+                    successor.setWasComputed();
+                    this.frontier.push(new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }])));
+                }
                 if (successor.isThisGoal()) {
                     // if nearby, this will prioritize the goal node
                     break;
                 }
-                if (!(successor.visited)) {
-                    successor.setWasComputed();
-                }
+                
             }
         } else if ((newNode.visited) || (newNode.isObserved)) {
             console.log("ALREADY VISITED");
@@ -429,15 +431,17 @@ function current_Finite_Machine() {
         } else if ((!(newNode.visited) && !(newNode.isObserved)) || (this.first_run)) {
             this.isGameOver(newNode, poppedNode);
             for (let successor of newNode.getNeighbors()) {
-                var newPath = new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }]));
-                if (successor.isThisGoal()) {
-                    // if nearby, this will prioritize the goal node
-                    this.frontier.push(newPath)
-                    break;
-                }
+                
                 if (!(successor.visited)) {
                     successor.setWasComputed();
-                    this.frontier.unshift(newPath)
+                    var newPath = new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }]));
+                    if (successor.isThisGoal()) {
+                        // if nearby, this will prioritize the goal node
+                        this.frontier.push(newPath)
+                        break;
+                    }else{
+                        this.frontier.unshift(newPath)
+                    }
                 }
             }
         } else if ((newNode.visited) || (newNode.isObserved)) {
@@ -465,13 +469,13 @@ function current_Finite_Machine() {
 
             this.isGameOver(newNode, poppedNode);
             for (let successor of newNode.getNeighbors()) {
-                if (!(successor.visited)) {
+                if (!(successor.visited)|| (successor==this.startNode)) {
                     //console.log("push: ",this.frontier);
                     successor.setWasComputed();
                     var newcost = cost + newNode.getCost(successor);
                     newNode.setDijkstra_heuristic(newcost, successor);
                     //console.log("peek frontier: ", this.frontier.peek());
-                    this.frontier.push(new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor}]), newcost));
+                    this.frontier.push(new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }]), newcost));
                     //console.log("peek frontier2: ", this.frontier.peek());
                 }
             }
@@ -488,10 +492,10 @@ function current_Finite_Machine() {
             //visualizer step
             this.hasAlgoDistanceVisualizerFinished.bfsStep();
         } else {
-            console.log("logged: ", (this.frontier.peek()));
+            //console.log("logged: ", (this.frontier.peek()));
             var { newNode, path, cost, poppedNode } = this.setNewCurrentPath();
             PrintCurrentPath(path);
-            console.log(" now logged: ", (this.frontier.peek()));
+            //console.log(" now logged: ", (this.frontier.peek()));
             console.log(cost);
             // see if we hit the goal yet
             if (newNode.isThisGoal()) {
@@ -503,7 +507,7 @@ function current_Finite_Machine() {
 
                 this.isGameOver(newNode, poppedNode);
                 for (let successor of newNode.getNeighbors()) {
-                    if (!(successor.visited)) {
+                    if (!(successor.visited)|| (successor==this.startNode)) {
                         //console.log("push: ",this.frontier);
                         successor.setWasComputed();
                         var distCost = newNode.Astar_setDistanceCostToNeighbor_Goal(successor);
@@ -563,19 +567,29 @@ function current_Finite_Machine() {
     }
 
 
-
+    /**
+     * This function is used to get the algorithm currently used
+     * @return {string}
+     */
     this.algorithmGetter = function () {
         return this.algorithm;
     }
 
+    /**
+     * This function is used to determine if distance impacts score
+     * Todo: implement this
+     * 
+     * @return {bool}
+     */
     this.isDistanceScoreGetter = function () {
         return this.isDistanceScore;
     }
 
-    this.printFrontier = function () {
-        console.log(typeof this.frontier);
-        this.frontier.printEntireTreePriority();
+    this.getFroniter_Heap = function () {
+        console.log("heap:", this.frontier);
+        return this.frontier;
     }
+
 }
 
 
@@ -667,21 +681,55 @@ this.minibreadthFirstSearch = function (nodes, startingNode, goalNode, NodeCanva
 
 
 // * FREE FLOATING FUNCTIONS
+
+
+function printToPotentialPaths(froniter){
+    var potentialPaths = "";
+    document.getElementById("currentChoices").innerHTML = '';
+    console.log(froniter);
+    froniter.forEach(function (item, key) {
+        
+        console.log("the paths:",);
+        if(item.path.slice(-1).visited=false);
+        PrintCurrentPath(item.path, "currentChoices",false);
+        //document.getElementById("currentChoices").innerHTML += '<br>';
+    });
+    
+}
 /**
  * prints current path to an html element
  * @param {Object} Path - This is the current path that is currently in mind by the algorithem. 
- * @param {[Object]} curPath
- * @param {nodeClass} Path.curPath.startnode 
- * @param {nodeClass} Path.curPath.startnode
+ * @param {string} desiredIdPrint - This is the id of the html element that you want to print to
  */
-function PrintCurrentPath(Path) {
-    document.getElementById("curPathId").textContent = "";
-    var currentpath = "";
-    Path.forEach(function (item, key) {
-        currentpath += String(item.endnode.nodeNumber + 1) + "==>";
-    });
-    document.getElementById("curPathId").textContent = currentpath.substring(0, currentpath.length - 3);;
+function PrintCurrentPath(Path, desiredIdPrint="curPathId",shouldWeWipe=true) {
+    
+    if (!(current_screen.gameOverGetter())) {
+        if(shouldWeWipe){
+            document.getElementById(desiredIdPrint).innerHTML = "";
+        }
+        var currentpath = "";
+        Path.forEach(function (item, key) {
+            currentpath += String(item.endnode.nodeNumber + 1) + " ==>";
+        });
+
+
+        if(shouldWeWipe){
+            document.getElementById(desiredIdPrint).innerHTML = currentpath.substring(0, currentpath.length - 3);
+        }else{
+            document.getElementById(desiredIdPrint).innerHTML += currentpath.substring(0, currentpath.length - 3)+'<br />';
+        }
+        
+    }
 }
+
+function isThereAnyPathRepeats(path) {
+    currentpath=path;
+    path.forEach(function (item, key) {
+        currentpath.push(item.endnode.nodeNumber);
+    });
+
+}
+
 /**
  * this function handles making current node green and if there already is one
  * it will first remove that ones  observed-node class and add visited-node class, which makes it red
@@ -721,11 +769,14 @@ function new_ObservedNode(newNode, observedNode, first_run, path = null, nodes =
 function startEnd_Node_Selector(nodes) {
     //<option value="0">Node 1</option>
     if (nodes > 2) {
-        for (let i = 3; i < nodes + 1; i++) {
+        document.querySelector('#start').innerHTML = '';
+        document.querySelector('#end').innerHTML = '';
+        for (let i = 1; i < nodes + 1; i++) {
             let node_counterstart = document.createElement('option');
             node_counterstart.value = i - 1;
             node_counterstart.text = ("Node " + parseInt(i));
             let node_counterend = document.createElement('option');
+            node_counterend.selected = "selected";
             node_counterend.value = i - 1;
             node_counterend.text = ("Node " + parseInt(i));
             document.querySelector('#start').appendChild(node_counterstart);
@@ -816,14 +867,14 @@ function drawConnections(nodes, curPath = current_screen.curPath, drawConnection
     for (var i = 0; i < nodes.length; i++) {
         var connection = nodes[i].getNeighbors(true);
         var startNode = nodes[i];
-        
+
         // This itterates through all the connections of the current node
         for (var a = 0; a < connection.length; a++) {
             var endNode = connection[a].node;
             if (curPath.length != 0) {
 
                 if ((isItPathed(curPath, startNode, endNode))) {
-                    drawConnectionLine(startNode, endNode, "rgba(255,0,0)",true);
+                    drawConnectionLine(startNode, endNode, "rgba(255,0,0)", true);
                 } else {
                     drawConnectionLine(startNode, endNode, "rgba(0,0,0)");
                 }
@@ -951,7 +1002,7 @@ function drawConnectionLine(startNode, endNode, color = 'rgba(0,0,0)', isItPathe
     screen_ctx.beginPath();
     screen_ctx.moveTo(startNode.x, startNode.y);
     screen_ctx.lineTo(endNode.x, endNode.y);
-    
+
     if (isItPathed) {
         drawParrel_line(startNode, endNode, screen_ctx, 10);
     }
@@ -984,7 +1035,7 @@ function goalGradient(node) {
     var canvasWidth = canvas.width();
     var canvasHeight = canvas.height();
     const screen_ctx = current_screen.ctx;
-    
+
     const gradient = screen_ctx.createRadialGradient(node.x, node.y, 20, node.x, node.y, 90);
 
     // Add three color stops

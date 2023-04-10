@@ -5,27 +5,27 @@ const right = i => (i + 1) << 1;
 
 class PriorityQueue {
     constructor(comparator = (a, b) => a > b) {
-        this._heap = [];
+        this.heap = [];
         this._comparator = comparator;
     }
+
     printEntireTreePriority() {
-        for (let i = 0; i < this._heap.length; i++) {
-            document.getElementById("currentChoices").value += this._heap[i].priority;
-            ;
+        for (let i = 0; i < this.heap.length; i++) {
+            document.getElementById("currentChoices").value += this.heap[i].priority;
         }
     }
     size() {
-        return this._heap.length;
+        return this.heap.length;
     }
     isEmpty() {
         return this.size() == 0;
     }
     peek() {
-        return this._heap[topp];
+        return this.heap[topp];
     }
     push(...values) {
         values.forEach(value => {
-            this._heap.push(value);
+            this.heap.push(value);
             this._siftUp();
         });
         return this.size();
@@ -36,21 +36,21 @@ class PriorityQueue {
         if (bottom > topp) {
             this._swap(topp, bottom);
         }
-        this._heap.pop();
+        this.heap.pop();
         this._siftDown();
         return poppedValue;
     }
     replace(value) {
         const replacedValue = this.peek();
-        this._heap[topp] = value;
+        this.heap[topp] = value;
         this._siftDown();
         return replacedValue;
     }
     _greater(i, j) {
-        return this._comparator(this._heap[i], this._heap[j]);
+        return this._comparator(this.heap[i], this.heap[j]);
     }
     _swap(i, j) {
-        [this._heap[i], this._heap[j]] = [this._heap[j], this._heap[i]];
+        [this.heap[i], this.heap[j]] = [this.heap[j], this.heap[i]];
     }
     _siftUp() {
         let node = this.size() - 1;
@@ -76,11 +76,15 @@ class PriorityQueue {
     }
 
     _rebuildHeap() {
-        const oldHeap = this._heap;
-        this._heap = [];
+        const oldHeap = this.heap;
+        this.heap = [];
         oldHeap.forEach(value => {
             this.push(value);
         });
+    }
+
+    print() {
+        console.log(this.heap);
     }
 
     
@@ -113,12 +117,7 @@ class PriorityQueue_graphmaker {
 
 
     }
-    printEntireTreePriority() {
-        for (let i = 0; i < this._heap.length; i++) {
-            document.getElementById("currentChoices").value += this._heap[i].priority;
-            ;
-        }
-    }
+
 
     pop() {
         return this.items.shift();
