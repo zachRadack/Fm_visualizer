@@ -79,7 +79,10 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore = tru
         this.wasComputed = true;
         document.getElementById((this.nodeNumber).toString()).classList.add("was-computer");
     }
-
+    
+    this.getWasComputed = function () {
+        return this.wasComputed;
+    }
     /**
      * To goal or not to goal, that is the goal
      * @returns {bool} if given node is a goal

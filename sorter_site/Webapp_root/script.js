@@ -432,7 +432,7 @@ function current_Finite_Machine() {
             this.isGameOver(newNode, poppedNode);
             for (let successor of newNode.getNeighbors()) {
                 
-                if (!(successor.visited)) {
+                if (!(successor.visited)&&!(successor.getWasComputed())) {
                     successor.setWasComputed();
                     var newPath = new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }]));
                     if (successor.isThisGoal()) {
