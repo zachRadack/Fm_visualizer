@@ -400,7 +400,7 @@ function current_Finite_Machine() {
         } else if ((!(newNode.visited) && !(newNode.isObserved)) || (this.first_run)) {
             this.isGameOver(newNode, poppedNode);
             for (let successor of newNode.getNeighbors()) {
-                if (!(successor.visited)) {
+                if (!(successor.visited)&&!(successor.getWasComputed())){
                     successor.setWasComputed();
                     this.frontier.push(new pathClass(successor, path.concat([{ startnode: newNode, endnode: successor }])));
                 }
@@ -440,7 +440,7 @@ function current_Finite_Machine() {
                         this.frontier.push(newPath)
                         break;
                     }else{
-                        this.frontier.unshift(newPath)
+                        this.frontier.unshift(newPath);
                     }
                 }
             }
