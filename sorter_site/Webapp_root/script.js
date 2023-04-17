@@ -723,19 +723,25 @@ function PrintCurrentPath(Path, desiredIdPrint="curPathId",shouldWeWipe=true) {
         }
         var currentpath = "";
         Path.forEach(function (item, key) {
-            currentpath += "<mark>"+String(item.endnode.nodeNumber + 1) + "</mark> =";
+            
             if(isBfsDfs){
-                currentpath += "=> ";
+                currentpath += "==> ";
             }else{
+                var value = item.startnode.getDijkstra_heuristic(item.endnode);
+                if(value != undefined){
                 // for anything that should show value, this should display costs
-                currentpath += "("+item.startnode.getCost(item.endnode)+")=> ";
+                currentpath += "=("+item.startnode.getDijkstra_heuristic(item.endnode)+")=> ";
+                }else{
+                    currentpath += "==> ";
+                }
             }
+            currentpath += "<mark>"+String(item.endnode.nodeNumber + 1) + "</mark> ";
         });
 
         if(isBfsDfs){
-            theDoc.innerHTML += currentpath.substring(0, currentpath.length - 4)+'<br />';
+            theDoc.innerHTML += currentpath+'<br />';
         }else{
-            theDoc.innerHTML += currentpath.substring(0, currentpath.length - 3)+'<br />';
+            theDoc.innerHTML += currentpath+'<br />';
         }
         
     }

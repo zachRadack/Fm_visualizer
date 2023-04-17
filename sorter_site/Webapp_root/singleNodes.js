@@ -102,12 +102,17 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore = tru
         if ((theNodeOfDesire!=this)||(this.nodeConnectionLength() > 0)) {
             var areConnected = this.areTheyConnected(theNodeOfDesire, true);
             if (this.scorefactors.isHueristicFactor) {
-
+                
                 if (areConnected[0]) {
+                    
                     var desiredConnection = this.NodeConnection[areConnected[1]];
+                    console.log(this.nodeNumber, "=>", theNodeOfDesire.nodeNumber, " - ", desiredConnection.cost + desiredConnection.heuristic)
+                    if(this.nodeNumber==9 && theNodeOfDesire.nodeNumber==1){
+                        console.log("break")
+                    }
                     return desiredConnection.cost + desiredConnection.heuristic;
                 } else {
-                    console.log("getCost- failed to find connection - ", this, " => ", theNodeOfDesire)
+                    //console.log("getCost- failed to find connection - ", this, " => ", theNodeOfDesire)
                 }
 
             } else if (this.scorefactors.isDistanceFactor) {
@@ -115,14 +120,16 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore = tru
                 if (areConnected[0]) {
                     return this.NodeConnection[areConnected[1]].cost + this.NodeConnection[areConnected[1]].distanceHeuristic;
                 } else {
-                    console.log("getCost- failed to find connection - ", this, " => ", theNodeOfDesire)
+                    //console.log("getCost- failed to find connection - ", this, " => ", theNodeOfDesire)
                 }
 
             }
         }
-        console.log("getCost- failed no reason - ", this, "=>", theNodeOfDesire)
+        //console.log("getCost- failed no reason - ", this, "=>", theNodeOfDesire)
         return -1
     }
+
+    
 
     /**
      * This returns the nodes coords.
@@ -304,11 +311,13 @@ function nodeClass(x, y, nodeNum, NodeCanvasSizeMultipler, isDistanceScore = tru
      */
     this.getDijkstra_heuristic = function (endnode) {
         var connection = this.NodeConnection[this.areTheyConnected(endnode, true)[1]];
+        var dune;
+        if(connection!=dune){
         if(connection.heuristic==null){
             return 0;
         }else{
             return connection.heuristic;
-        }
+        }}
         
     }
 
