@@ -1,7 +1,6 @@
 # Finite machine, Search visualizer 
 
-This is a step by step search visualizer. It is currently under development. 
-
+This is a step by step search visualizer. 
 Capable of producing its own random graphs, making your own custom json graphs, or even just editing a random produced json!
 
 I did this by breaking the typically searches so they only do a single itteration (with some technical expections).
