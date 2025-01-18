@@ -1,6 +1,6 @@
 # Finite machine, Search visualizer 
 
-Github Page link: https://zachradack.github.io/Fm_visualizer/  
+Github Page link: https://zachradack.github.io/Fm_visualizer/index.html  
 This is a step by step search visualizer. 
 Capable of producing its own random graphs, making your own custom json graphs, or even just editing a random produced json!
 
